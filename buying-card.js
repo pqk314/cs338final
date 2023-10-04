@@ -1,4 +1,4 @@
-document.querySelectorAll(".card").forEach(element => {
+document.querySelectorAll(".buyable-card").forEach(element => {
     element.addEventListener("click", () => cardBought(element))
 })
 
