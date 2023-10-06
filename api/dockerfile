@@ -1,0 +1,33 @@
+# We are starting from a go image
+FROM golang:1.21
+
+# The WORKDIR command both creates a directory in the container 
+# and sets that directory to be the current directory for all further commands
+WORKDIR /api
+
+# Download Go modules
+COPY go.mod ./
+RUN go mod download
+# RUN go mod init
+
+# Copy the source code. Note the slash at the end, as explained in
+# https://docs.docker.com/engine/reference/builder/#copy
+COPY *.go ./
+
+# Build
+RUN go build -o /cs338final
+
+
+
+# We want port 5000 (the default Flask port) to be used outside the container
+EXPOSE 5000
+
+
+
+# When the container starts running,
+#    This is the command that we want to be executed
+CMD ["/cs338final"]
+
+# Note: The following also works ...
+#   CMD ["python3", "app.py"]
+ 
