@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import render_template
+from flask import url_for
 import requests
 
 app = Flask(__name__)
@@ -24,7 +25,16 @@ def game_page(game_id):
     cards = hand[1:-1].split(",")
     for i in range(len(cards)):
         cards[i] = cards[i].strip()[1:-1]
-    return render_template("front-end.html", hand=cards)
+    card_pics = {
+        "copper": url_for('static', filename='images/372px-Copper.jpg'),
+        "silver": url_for('static', filename='images/375px-Silver.jpg'),
+        "gold": url_for('static', filename='images/375px-Gold.jpg'),
+        "estate": url_for('static', filename='images/373px-Estate.jpg'),
+        "duchy": url_for('static', filename='images/372px-Duchy.jpg'),
+        "province": url_for('static', filename='images/375px-Province.jpg'),
+        "curse": url_for('static', filename='images/372px-Curse.jpg')
+    }
+    return render_template("front-end.html", hand=cards, images=card_pics)
 
 
 @app.route("/<int:game_id>/cardbought/<card_id>/")

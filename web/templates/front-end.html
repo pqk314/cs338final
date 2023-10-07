@@ -6,23 +6,22 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='card-format.css') }}">
 </head>
 <body>
-    <div id="base-cards">
-        <img class="buyable card copper" id="copper" alt="copper - treasure - worth 1 coin - costs 0 coins">
-        <img class="buyable card silver" id="silver" alt="silver - treasure - worth 2 coins - costs 3 coins">
-        <img class="buyable card gold" id="gold" alt="gold - treasure - worth 3 coins - costs 6 coins">
-        <img class="buyable card estate" id="estate" alt="estate - victory - worth 1 victory point - costs 2 coins">
-        <img class="buyable card duchy" id="duchy" alt="duchy - victory - worth 3 victory point - costs 5 coins">
-        <img class="buyable card province" id="province" alt="province - victory - worth 6 victory point - costs 8 coins">
-        <img class="buyable card curse" id="curse" alt="curse - worth -1 victory points - costs 0 coins">
-        <script src="{{ url_for('static', filename='base-cards.js') }}"></script>
+    <div id="base-cards" class="card-container">
+        <img src="{{ images['copper'] }}" class="buyable card copper" id="copper" alt="copper - treasure - worth 1 coin - costs 0 coins">
+        <img src="{{ images['silver'] }}" class="buyable card silver" id="silver" alt="silver - treasure - worth 2 coins - costs 3 coins">
+        <img src="{{ images['gold'] }}" class="buyable card gold" id="gold" alt="gold - treasure - worth 3 coins - costs 6 coins">
+        <img src="{{ images['estate'] }}" class="buyable card estate" id="estate" alt="estate - victory - worth 1 victory point - costs 2 coins">
+        <img src="{{ images['duchy'] }}" class="buyable card duchy" id="duchy" alt="duchy - victory - worth 3 victory point - costs 5 coins">
+        <img src="{{ images['province'] }}" class="buyable card province" id="province" alt="province - victory - worth 6 victory point - costs 8 coins">
+        <img src="{{ images['curse'] }}" class="buyable card curse" id="curse" alt="curse - worth -1 victory points - costs 0 coins">
     </div>
-
-    <div id="hand">
-        <p>{{ hand }}</p>
+    <p style="text-align:center; background:white">Your Hand:</p>
+    <div id="hand" class="card-container">
         {% for card in hand %}
-            <img class="{{ card }}" alt="{{ card }} ">
+            <img src="{{ images[card] }}"class="card {{ card }}" alt="{{ card }} ">
         {% endfor %}
     </div>
+    <script src="{{ url_for('static', filename='card-layout.js') }}"></script>
     <script src="{{ url_for('static', filename='buying-card.js') }}"></script>
 </body>
 </html>
