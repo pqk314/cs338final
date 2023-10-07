@@ -17,11 +17,12 @@
         <script src="{{ url_for('static', filename='base-cards.js') }}"></script>
     </div>
 
-<!--    <div id="hand">-->
-<!--        { % for card in hand % }-->
-
-<!--        { % endfor % }-->
-<!--    </div>-->
+    <div id="hand">
+        <p>{{ hand }}</p>
+        {% for card in hand %}
+            <img class="{{ card }}" alt="{{ card }} ">
+        {% endfor %}
+    </div>
     <script src="{{ url_for('static', filename='buying-card.js') }}"></script>
 </body>
 </html>

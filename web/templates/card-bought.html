@@ -1,4 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<script>window.location.href="/"</script>
+<script>
+    const address = window.location.toString()
+    window.location.href=address.substring(0, address.indexOf("cardbought"))
+</script>
 </html>
