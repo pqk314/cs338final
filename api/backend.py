@@ -35,7 +35,7 @@ class Game:
         """shuffles deck, this should be final, really there is no need to change this"""
         for i in range(len(self.deck)):
             idx = randint(i, len(self.deck) - 1)
-            temp = self.deck[]
+            temp = self.deck[i]
             self.deck[i] = self.deck[idx]
             self.deck[idx] = temp
 
