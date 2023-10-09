@@ -9,7 +9,7 @@ import commands
 
 class multicommand:
     def __init__(self, multicommand):
-        self.commands = [command(c) for c in self.getSubcommands(multicommand)]
+        self.commands = [command(c) for c in self.getSubcommands(self.replaceMacros(multicommand))]
 
     def execute(self):
         vals = {}
@@ -21,8 +21,23 @@ class multicommand:
         return res
 
     @staticmethod
+    def replaceMacros(cmd: str) -> str:
+        i = cmd.find("&")
+        while i != -1:
+            j = i + 1
+            while j < len(cmd) and cmd[j] not in ',;':
+                j += 1
+            macro = cmd[i+1:j]
+            cmd = cmd[:i] + cards.macros[macro] + cmd[j:]
+            
+            i = cmd.find("&")
+        return cmd
+
+    @staticmethod
     def getSubcommands(cmd: str) -> list[str]:
         subcommands = cmd.split(";")
+        if len(subcommands[-1]) <= 1:
+            subcommands = subcommands[:-1]
         return [subcommand.strip() for subcommand in subcommands]
 
 class command:
@@ -145,5 +160,5 @@ print(c.execute())'''
 
 c2 = multicommand('x=#fromHand(4, T); #trash(#get(x))')
 print(c2.execute())
-c3 = multicommand('x=#fromHand(4, T); #trash($x)')
+c3 = multicommand('&chapel')
 print(c3.execute())
