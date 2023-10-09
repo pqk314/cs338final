@@ -1,6 +1,8 @@
 from flask import Flask
 from random import randint
 
+from card_scripting import cardPlayer
+
 app = Flask(__name__)
 num_games = 0
 games = []
@@ -47,11 +49,18 @@ class Game:
             self.discard.append(self.in_play.pop())
         self.draw_cards(5)
 
+        
+
 
 @app.route("/cardbought/<int:game_id>/<card_name>/")
 def card_bought(game_id, card_name):
     games[game_id].discard.append(card_name)
     games[game_id].end_turn()
+    return "hi"  # nothing actually needs to be returned, flask crashes without this.
+
+def card_played(game_id, card_name):
+    games[game_id].in_play.append(card_name)
+    cardPlayer.playCard(game_id, card_name)
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
 
