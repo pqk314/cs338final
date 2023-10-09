@@ -1,3 +1,11 @@
+macros = {
+    'cantrip': '#draw(1); #changeActions(1);',
+    'chapel': 'x=#fromHand(4, T); #trash($x);'
+}
+# use '&macroname' in a card to call the macro
+
+
+
 cards = {
     'cellar': 'x=#chooseSubset(#getHand(), -1, T); #discard($x); #draw(#count($x))',
     'chapel': '#trash(#fromHand(4, T))',
