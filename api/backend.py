@@ -1,5 +1,5 @@
 from flask import Flask
-from random import randint
+import random
 
 from card_scripting import cardPlayer
 
@@ -16,6 +16,10 @@ class Game:
         self.hand = []
         self.discard = []
         self.in_play = []
+        self.phase = "action"
+        self.actions = 1
+        self.buys = 1
+        self.coins = 0
         global num_games
         self.id = num_games
         num_games += 1
@@ -34,12 +38,8 @@ class Game:
             self.hand.append(self.deck.pop())
 
     def shuffle(self):
-        """shuffles deck, this should be final, really there is no need to change this"""
-        for i in range(len(self.deck)):
-            idx = randint(i, len(self.deck) - 1)
-            temp = self.deck[i]
-            self.deck[i] = self.deck[idx]
-            self.deck[idx] = temp
+        """shuffles deck"""
+        random.shuffle(self.deck)
 
     def end_turn(self):
         """Discards all cards in hand and in front of player"""
@@ -67,6 +67,32 @@ def card_played(game_id, card_name):
 @app.route("/gethand/<int:game_id>/")
 def get_hand(game_id):
     return str(games[game_id].hand)
+
+@app.route("/getgamestate/<int:game_id>/")
+def getgamestate(game_id):
+    state = {}
+    state["hand"] = games[game_id].hand
+    state["discard"] = games[game_id].discard
+    state["in_play"] = games[game_id].in_play
+    state["deck"] = games[game_id].deck
+    state["phase"] = games[game_id].phase
+    state["actions"] = games[game_id].actions
+    state["buys"] = games[game_id].buys
+    state["coins"] = games[game_id].coins
+    return state
+
+
+@app.route("/getfrontstate/<int:game_id>/")
+def getfrontstate(game_id):
+    state = {}
+    state["hand"] = games[game_id].hand
+    state["discard"] = games[game_id].discard
+    state["in_play"] = games[game_id].in_play
+    state["phase"] = games[game_id].phase
+    state["actions"] = games[game_id].actions
+    state["buys"] = games[game_id].buys
+    state["coins"] = games[game_id].coins
+    return state
 
 
 @app.route("/newgame/")

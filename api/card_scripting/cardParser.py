@@ -1,4 +1,4 @@
-import commands
+from card_scripting import commands
 # This module provides classes for parsing and executing Dominion card commands.
 # multicommand parses a command string into multiple command instances.
 # command represents a single command that can be executed, handling built-in
@@ -150,15 +150,16 @@ class command:
         return args
 
 
-import cards
+if __name__ == "__main__":
+    from card_scripting import cards
 
-'''c = multicommand(cards.cards['chapel'])
-c = multicommand("$trash($fromHand(4, T))")
+    '''c = multicommand(cards.cards['chapel'])
+    c = multicommand("$trash($fromHand(4, T))")
 
-#c = command('$set(x, $fromHand(4, T))')
-print(c.execute())'''
+    #c = command('$set(x, $fromHand(4, T))')
+    print(c.execute())'''
 
-c2 = multicommand('x=#fromHand(4, T); #trash(#get(x))')
-print(c2.execute())
-c3 = multicommand('&chapel')
-print(c3.execute())
+    c2 = multicommand('x=#fromHand(4, T); #trash(#get(x))')
+    print(c2.execute())
+    c3 = multicommand('&chapel')
+    print(c3.execute())

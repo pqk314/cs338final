@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import render_template
 from flask import url_for
+import json
 import requests
 
 app = Flask(__name__)
@@ -21,10 +22,12 @@ def new_game():
 
 @app.route("/<int:game_id>/")
 def game_page(game_id):
-    hand = requests.request("get", f"http://api:5000/gethand/{game_id}").text
-    cards = hand[1:-1].split(",")
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    #hand = requests.request("get", f"http://api:5000/gethand/{game_id}").text
+    cards = gamestate["hand"]
+    '''cards = hand[1:-1].split(",")
     for i in range(len(cards)):
-        cards[i] = cards[i].strip()[1:-1]
+        cards[i] = cards[i].strip()[1:-1]'''
     card_pics = {
         "copper": url_for('static', filename='images/372px-Copper.jpg'),
         "silver": url_for('static', filename='images/375px-Silver.jpg'),
