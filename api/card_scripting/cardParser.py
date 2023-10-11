@@ -9,16 +9,58 @@ from card_scripting import commands
 
 class multicommand:
     def __init__(self, multicommand):
-        self.commands = [command(c) for c in self.getSubcommands(self.replaceMacros(multicommand))]
+        cmdStrs = self.getSubcommands(self.replaceMacros(multicommand))
+        cmdStrs = self.seperateYields(cmdStrs)
+        self.commands = [command(c) for c in cmdStrs]
+        self.vals = {}
 
-    def execute(self):
-        vals = {}
+    def execute(self, playerInput=None):
         res = None
-        for cmd in self.commands:
-            cmd.setVals(vals)
-            res = cmd.execute()
-            vals = cmd.getVals()
+        while self.commands:
+            if playerInput != None and self.commands[0].func == "set":
+                self.vals[self.commands[0].args[0]] = playerInput
+                self.commands = self.commands[1:]
+                playerInput = None
+                continue
+
+            self.commands[0].setVals(self.vals)
+            res = self.commands[0].execute()
+            if res == "yield":
+                return "yield"
+            self.vals = self.commands[0].getVals()
+            self.commands = self.commands[1:]
         return res
+
+    @staticmethod
+    def seperateYields(cmdStrs: list[str]) -> list[str]:
+        varId = 0
+        yieldFuncs = commands.yieldFuncs
+        cmdIdx = 0
+        while cmdIdx < len(cmdStrs):
+            cmd = cmdStrs[cmdIdx]
+            for yieldFunc in yieldFuncs:
+                i = cmd.find(yieldFunc)
+                if i != -1:
+                    j = i + len(yieldFunc)
+                    layer = 0
+                    while j < len(cmd):
+                        if cmd[j] == '(':
+                            layer += 1
+                        elif cmd[j] == ')':
+                            layer -= 1
+                            if layer == 0:
+                                break
+                        j += 1
+                    yieldCmd = cmd[i-1:j+1]
+                    varName = f"_internalYieldVar{varId}"
+                    varId += 1
+                    setCmd = f"#set({varName}, {yieldCmd})"
+                    cmdStrs[cmdIdx] = cmd[:i-1] + f"#get({varName})" + cmd[j+1:]
+                    cmdStrs.insert(cmdIdx, setCmd)
+                    break
+           
+            cmdIdx += 1
+        return cmdStrs
 
     @staticmethod
     def replaceMacros(cmd: str) -> str:
@@ -63,7 +105,11 @@ class command:
 
     def executeInternalFunc(self):
         if self.func == "set":
-            self.vals[self.args[0]] = self.args[1].execute()
+            self.args[1].vals = self.vals
+            res = self.args[1].execute()
+            if res == "yield":
+                return "yield"
+            self.vals[self.args[0]] = res
             return True
         elif self.func == "get":
             return self.vals[self.args[0]]
@@ -147,11 +193,12 @@ class command:
                 i = -1
             i += 1
         args.append(argString[:i].strip())
-        return args
+        nonEmptyArgs = [arg for arg in args if arg != '']
+        return nonEmptyArgs
 
 
 if __name__ == "__main__":
-    from card_scripting import cards
+    import cards
 
     '''c = multicommand(cards.cards['chapel'])
     c = multicommand("$trash($fromHand(4, T))")
@@ -159,7 +206,16 @@ if __name__ == "__main__":
     #c = command('$set(x, $fromHand(4, T))')
     print(c.execute())'''
 
-    c2 = multicommand('x=#fromHand(4, T); #trash(#get(x))')
+    '''c2 = multicommand('x=#fromHand(4, T); #trash(#get(x))')
     print(c2.execute())
     c3 = multicommand('&chapel')
-    print(c3.execute())
+    print(c3.execute())'''
+
+
+if __name__ == "__main__":
+    txt = '#trash(#fromHand(4, T))'
+    #txt = 'x=#fromHand(4, T); #trash($x)'
+    txt = cards.getCardText('harbinger')
+    cmd = multicommand(txt)
+    print(cmd.execute())
+    print(cmd.execute([1, 2, 3, 4]))

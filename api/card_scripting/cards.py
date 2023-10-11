@@ -10,7 +10,7 @@ cards = {
     'cellar': 'x=#chooseSubset(#getHand(), -1, T); #discard($x); #draw(#count($x))',
     'chapel': '#trash(#fromHand(4, T))',
     'moat': '#draw(2)',
-    'harbinger': '#draw(1); #changeActions(1); #toDeck(#fromDiscard(1, T))',
+    'harbinger': '#draw(1); #changeActions(1); #toDeck(#chooseSubset(#getDiscard(), 1, T))',
     'merchant': '#draw(1); #changeActions(1); somethingelse#', #not implemented
     'vassal': '#changeCoins(2); x=#getFirst(#fromTop(1)); #discard($x); #cond(#eval(#getType($x), =, action), #cond(#getChoice("Play {}?", #getName($x)), #play($x)))',
     'village': '#draw(1); #changeActions(2)',
@@ -39,3 +39,8 @@ cards = {
     'gold': '#changeCoins(3)',
 }
 
+def getCardNames():
+    return cards.keys()
+
+def getCardText(cardName):
+    return cards[cardName]
