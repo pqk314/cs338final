@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supply</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='supply-style.css') }}">
+</head>
+<body>
+<div id="parent-div">
+    <div id="base-cards">
+        <img src="{{ card_pics['copper'] }}" class="buyable" id="copper">
+        <img src="{{ card_pics['silver'] }}" class="buyable" id="silver">
+        <img src="{{ card_pics['gold'] }}" class="buyable" id="gold">
+        <img src="{{ card_pics['estate'] }}" class="buyable" id="estate">
+        <img src="{{ card_pics['duchy'] }}" class="buyable" id="duchy">
+        <img src="{{ card_pics['province'] }}" class="buyable" id="province">
+        <img src="{{ card_pics['curse'] }}" class="buyable" id="curse">
+    </div>
+    <div id="game-cards">
+        {% for card in cards %}
+        <img src="{{ card_pics[card] }}" id="{{ card }}" class="buyable">
+        {% endfor %}
+    </div>
+</div>
+<button onclick="window.location.href = `/${window.location.toString().split('/')[3]}`" style="float:left;">Back to Game</button>
+<h1 style="float: right; margin: 0;">Your Money: {{ money }}</h1>
+<script src="{{ url_for('static', filename='supply-js.js') }}"></script>
+</body>
+</html>
