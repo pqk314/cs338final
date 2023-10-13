@@ -58,6 +58,7 @@ def card_bought(game_id, card_name):
     games[game_id].end_turn()
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
+@app.route("/cardplayed/<int:game_id>/<card_name>/")
 def card_played(game_id, card_name):
     games[game_id].in_play.append(card_name)
     cardPlayer.playCard(game_id, card_name)

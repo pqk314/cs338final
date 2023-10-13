@@ -120,8 +120,8 @@ def card_bought(game_id, card_id):
 
 @app.route("/<int:game_id>/cardplayed/<card_id>/")
 def card_played(game_id, card_id):
-    """process for buying cards"""
-    # TODO: make this do something lol
+    """process for playing cards"""
+    requests.request("get", f"http://api:5000/cardplayed/{game_id}/{card_id}")
     return render_template("card-played.html")
 
 
