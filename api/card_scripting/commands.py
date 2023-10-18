@@ -1,4 +1,12 @@
-def fromHand(args):
+import requests
+import json
+
+def getGameState(gameID):
+    return requests.request("get", f"http://api:5000/getgamestate/{gameID}").json()
+def changeVar(gameID, var, delta):
+    return requests.request("get", f"http://api:5000/changeVar/{gameID}/{var}/{delta}")
+
+def fromHand(args, gameID):
     # args: number, canPickLess
     # if number is negative allows picking any number
     n, canPickLess = args[0], args[1]
@@ -7,28 +15,32 @@ def fromHand(args):
     canPickLess = args[1] == 'T'
     return [str(i) for i in range(n)]
 
-def getHand(args):
+def getHand(args, gameID):
     # no args
     # returns list of all cards in players hand
-    return []
-    raise NotImplementedError
+    return getGameState()['hand']
 
-def getDiscard(args):
+def getDiscard(args, gameID):
     # no args
     # returns list of all cards in discard pile
-    raise NotImplementedError
+    return getGameState()['discard']
 
-def fromTop(args):
+def fromTop(args, gameID):
     # args: number
     # returns the top n cards
-    raise NotImplementedError
+    n=int(args[0])
+    deck = getGameState()['deck']
+    if len(deck) < n:
+        return deck [::-1]
+    return deck[-1:-n-1:-1]
 
-def getStore(args):
+def getStore(args, gameID):
     # no args
     # returns a list of the cards in the store (1 for each supply pile if nonempty)
+
     raise NotImplementedError
 
-def gain(args):
+def gain(args, gameID):
     # args: cards, destination
     # moves the cards in the cards list to the destination zone
     if len(args) < 2:
@@ -37,84 +49,84 @@ def gain(args):
         dest = args[1]
     raise NotImplementedError
 
-def trash(args):
+def trash(args, gameID):
     # args: cards
     # moves the specified cards to trash
     return args[0]
     
-def play(args):
+def play(args, gameID):
     # args: card
     # moves the specified card to play area
     raise NotImplementedError
 
-def toHand(arg):
+def toHand(arg, gameID):
     # args: cards
     # moves the cards in the list to hand
     raise NotImplementedError
 
-def discard(args):
+def discard(args, gameID):
     # args: cards
     # moves the cards in the list to discard pile
     raise NotImplementedError
 
-def toDeck(args):
+def toDeck(args, gameID):
     # args: cards
     # moves the cards in the list to top of deck
     raise NotImplementedError
 
-def changeCoins(args):
+def changeCoins(args, gameID):
     # args: delta
     # changes coins by the amount
-    raise NotImplementedError
+    return changeVar(gameID, 'coins', args[0])
 
-def changeBuys(args):
+def changeBuys(args, gameID):
     # args: delta
     # change buys by the amount
-    raise NotImplementedError
+    return changeVar(gameID, 'buys', args[0])
 
-def changeActions(args):
+def changeActions(args, gameID):
     # args: delta
     # change actions by the amount
-    raise NotImplementedError
+    return changeVar(gameID, 'actions', args[0])
 
-def draw(args):
+def draw(args, gameID):
     # args: num
     # draws num cards
-    raise NotImplementedError
+    return requests.request("get", f"http://api:5000/draw/{gameID}/{args[0]}")
 
-def count(args):
+def count(args, gameID):
     # args: any number of list/set-like objects
     return sum([len(arg) for arg in args])
 
-def getChoice(args):
+def getChoice(args, gameID):
     # args: message to display, list of fString values
     # asks the player for a y/n choice, showing them the message which is an fstring
     # example inpug: args = ["Discard {arg1} from the top of your deck?", "Copper"]
     return True
     raise NotImplementedError
 
-def getName(args):
+def getName(args, gameID):
     # args: card
     return 'sample names'
     return args[0].name
     raise NotImplementedError
 
-def getCost(args):
+def getCost(args, gameID):
     # args: card
     return 3
     return args[0].cost
     raise NotImplementedError
 
-def getType(args):
+def getType(args, gameID):
     # args: card
     return 'action'
     raise NotImplementedError
 
-def getFirst(args):
+def getFirst(args, gameID):
     # args: set of cards
     return args[0]
 
-def getSubset(args):
+def getSubset(args, gameID):
     # args: set of cards, condition1, condition2...
     # conditions are formatted "[<propertyName> <operator> <target>]"
     # operators are <, >, <=, >=, and =
@@ -153,7 +165,7 @@ def getSubset(args):
             newSet.append(card)
     return newSet
 
-def chooseSubset(args):
+def chooseSubset(args, gameID):
     # args: set, n, canChooseLess
     # Asks the player to choose a subset of the set (list of cards), of size n, with the possible option to choose less than n
     # returns a list of the chosen cards
@@ -161,13 +173,13 @@ def chooseSubset(args):
     return args[0][:-1]
     raise NotImplementedError
 
-def reorder(args):
+def reorder(args, gameID):
     # args: set
     # allows the player to reorder the cards, then returns the new order
     return args[0][::-1]
     raise NotADirectoryError
 
-def removeFromSet(args):
+def removeFromSet(args, gameID):
     # args: set, toRemove
     s = args[0].copy()
     for x in args[1]:
@@ -175,20 +187,20 @@ def removeFromSet(args):
             s.remove(x)
     return s
 
-def getTrue(args):
+def getTrue(args, gameID):
     return True
 
-def getFalse(args):
+def getFalse(args, gameID):
     return False
 
-def makeArray(args):
+def makeArray(args, gameID):
     # I know this looks weird but its meant to be this way
     return args
 
-def addInts(args):
+def addInts(args, gameID):
     return sum([int(n) for n in args])
 
-def eval(args):
+def eval(args, gameID):
     # args: val, operator, target
     val = args[0]
     operator = args[1]
@@ -210,7 +222,7 @@ def eval(args):
     
     
         
-def countEmptyPiles(args):
+def countEmptyPiles(args, gameID):
     # no args
     # counts the number of empty supply piles and returns that number
     return 0
@@ -224,6 +236,6 @@ commands = {}
 for func in funcs:
     commands[func.__name__] = func
 
-def doCommand(func, args):
-    return commands[func](args)
+def doCommand(func, args, gameID):
+    return commands[func](args, gameID)
 

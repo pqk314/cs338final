@@ -7,6 +7,8 @@ import requests
 app = Flask(__name__)
 
 
+
+
 @app.route("/")
 def home_page():
     """prompts user to make a new game"""
@@ -22,8 +24,8 @@ def new_game():
 
 @app.route("/<int:game_id>/")
 def game_page(game_id):
-    # TODO get this info from the backend
-    turn_info = {'Money': 0, 'Actions': 1, 'Buys': 1}
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     card_pics = {
         "copper": url_for('static', filename='images/372px-Copper.jpg'),
         "silver": url_for('static', filename='images/375px-Silver.jpg'),
@@ -59,7 +61,7 @@ def game_page(game_id):
         "festival": url_for('static', filename='images/375px-Festival.jpg'),
         "gardens": url_for('static', filename='images/375px-Gardens.jpg')
     }
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    
     # hand = requests.request("get", f"http://api:5000/gethand/{game_id}").text
     cards = gamestate["hand"]
     '''cards = hand[1:-1].split(",")

@@ -1,15 +1,16 @@
-from card_parser import commands
+from card_scripting import commands
 # This module provides classes for parsing and executing Dominion card commands.
 # multicommand parses a command string into multiple command instances.
 # command represents a single command that can be executed, handling built-in
-# functions like set/get/cond as well as calling external functions. 
+# functions lcike set/get/cond as well as calling external functions. 
 # command instances are created by multicommand and executed.
 
 
 
 class multicommand:
-    def __init__(self, multicommand):
+    def __init__(self, multicommand, gameID):
         self.multicommand = multicommand
+        self.gameID = gameID
         self.vals = {}
         self.nextVar = 0
         self.playerInput = None
@@ -33,7 +34,7 @@ class multicommand:
     def setupCommands(self):
         subcommands = self.getSubcommands(self.replaceMacros(self.multicommand))
         reformattedSubcommands = self.seperateYields(subcommands)
-        self.commands = [command(cmd) for cmd in reformattedSubcommands]
+        self.commands = [command(cmd, self.gameID) for cmd in reformattedSubcommands]
 
     def shouldReplaceYield(self) -> bool:
         return self.playerInput != None and self.commands[0].func == "set"
@@ -126,8 +127,9 @@ class command:
     
     Instances of command represent a single command that can be executed. This includes getting command components like function name and arguments, formatting arguments, executing built-in functions like set/get/cond, and calling external functions. command instances are created by multicommand and executed.
     """
-    def __init__(self, cmd, vals={}):
+    def __init__(self, cmd, gameID, vals={}):
         self.vals = vals
+        self.gameID = gameID
         cmd = self.formatVariables(cmd)
         self.func = self.getFunc(cmd)
         self.args = self.getArgs(cmd)
@@ -139,7 +141,7 @@ class command:
     def createArgCommands(self) -> None:
         for i, arg in enumerate(self.args):
             if arg[0] == "#":
-                self.args[i] = command(arg, self.vals)
+                self.args[i] = command(arg, self.gameID, self.vals)
 
     def executeInternalFunc(self):
         if self.func == "set":
@@ -162,7 +164,7 @@ class command:
             if isinstance(arg, command):
                 arg.setVals(self.vals)
                 self.args[i] = arg.execute()
-        return commands.doCommand(self.func, self.args)
+        return commands.doCommand(self.func, self.args, self.gameID)
 
     def execute(self):
         if self.func in self.internalFuncs:

@@ -12,7 +12,8 @@ class Game:
     def __init__(self):
         """Initializes game, for now this just assumes 1 player and a starting deck
         TODO: support for more than one player"""
-        self.deck = ["copper", "copper", "copper", "copper", "copper", "copper", "copper", "estate", "estate", "estate"]
+        self.deck = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
+        #self.deck = ["copper", "copper", "copper", "copper", "copper", "copper", "copper", "estate", "estate", "estate"]
         self.hand = []
         self.discard = []
         self.in_play = []
@@ -48,7 +49,10 @@ class Game:
         while len(self.in_play) > 0:
             self.discard.append(self.in_play.pop())
         self.draw_cards(5)
-
+        self.actions = 1
+        self.buys = 1
+        self.coins = 0
+        self.phase = 'action'
         
 
 
@@ -60,7 +64,11 @@ def card_bought(game_id, card_name):
 
 @app.route("/cardplayed/<int:game_id>/<card_name>/")
 def card_played(game_id, card_name):
-    games[game_id].in_play.append(card_name)
+    hand = games[game_id].hand
+    i = hand.index(card_name)
+    if i == -1:
+        raise ValueError
+    games[game_id].in_play.append(games[game_id].hand.pop(i))
     cardPlayer.playCard(game_id, card_name)
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
@@ -95,6 +103,26 @@ def getfrontstate(game_id):
     state["coins"] = games[game_id].coins
     return state
 
+@app.route('/changeVar/<int:game_id>/<var_name>/<int:var_delta>/')
+def change_var(game_id, var_name, var_delta):
+    if var_name == "actions":
+        games[game_id].actions += var_delta
+    elif var_name == "buys":
+        games[game_id].buys += var_delta
+    elif var_name == "coins":
+        games[game_id].coins += var_delta
+    else:
+        raise ValueError("Invalid variable name")
+    return 'hello world' # nothing actually needs to be returned, flask crashes without this.
+
+@app.route("/getsupply/<int:game_id>/")
+def get_supply(game_id):
+    raise NotImplementedError
+
+@app.route("/draw/<int:game_id>/<int:num_cards>/")
+def draw(game_id, num_cards):
+    games[game_id].draw_cards(num_cards)
+    return 'hellow world' # nothing actually needs to be returned, flask crashes without this.
 
 @app.route("/newgame/")
 def new_game():
