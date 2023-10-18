@@ -68,9 +68,8 @@ def game_page(game_id):
     '''cards = hand[1:-1].split(",")
     for i in range(len(cards)):
         cards[i] = cards[i].strip()[1:-1]'''
-
-    return render_template("front-end.html", hand=cardNames, images=card_pics, turn_info=turn_info)
-
+    end_what = f"End {gamestate['phase'].title()}"
+    return render_template("front-end.html", hand=cardNames, images=card_pics, turn_info=turn_info, end_what=end_what)
 
 @app.route("/<int:game_id>/supply")
 def supply(game_id):
@@ -111,7 +110,9 @@ def supply(game_id):
     }
     # TODO: call to backend for cards ordered by amount they cost. Should be unique for each game instance
     cards = ["chapel", "cellar", "village", "merchant", "militia", "moneylender", "mine", "witch", "sentry", "artisan"]
-    return render_template("supply.html", cards=cards, card_pics=card_pics)
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
+    return render_template("supply.html", cards=cards, card_pics=card_pics, turn_info=turn_info)
 
 
 @app.route("/<int:game_id>/cardbought/<card_id>/")

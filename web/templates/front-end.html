@@ -13,6 +13,7 @@
         {% endfor %}
     </div>
     <button onclick="window.location.href=`${window.location}/supply`">View Supply</button>
+    <button onclick="window.location.href='{{ end_what.split(' ')[1].lower() }}'">{{ end_what }}</button>
     <div id="turn-info" style="float: right; background-color: white;">
     {% for key in turn_info.keys() %}
         <p>{{ key }}: {{ turn_info[key] }}</p>
