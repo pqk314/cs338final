@@ -67,8 +67,8 @@ def game_page(game_id):
     '''cards = hand[1:-1].split(",")
     for i in range(len(cards)):
         cards[i] = cards[i].strip()[1:-1]'''
-
-    return render_template("front-end.html", hand=cards, images=card_pics, turn_info=turn_info)
+    end_what = f"End {gamestate['phase'].title()}"
+    return render_template("front-end.html", hand=cards, images=card_pics, turn_info=turn_info, end_what=end_what)
 
 
 @app.route("/<int:game_id>/supply")
