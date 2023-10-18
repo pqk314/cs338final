@@ -4,7 +4,8 @@ import json
 def getGameState(gameID):
     return requests.request("get", f"http://api:5000/getgamestate/{gameID}").json()
 def changeVar(gameID, var, delta):
-    return requests.request("get", f"http://api:5000/changeVar/{gameID}/{var}/{delta}")
+    #return requests.request("get", f"http://api:5000/changeVar/{gameID}/{var}/{delta}")
+    return requests.post('http://api:5000/changeVar/', json={'gameID': gameID, 'var': var, 'delta': delta})
 
 def fromHand(args, gameID):
     # args: number, canPickLess

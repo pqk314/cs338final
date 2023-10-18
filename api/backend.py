@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 import random
 
 from card_scripting import cardPlayer
@@ -103,17 +103,22 @@ def getfrontstate(game_id):
     state["coins"] = games[game_id].coins
     return state
 
-@app.route('/changeVar/<int:game_id>/<var_name>/<int:var_delta>/')
-def change_var(game_id, var_name, var_delta):
-    if var_name == "actions":
-        games[game_id].actions += var_delta
-    elif var_name == "buys":
-        games[game_id].buys += var_delta
-    elif var_name == "coins":
-        games[game_id].coins += var_delta
+@app.route('/changeVar/', methods=['POST'])
+def change_var():
+    req = request.get_json()
+    gameID = req['gameID']
+    var = req['var']
+    delta = int(req['delta'])
+    if var == "actions":
+        games[gameID].actions += delta
+    elif var == "buys":
+        games[gameID].buys += delta
+    elif var == "coins":
+        games[gameID].coins += delta
     else:
         raise ValueError("Invalid variable name")
-    return 'hello world' # nothing actually needs to be returned, flask crashes without this.
+    return 'Changing variable...' # nothing actually needs to be returned, flask crashes without this.
+
 
 @app.route("/getsupply/<int:game_id>/")
 def get_supply(game_id):
