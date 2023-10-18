@@ -68,14 +68,20 @@ class Game:
 
 @app.route("/cardbought/<int:game_id>/<card_name>/")
 def card_bought(game_id, card_name):
-    card = games[game_id].make_card(card_name)
-    games[game_id].discard.append(card)
-    games[game_id].end_turn()
+    game = games[game_id]
+    cost = cards.getCard(card_name)['cost']
+    if game.coins >= cost and game.buys >= 1:
+        card = game.make_card(card_name)
+        game.discard.append(card)
+        game.coins -= cost
+        game.buys -= 1
+        
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
 @app.route("/cardplayed/<int:game_id>/<int:card_id>/")
 def card_played(game_id, card_id):
-    hand = games[game_id].hand
+    game = games[game_id]
+    hand = game.hand
     #i = hand.index(card_name)
     idx = -1
     for i, card in enumerate(hand):
@@ -84,9 +90,17 @@ def card_played(game_id, card_id):
 
     if idx == -1:
         raise ValueError
-    card = games[game_id].hand.pop(idx)
-    games[game_id].in_play.append(card)
-    cardPlayer.playCard(game_id, card['name'])
+    card = game.hand[idx]
+    type = card['type']
+    if (type == 'action' and game.phase == 'action') or (type == 'treasure' and game.phase == 'buy'):
+        if type == 'action':
+            if game.actions >= 1:
+                game.actions -= 1
+            else:
+                return "hi"
+        game.in_play.append(card)
+        cardPlayer.playCard(game_id, card['name'])
+        game.hand.pop(idx)
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
 
@@ -136,6 +150,14 @@ def change_var():
         raise ValueError("Invalid variable name")
     return 'Changing variable...' # nothing actually needs to be returned, flask crashes without this.
 
+@app.route('/endphase/<int:game_id>/')
+def end_phase(game_id):
+    game = games[game_id]
+    if game.phase == "action":
+        game.phase = "buy"
+    elif game.phase == "buy":
+        game.end_turn()
+    return "ended phase"
 
 @app.route("/getsupply/<int:game_id>/")
 def get_supply(game_id):

@@ -19,18 +19,18 @@ def fromHand(args, gameID):
 def getHand(args, gameID):
     # no args
     # returns list of all cards in players hand
-    return getGameState()['hand']
+    return getGameState(gameID)['hand']
 
 def getDiscard(args, gameID):
     # no args
     # returns list of all cards in discard pile
-    return getGameState()['discard']
+    return getGameState(gameID)['discard']
 
 def fromTop(args, gameID):
     # args: number
     # returns the top n cards
     n=int(args[0])
-    deck = getGameState()['deck']
+    deck = getGameState(gameID)['deck']
     if len(deck) < n:
         return deck [::-1]
     return deck[-1:-n-1:-1]

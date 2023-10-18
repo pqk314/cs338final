@@ -119,13 +119,19 @@ def supply(game_id):
 def card_bought(game_id, card_id):
     """process for buying cards"""
     requests.request("get", f"http://api:5000/cardbought/{game_id}/{card_id}")
-    return redirect(f'/{game_id}')
+    return redirect(f'/{game_id}/supply')
 
 
 @app.route("/<int:game_id>/cardplayed/<card_id>/")
 def card_played(game_id, card_id):
     """process for playing cards"""
     requests.request("get", f"http://api:5000/cardplayed/{game_id}/{card_id}")
+    return redirect(f'/{game_id}')
+
+@app.route("/<int:game_id>/endphase/")
+def end_phase(game_id):
+    """ends current phase"""
+    requests.request("get", f"http://api:5000/endphase/{game_id}")
     return redirect(f'/{game_id}')
 
 
