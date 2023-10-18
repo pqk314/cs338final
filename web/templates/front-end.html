@@ -7,9 +7,14 @@
 </head>
 <body>
     <p style="text-align:center; background:white">Your Hand:</p>
+
+    
     <div id="hand" class="card-container">
         {% for card in hand %}
-            <img src="{{ images[card] }}"class="card {{ card }}" alt="{{ card }} ">
+            <a href = "/{{ game_id }}/cardplayed/{{ card.id }}">
+                <img src="{{ images[card.name] }}"class="card {{ card.name }}" alt="{{ card.name }} " id="{{ card.id }}">
+            </a>
+            
         {% endfor %}
     </div>
     <button onclick="window.location.href=`${window.location}/supply`">View Supply</button>

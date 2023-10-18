@@ -31,7 +31,7 @@ class Game:
 
     def make_card(self, name):
         """returns a card object with the given name"""
-        card = cards.getCard(name)
+        card = cards.getCard(name).copy()
         card['id'] = self.nextCardID
         card['name'] = name
         self.nextCardID += 1
@@ -68,23 +68,25 @@ class Game:
 
 @app.route("/cardbought/<int:game_id>/<card_name>/")
 def card_bought(game_id, card_name):
-    games[game_id].discard.append(card_name)
+    card = games[game_id].make_card(card_name)
+    games[game_id].discard.append(card)
     games[game_id].end_turn()
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
-@app.route("/cardplayed/<int:game_id>/<card_name>/")
-def card_played(game_id, card_name):
+@app.route("/cardplayed/<int:game_id>/<int:card_id>/")
+def card_played(game_id, card_id):
     hand = games[game_id].hand
     #i = hand.index(card_name)
     idx = -1
     for i, card in enumerate(hand):
-        if card['name'] == card_name:
+        if card['id'] == card_id:
             idx = i
 
     if idx == -1:
         raise ValueError
-    games[game_id].in_play.append(games[game_id].hand.pop(idx))
-    cardPlayer.playCard(game_id, card_name)
+    card = games[game_id].hand.pop(idx)
+    games[game_id].in_play.append(card)
+    cardPlayer.playCard(game_id, card['name'])
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
 

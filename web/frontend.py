@@ -1,6 +1,5 @@
 from flask import Flask
-from flask import render_template
-from flask import url_for
+from flask import render_template, url_for, redirect
 import json
 import requests
 
@@ -69,7 +68,8 @@ def game_page(game_id):
     for i in range(len(cards)):
         cards[i] = cards[i].strip()[1:-1]'''
     end_what = f"End {gamestate['phase'].title()}"
-    return render_template("front-end.html", hand=cardNames, images=card_pics, turn_info=turn_info, end_what=end_what)
+    #base_url = url_for(card_played)
+    return render_template("front-end.html", hand=cards, images=card_pics, turn_info=turn_info, end_what=end_what, game_id = game_id)
 
 @app.route("/<int:game_id>/supply")
 def supply(game_id):
@@ -126,6 +126,7 @@ def card_bought(game_id, card_id):
 def card_played(game_id, card_id):
     """process for playing cards"""
     requests.request("get", f"http://api:5000/cardplayed/{game_id}/{card_id}")
+    return redirect(f'/{game_id}')
     return render_template("card-played.html")
 
 
