@@ -23,7 +23,10 @@
     </div>
 </div>
 <button onclick="window.location.href = `/${window.location.toString().split('/')[3]}`" style="float:left;">Back to Game</button>
-<h1 style="float: right; margin: 0;">Your Money: {{ turn_info['Money'] }}</h1>
+<div style="float: right; margin: 0;">
+    <h1 >Your Money: {{ turn_info['Money'] }}</h1>
+    <h1>Your Buys: {{ turn_info['Buys'] }}</h1>
+</div>
 <script src="{{ url_for('static', filename='supply-js.js') }}"></script>
 </body>
 </html>
