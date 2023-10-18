@@ -1,7 +1,7 @@
 from flask import Flask, request
 import random
 
-from card_scripting import cardPlayer
+from card_scripting import cardPlayer, cards
 
 app = Flask(__name__)
 num_games = 0
@@ -12,7 +12,9 @@ class Game:
     def __init__(self):
         """Initializes game, for now this just assumes 1 player and a starting deck
         TODO: support for more than one player"""
-        self.deck = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
+        self.nextCardID = 0
+        deck = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
+        self.deck = [self.make_card(c) for c in deck]
         #self.deck = ["copper", "copper", "copper", "copper", "copper", "copper", "copper", "estate", "estate", "estate"]
         self.hand = []
         self.discard = []
@@ -26,6 +28,14 @@ class Game:
         num_games += 1
         self.shuffle()
         self.draw_cards(5)
+
+    def make_card(self, name):
+        """returns a card object with the given name"""
+        card = cards.getCard(name)
+        card['id'] = self.nextCardID
+        card['name'] = name
+        self.nextCardID += 1
+        return card
 
     def draw_cards(self, num_to_draw):
         """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
@@ -65,10 +75,15 @@ def card_bought(game_id, card_name):
 @app.route("/cardplayed/<int:game_id>/<card_name>/")
 def card_played(game_id, card_name):
     hand = games[game_id].hand
-    i = hand.index(card_name)
-    if i == -1:
+    #i = hand.index(card_name)
+    idx = -1
+    for i, card in enumerate(hand):
+        if card['name'] == card_name:
+            idx = i
+
+    if idx == -1:
         raise ValueError
-    games[game_id].in_play.append(games[game_id].hand.pop(i))
+    games[game_id].in_play.append(games[game_id].hand.pop(idx))
     cardPlayer.playCard(game_id, card_name)
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 

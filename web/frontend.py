@@ -64,11 +64,12 @@ def game_page(game_id):
     
     # hand = requests.request("get", f"http://api:5000/gethand/{game_id}").text
     cards = gamestate["hand"]
+    cardNames = [card['name'] for card in cards]
     '''cards = hand[1:-1].split(",")
     for i in range(len(cards)):
         cards[i] = cards[i].strip()[1:-1]'''
 
-    return render_template("front-end.html", hand=cards, images=card_pics, turn_info=turn_info)
+    return render_template("front-end.html", hand=cardNames, images=card_pics, turn_info=turn_info)
 
 
 @app.route("/<int:game_id>/supply")

@@ -4,9 +4,46 @@ macros = {
 }
 # use '&macroname' in a card to call the macro
 
-
-
 cards = {
+    'cellar': {'type': 'action', 'cost': 2},
+    'chapel': {'type': 'action', 'cost': 2},
+    'moat': {'type': 'action', 'cost': 2},
+    'harbinger': {'type': 'action', 'cost': 3},
+    'merchant': {'type': 'action', 'cost': 3},
+    'vassal': {'type': 'action', 'cost': 3},
+    'village': {'type': 'action', 'cost': 3},
+    'workshop': {'type': 'action', 'cost': 3},
+    'bureaucrat': {'type': 'action', 'cost': 4},
+    'militia': {'type': 'action', 'cost': 4},
+    'moneylender': {'type': 'action', 'cost': 4},
+    'poacher': {'type': 'action', 'cost': 4},
+    'remodel': {'type': 'action', 'cost': 4},
+    'smithy': {'type': 'action', 'cost': 4},
+    'throne room': {'type': 'action', 'cost': 4},
+    'bandit': {'type': 'action', 'cost': 5},
+    'council room': {'type': 'action', 'cost': 5},
+    'festival': {'type': 'action', 'cost': 5},
+    'laboratory': {'type': 'action', 'cost': 5},
+    'library': {'type': 'action', 'cost': 5},
+    'market': {'type': 'action', 'cost': 5},
+    'mine': {'type': 'action', 'cost': 5},
+    'sentry': {'type': 'action', 'cost': 5},
+    'witch': {'type': 'action', 'cost': 5},
+    'artisan': {'type': 'action', 'cost': 5},
+
+
+    'copper': {'type': 'treasure', 'cost': 0},
+    'silver': {'type': 'treasure', 'cost': 3},
+    'gold': {'type': 'treasure', 'cost': 6},
+
+    'estate': {'type': 'victory', 'cost': 2},
+    'duchy': {'type': 'victory', 'cost': 5},
+    'province': {'type': 'victory', 'cost': 8},
+    'gardens': {'type': 'victory', 'cost': 4}
+}
+
+
+cardTexts = {
     'cellar': 'x=#chooseSubset(#getHand(), -1, T); #discard($x); #draw(#count($x))',
     'chapel': '#trash(#fromHand(4, T))',
     'moat': '#draw(2)',
@@ -40,7 +77,10 @@ cards = {
 }
 
 def getCardNames():
-    return cards.keys()
+    return cardTexts.keys()
 
 def getCardText(cardName):
+    return cardTexts[cardName]
+
+def getCard(cardName):
     return cards[cardName]
