@@ -1,6 +1,7 @@
 def fromHand(args):
     # args: number, canPickLess
-    # number can be negative
+    # if number is negative allows picking any number
+    n, canPickLess = args[0], args[1]
     return "yield"
     n = int(args[0])
     canPickLess = args[1] == 'T'
@@ -9,6 +10,7 @@ def fromHand(args):
 def getHand(args):
     # no args
     # returns list of all cards in players hand
+    return []
     raise NotImplementedError
 
 def getDiscard(args):
@@ -155,6 +157,7 @@ def chooseSubset(args):
     # args: set, n, canChooseLess
     # Asks the player to choose a subset of the set (list of cards), of size n, with the possible option to choose less than n
     # returns a list of the chosen cards
+    return "yield"
     return args[0][:-1]
     raise NotImplementedError
 

@@ -1,4 +1,4 @@
-from card_scripting import commands
+from card_parser import commands
 # This module provides classes for parsing and executing Dominion card commands.
 # multicommand parses a command string into multiple command instances.
 # command represents a single command that can be executed, handling built-in
@@ -9,54 +9,92 @@ from card_scripting import commands
 
 class multicommand:
     def __init__(self, multicommand):
-        cmdStrs = self.getSubcommands(self.replaceMacros(multicommand))
-        cmdStrs = self.seperateYields(cmdStrs)
-        self.commands = [command(c) for c in cmdStrs]
+        self.multicommand = multicommand
         self.vals = {}
+        self.nextVar = 0
+        self.playerInput = None
+        self.setupCommands()
 
-    def execute(self, playerInput=None):
+    def setPlayerInput(self, playerInput):
+        self.playerInput = playerInput
+
+    def execute(self):
         res = None
         while self.commands:
-            if playerInput != None and self.commands[0].func == "set":
-                self.vals[self.commands[0].args[0]] = playerInput
-                self.commands = self.commands[1:]
-                playerInput = None
+            if self.shouldReplaceYield():
+                self.replaceYield()
                 continue
+            else:
+                res = self.executeSubcommand()
+                if res == "yield":
+                    return "yield"
+        return res
+    
+    def setupCommands(self):
+        subcommands = self.getSubcommands(self.replaceMacros(self.multicommand))
+        reformattedSubcommands = self.seperateYields(subcommands)
+        self.commands = [command(cmd) for cmd in reformattedSubcommands]
 
-            self.commands[0].setVals(self.vals)
-            res = self.commands[0].execute()
-            if res == "yield":
-                return "yield"
-            self.vals = self.commands[0].getVals()
-            self.commands = self.commands[1:]
+    def shouldReplaceYield(self) -> bool:
+        return self.playerInput != None and self.commands[0].func == "set"
+    
+    def replaceYield(self):
+        self.vals[self.commands[0].args[0]] = self.playerInput
+        self.commands = self.commands[1:]
+        self.playerInput = None
+
+    def executeSubcommand(self):
+        self.commands[0].setVals(self.vals)
+        res = self.commands[0].execute()
+        if res == "yield":
+            return "yield"
+        self.vals = self.commands[0].getVals()
+        self.commands = self.commands[1:]
         return res
 
-    @staticmethod
-    def seperateYields(cmdStrs: list[str]) -> list[str]:
-        varId = 0
+
+    def replaceYieldCommand(self, cmd: str, yieldFunc: str) -> str:
+        endpoints = self.findYieldCommand(cmd, yieldFunc)
+        if endpoints == None:
+            return None
+        cmdStart = endpoints[0] - 1
+        cmdEnd = endpoints[1] + 1
+        newCommands = self.getNewCommands(cmd, cmdStart, cmdEnd)
+        return newCommands
+        
+    def findYieldCommand(self, cmd: str, yieldFunc: str) -> tuple[int, int]:
+        i = cmd.find(yieldFunc)
+        if i == -1:
+            return
+        j = i + len(yieldFunc)
+        layer = 0
+        while j < len(cmd):
+            if cmd[j] == '(':
+                layer += 1
+            elif cmd[j] == ')':
+                layer -= 1
+                if layer == 0:
+                    break
+            j += 1
+        return i, j
+
+    def getNewCommands(self, cmd: str, cmdStart: int, cmdEnd: int) -> list[str]:
+        yieldCmd = cmd[cmdStart:cmdEnd]
+        varName = f"_internalYieldVar{self.nextVar}"
+        self.nextVar += 1
+        setCmd = f"#set({varName}, {yieldCmd})"
+        getCmd = cmd[:cmdStart] + f"#get({varName})" + cmd[cmdEnd:]
+        return [setCmd, getCmd]
+
+    def seperateYields(self, cmdStrs: list[str]) -> list[str]:
         yieldFuncs = commands.yieldFuncs
         cmdIdx = 0
         while cmdIdx < len(cmdStrs):
             cmd = cmdStrs[cmdIdx]
             for yieldFunc in yieldFuncs:
-                i = cmd.find(yieldFunc)
-                if i != -1:
-                    j = i + len(yieldFunc)
-                    layer = 0
-                    while j < len(cmd):
-                        if cmd[j] == '(':
-                            layer += 1
-                        elif cmd[j] == ')':
-                            layer -= 1
-                            if layer == 0:
-                                break
-                        j += 1
-                    yieldCmd = cmd[i-1:j+1]
-                    varName = f"_internalYieldVar{varId}"
-                    varId += 1
-                    setCmd = f"#set({varName}, {yieldCmd})"
-                    cmdStrs[cmdIdx] = cmd[:i-1] + f"#get({varName})" + cmd[j+1:]
-                    cmdStrs.insert(cmdIdx, setCmd)
+                newLines = self.replaceYieldCommand(cmd, yieldFunc)
+                if newLines != None:
+                    cmdStrs[cmdIdx:cmdIdx + 1] = newLines
                     break
            
             cmdIdx += 1
@@ -197,25 +235,13 @@ class command:
         return nonEmptyArgs
 
 
+
 if __name__ == "__main__":
     import cards
-
-    '''c = multicommand(cards.cards['chapel'])
-    c = multicommand("$trash($fromHand(4, T))")
-
-    #c = command('$set(x, $fromHand(4, T))')
-    print(c.execute())'''
-
-    '''c2 = multicommand('x=#fromHand(4, T); #trash(#get(x))')
-    print(c2.execute())
-    c3 = multicommand('&chapel')
-    print(c3.execute())'''
-
-
-if __name__ == "__main__":
-    txt = '#trash(#fromHand(4, T))'
+    #txt = '#trash(#chooseSubset(#getHand(), 4, T))'
     #txt = 'x=#fromHand(4, T); #trash($x)'
     txt = cards.getCardText('harbinger')
     cmd = multicommand(txt)
     print(cmd.execute())
-    print(cmd.execute([1, 2, 3, 4]))
+    cmd.setPlayerInput([1, 2, 3, 4])
+    print(cmd.execute())
