@@ -19,6 +19,7 @@ class Game:
         self.hand = []
         self.discard = []
         self.in_play = []
+        self.trash = []
         self.phase = "action"
         self.actions = 1
         self.buys = 1
@@ -47,6 +48,19 @@ class Game:
                 self.discard = []
                 self.shuffle()
             self.hand.append(self.deck.pop())
+
+    def find_card_in_list(self, list, card_id):
+        for idx, card in enumerate(list):
+            if card['id'] == card_id:
+                return idx
+        return -1
+
+    def find_card(self, card_id):
+        for l in [self.hand, self.deck, self.discard, self.in_play, self.trash]:
+            idx = self.find_card_in_list(l, card_id)
+            if idx != -1:
+                return l, idx
+        return [], -1
 
     def shuffle(self):
         """shuffles deck"""
@@ -82,14 +96,12 @@ def card_bought(game_id, card_name):
 def card_played(game_id, card_id):
     game = games[game_id]
     hand = game.hand
-    #i = hand.index(card_name)
-    idx = -1
-    for i, card in enumerate(hand):
-        if card['id'] == card_id:
-            idx = i
+
+    idx = game.find_card_in_list(hand, card_id)
 
     if idx == -1:
         raise ValueError
+    
     card = game.hand[idx]
     type = card['type']
     if (type == 'action' and game.phase == 'action') or (type == 'treasure' and game.phase == 'buy'):
@@ -148,7 +160,33 @@ def change_var():
         games[gameID].coins += delta
     else:
         raise ValueError("Invalid variable name")
-    return 'Changing variable...' # nothing actually needs to be returned, flask crashes without this.
+    return 'Changed variable' # nothing actually needs to be returned, flask crashes without this.
+
+@app.route('/changeZone/', methods=['POST'])
+def change_zone():
+    req = request.get_json()
+    gameID = req['gameID']
+    game = games[gameID]
+    card_ids = req['cards']
+    zone = req['zone']
+
+    dest = None
+    if zone == 'discard':
+        dest = game.discard
+    elif zone == 'hand':
+        dest = game.hand
+    elif zone == 'deck':
+        dest = game.deck
+    elif zone == 'trash':
+        dest = game.trash
+
+    for card_id in card_ids:
+        card_loc = game.find_card(card_id)
+        dest.append(card_loc[0].pop(card_loc[1]))
+
+    return 'Changed zone'
+
+
 
 @app.route('/endphase/<int:game_id>/')
 def end_phase(game_id):

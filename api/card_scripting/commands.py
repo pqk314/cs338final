@@ -6,6 +6,8 @@ def getGameState(gameID):
 def changeVar(gameID, var, delta):
     #return requests.request("get", f"http://api:5000/changeVar/{gameID}/{var}/{delta}")
     return requests.post('http://api:5000/changeVar/', json={'gameID': gameID, 'var': var, 'delta': delta})
+def changeZone(gameID, cards, zone):
+    return requests.post('http://api:5000/changeZone/', json={'gameID': gameID, 'cards': cards, 'zone': zone})
 
 def fromHand(args, gameID):
     # args: number, canPickLess
@@ -44,36 +46,41 @@ def getStore(args, gameID):
 def gain(args, gameID):
     # args: cards, destination
     # moves the cards in the cards list to the destination zone
+    cards = args[0]
     if len(args) < 2:
         dest = 'discard'
     else:
         dest = args[1]
-    raise NotImplementedError
+    return changeZone(gameID, cards, dest)
 
 def trash(args, gameID):
     # args: cards
     # moves the specified cards to trash
-    return args[0]
+    cards = args[0]
+    return changeZone(gameID, cards, 'trash')
     
 def play(args, gameID):
     # args: card
     # moves the specified card to play area
     raise NotImplementedError
 
-def toHand(arg, gameID):
+def toHand(args, gameID):
     # args: cards
     # moves the cards in the list to hand
-    raise NotImplementedError
+    cards = args[0]
+    return changeZone(gameID, cards, 'hand')
 
 def discard(args, gameID):
     # args: cards
     # moves the cards in the list to discard pile
-    raise NotImplementedError
+    cards = args[0]
+    return changeZone(gameID, cards, 'discard')
 
 def toDeck(args, gameID):
     # args: cards
     # moves the cards in the list to top of deck
-    raise NotImplementedError
+    cards = args[0]
+    return changeZone(gameID, cards, 'deck')
 
 def changeCoins(args, gameID):
     # args: delta
