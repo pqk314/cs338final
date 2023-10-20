@@ -7,10 +7,19 @@ html {
 }
 
 #hand {
+    position: relative;
     height: 20vh;
     width: auto;
-    display: grid;
-    align-items: stretch;
+    display: inline-block;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+#action-buttons {
+    float: left;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
 }
 
 .card {
