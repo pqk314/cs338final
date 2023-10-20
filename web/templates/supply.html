@@ -40,7 +40,7 @@
     <div id="game-cards">
         {% for card in cards %}
         <article>
-        <img src="{{ card_pics[card] }}" id="{{ card }}" class="buyable">
+            <img src="{{ card_pics[card] }}" id="{{ card }}" class="buyable">
             <p>{{ remaining_cards[card] }} left</p>
         </article>
         {% endfor %}

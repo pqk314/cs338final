@@ -114,6 +114,13 @@ def end_phase_supply(game_id):
     return redirect(f'/{game_id}')
 
 
+@app.route("/<int:game_id>/gameover/")
+def game_over(game_id):
+    # TODO: There needs to be an if statement for if the game is, in fact, not over.
+    pics = get_card_pics()
+    return render_template("game-over.html", victory_points=-777, deck_composition={"curse": "777"}, card_pics=pics)
+
+
 if __name__ == "__main__":
     app.static_folder = "./static"
     app.template_folder = "./templates"
