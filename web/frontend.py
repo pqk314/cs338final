@@ -108,9 +108,8 @@ def supply(game_id):
         "festival": url_for('static', filename='images/375px-Festival.jpg'),
         "gardens": url_for('static', filename='images/375px-Gardens.jpg')
     }
-    # TODO: call to backend for cards ordered by amount they cost. Should be unique for each game instance
-    cards = ["chapel", "cellar", "village", "merchant", "militia", "moneylender", "mine", "witch", "sentry", "artisan"]
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    cards = gamestate['supply']
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     return render_template("supply.html", cards=cards, card_pics=card_pics, turn_info=turn_info)
 

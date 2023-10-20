@@ -3,7 +3,34 @@ macros = {
     'chapel': 'x=#fromHand(4, T); #trash($x);'
 }
 # use '&macroname' in a card to call the macro
-
+supply_options = [
+    'cellar',
+    'chapel',
+    'moat',
+    'harbinger',
+    'merchant',
+    'vassal',
+    'village',
+    'workshop',
+    'bureaucrat',
+    'militia',
+    'moneylender',
+    'poacher',
+    'remodel',
+    'smithy',
+    'throne room',
+    'bandit',
+    'council room',
+    'festival',
+    'laboratory',
+    'library',
+    'market',
+    'mine',
+    'sentry',
+    'witch',
+    'artisan',
+    'gardens',
+]
 cards = {
     'cellar': {'type': 'action', 'cost': 2},
     'chapel': {'type': 'action', 'cost': 2},

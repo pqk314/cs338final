@@ -15,6 +15,7 @@ class Game:
         self.nextCardID = 0
         deck = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
         self.deck = [self.make_card(c) for c in deck]
+        self.supply = random.sample(sorted(cards.supply_options), 10)
         #self.deck = ["copper", "copper", "copper", "copper", "copper", "copper", "copper", "estate", "estate", "estate"]
         self.hand = []
         self.discard = []
@@ -131,6 +132,7 @@ def getgamestate(game_id):
     state["actions"] = games[game_id].actions
     state["buys"] = games[game_id].buys
     state["coins"] = games[game_id].coins
+    state["supply"] = games[game_id].supply
     return state
 
 
@@ -144,6 +146,7 @@ def getfrontstate(game_id):
     state["actions"] = games[game_id].actions
     state["buys"] = games[game_id].buys
     state["coins"] = games[game_id].coins
+    state["supply"] = games[game_id].supply
     return state
 
 @app.route('/changeVar/', methods=['POST'])
