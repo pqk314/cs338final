@@ -111,7 +111,8 @@ def supply(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     cards = gamestate['supply']
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
-    return render_template("supply.html", cards=cards, card_pics=card_pics, turn_info=turn_info)
+    end_what = f"End {gamestate['phase'].title()}"
+    return render_template("supply.html", cards=cards, card_pics=card_pics, turn_info=turn_info, end_what=end_what)
 
 
 @app.route("/<int:game_id>/cardbought/<card_id>/")
@@ -131,6 +132,15 @@ def card_played(game_id, card_id):
 def end_phase(game_id):
     """ends current phase"""
     requests.request("get", f"http://api:5000/endphase/{game_id}")
+    return redirect(f'/{game_id}')
+
+@app.route("/<int:game_id>/supply/endphase/")
+def end_phase_supply(game_id):
+    """ends current phase and redirects to supply if the turn hasn't changed"""
+    requests.request("get", f"http://api:5000/endphase/{game_id}")
+    phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
+    if phase == 'buy':
+        return redirect(f'/{game_id}/supply')
     return redirect(f'/{game_id}')
 
 
