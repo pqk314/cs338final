@@ -25,4 +25,5 @@ html {
 .card {
     height: 20vh;
     margin: auto;
+    cursor: pointer;
 }

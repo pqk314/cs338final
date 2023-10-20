@@ -79,7 +79,10 @@ def supply(game_id):
     cards = gamestate['supply']
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     end_what = f"End {gamestate['phase'].title()}"
-    return render_template("supply.html", cards=cards, card_pics=pics, turn_info=turn_info, end_what=end_what)
+    # TODO: call to backend, should be formatted as {card_name (str): num_left (int)}
+    # make sure to pass into render template when done.
+    # remaining_cards = {}
+    return render_template("supply.html", cards=cards, card_pics=pics, turn_info=turn_info, end_what=end_what, remaining_cards={'curse' : 1})
 
 
 @app.route("/<int:game_id>/cardbought/<card_id>/")

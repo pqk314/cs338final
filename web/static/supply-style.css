@@ -18,7 +18,19 @@ div {
     margin-bottom: 30px;
 }
 
+.buyable {
+    cursor: pointer;
+}
+
+article {
+    height: calc(23.66vh - 20px)
+}
+
+p {
+    margin: 0
+}
+
 img {
     width: auto;
-    height: calc(23.66vh - 20px);
+    height: calc(calc(23.66vh - 20px) - 18px);
 }
