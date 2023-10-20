@@ -40,8 +40,7 @@ def fromTop(args, gameID):
 def getStore(args, gameID):
     # no args
     # returns a list of the cards in the store (1 for each supply pile if nonempty)
-
-    raise NotImplementedError
+    return requests.get("http://api:5000/getStore/{gameID}").json()['store']
 
 def gain(args, gameID):
     # args: cards, destination
@@ -115,20 +114,15 @@ def getChoice(args, gameID):
 
 def getName(args, gameID):
     # args: card
-    return 'sample names'
-    return args[0].name
-    raise NotImplementedError
+    return args[0]['name']
 
 def getCost(args, gameID):
     # args: card
-    return 3
-    return args[0].cost
-    raise NotImplementedError
+    return args[0]['cost']
 
 def getType(args, gameID):
     # args: card
-    return 'action'
-    raise NotImplementedError
+    return args[0]['type']
 
 def getFirst(args, gameID):
     # args: set of cards

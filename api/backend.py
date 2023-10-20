@@ -16,6 +16,7 @@ class Game:
         deck = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
         self.deck = [self.make_card(c) for c in deck]
         self.supply = random.sample(sorted(cards.supply_options), 10)
+        self.supplySizes = [10 for i in range(10)]
         #self.deck = ["copper", "copper", "copper", "copper", "copper", "copper", "copper", "estate", "estate", "estate"]
         self.hand = []
         self.discard = []
@@ -202,12 +203,13 @@ def end_phase(game_id):
 
 @app.route("/getsupply/<int:game_id>/")
 def get_supply(game_id):
-    raise NotImplementedError
+    game = games[game_id]
+    return {"store": [game.supply[i] for i in range(10) if game.supplySizes[i] > 0]}
 
 @app.route("/draw/<int:game_id>/<int:num_cards>/")
 def draw(game_id, num_cards):
     games[game_id].draw_cards(num_cards)
-    return 'hellow world' # nothing actually needs to be returned, flask crashes without this.
+    return 'hello world' # nothing actually needs to be returned, flask crashes without this.
 
 @app.route("/newgame/")
 def new_game():
