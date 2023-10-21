@@ -128,7 +128,7 @@ def select_cards(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     cards = gamestate["hand"]
-    card_pics = make_images()
+    card_pics = get_card_pics()
     cardNames = [card['name'] for card in cards]
     end_what = f"End {gamestate['phase'].title()}"
     selection = req['options']
