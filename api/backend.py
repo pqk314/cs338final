@@ -267,6 +267,10 @@ def get_options(game_id):
 def find_cards(game_id):
     return {'res': games[game_id].find_card_objs([1, 2, 3, 4])}
 
+# @app.route("deckcomposition/<int:game_id>/")
+# def deck_composition(game_id):
+#     deck_comp = { : }
+#     return deck_comp
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
