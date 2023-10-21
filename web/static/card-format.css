@@ -7,15 +7,55 @@ html {
 }
 
 #hand {
+    position: relative;
     height: 20vh;
     width: auto;
-    display: grid;
-    align-items: stretch;
+    display: inline-block;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+#action-buttons {
+    float: left;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
 }
 
 .card {
     height: 20vh;
     margin: auto;
+    cursor: pointer;
+}
+
+.blocker {
+    height: 100%;
+    width: 100%;
+    background-color: black;
+    opacity: 0.7;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.select {
+    position: absolute;
+    z-index: 20;
+    top: 30px;
+    left: 30px;
+    height: 20vh;
+    width: 93%;
+    display: grid;
+    align-items: stretch;
+}
+
+.selectable {
+    border: 2px solid transparent;
+}
+
+.selected {
+    border: 2px solid #00ff00;
 }
 
 .blocker {

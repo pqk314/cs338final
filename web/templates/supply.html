@@ -8,24 +8,50 @@
 <body>
 <div id="parent-div">
     <div id="base-cards">
-        <img src="{{ card_pics['copper'] }}" class="buyable" id="copper">
-        <img src="{{ card_pics['silver'] }}" class="buyable" id="silver">
-        <img src="{{ card_pics['gold'] }}" class="buyable" id="gold">
-        <img src="{{ card_pics['estate'] }}" class="buyable" id="estate">
-        <img src="{{ card_pics['duchy'] }}" class="buyable" id="duchy">
-        <img src="{{ card_pics['province'] }}" class="buyable" id="province">
-        <img src="{{ card_pics['curse'] }}" class="buyable" id="curse">
+        <article>
+            <img src="{{ card_pics['copper'] }}" class="buyable" id="copper">
+            <p>{{ remaining_cards['copper'] }} left</p>
+        </article>
+        <article>
+            <img src="{{ card_pics['silver'] }}" class="buyable" id="silver">
+            <p>{{ remaining_cards['silver'] }} left</p>
+        </article>
+        <article>
+            <img src="{{ card_pics['gold'] }}" class="buyable" id="gold">
+            <p>{{ remaining_cards['gold'] }} left</p>
+        </article>
+        <article>
+            <img src="{{ card_pics['estate'] }}" class="buyable" id="estate">
+            <p>{{ remaining_cards['estate'] }} left</p>
+        </article>
+        <article>
+            <img src="{{ card_pics['duchy'] }}" class="buyable" id="duchy">
+            <p>{{ remaining_cards['duchy'] }} left</p>
+        </article>
+        <article>
+            <img src="{{ card_pics['province'] }}" class="buyable" id="province">
+            <p>{{ remaining_cards['province'] }} left</p>
+        </article>
+        <article>
+            <img src="{{ card_pics['curse'] }}" class="buyable" id="curse">
+            <p>{{ remaining_cards['curse'] }} left</p>
+        </article>
     </div>
     <div id="game-cards">
         {% for card in cards %}
-        <img src="{{ card_pics[card] }}" id="{{ card }}" class="buyable">
+        <article>
+            <img src="{{ card_pics[card] }}" id="{{ card }}" class="buyable">
+            <p>{{ remaining_cards[card] }} left</p>
+        </article>
         {% endfor %}
     </div>
 </div>
-<button onclick="window.location.href = `/${window.location.toString().split('/')[3]}`" style="float:left;">Back to Game</button>
+<button onclick="window.location.href = `/${window.location.toString().split('/')[3]}`" style="float:left;">Back to
+    Game
+</button>
 <button onclick="window.location.href=`${window.location}/endphase`">{{ end_what }}</button>
 <div style="float: right; margin: 0;">
-    <h1 >Your Money: {{ turn_info['Money'] }}</h1>
+    <h1>Your Money: {{ turn_info['Money'] }}</h1>
     <h1>Your Buys: {{ turn_info['Buys'] }}</h1>
 </div>
 <script src="{{ url_for('static', filename='supply-js.js') }}"></script>

@@ -11,14 +11,14 @@
     
     <div id="hand" class="card-container">
         {% for card in hand %}
-            <a href = "/{{ game_id }}/cardplayed/{{ card.id }}">
-                <img src="{{ images[card.name] }}"class="card {{ card.name }}" alt="{{ card.name }} " id="{{ card.id }}">
-            </a>
-            
+            <img src="{{ images[card.name] }}"class="card" alt="{{ card.name }} " id="{{ card.id }}">
         {% endfor %}
     </div>
-    <button onclick="window.location.href=`${window.location}/supply`">View Supply</button>
-    <button onclick="window.location.href=`${window.location}/endphase`">{{ end_what }}</button>
+    <br>
+    <div id="action-buttons">
+        <button onclick="window.location.href=`${window.location}/supply`">View Supply</button>
+        <button onclick="window.location.href=`${window.location}/endphase`">{{ end_what }}</button>
+    </div>
     <div id="turn-info" style="float: right; background-color: white;">
     {% for key in turn_info.keys() %}
         <p>{{ key }}: {{ turn_info[key] }}</p>

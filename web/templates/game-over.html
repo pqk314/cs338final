@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        article {
+            height: calc(23.66vh - 20px)
+        }
+
+        p {
+            margin: 0
+        }
+
+        img {
+            width: auto;
+            height: calc(calc(23.66vh - 20px) - 18px);
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center">The game is over.</h1>
+    <p>You got {{ victory_points }} victory points!</p>
+    <br>
+    <p>Your deck composition was:</p>
+    {% for key in deck_composition.keys() %}
+    <article>
+        <img src="{{ card_pics[key] }}">
+        <p>{{ deck_composition[key] }} in deck</p>
+    </article>
+    {% endfor %}
+</body>
+</html>
