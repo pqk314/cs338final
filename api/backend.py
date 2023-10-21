@@ -15,9 +15,12 @@ class Game:
         self.nextCardID = 0
         deck = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
         self.deck = [self.make_card(c) for c in deck]
-        self.supply = random.sample(sorted(cards.supply_options), 10)
-        self.supplySizes = [10 for i in range(10)]
-        #self.deck = ["copper", "copper", "copper", "copper", "copper", "copper", "copper", "estate", "estate", "estate"]
+        # self.supply = random.sample(sorted(cards.supply_options), 10)
+        
+        #to sort the cards by cost the self.supply needs to be sorted
+        self.supply = ['market', 'festival', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
+        # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
+        self.supplySizes = [2 for i in range(10)]
         self.hand = []
         self.discard = []
         self.in_play = []
@@ -101,6 +104,8 @@ def card_bought(game_id, card_name):
         game.discard.append(card)
         game.coins -= cost
         game.buys -= 1
+        game.supplySizes[game.supply.index(card_name)] -= 1
+
         
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
@@ -163,6 +168,7 @@ def getfrontstate(game_id):
     state["buys"] = games[game_id].buys
     state["coins"] = games[game_id].coins
     state["supply"] = games[game_id].supply
+    state["supplySizes"] = games[game_id].supplySizes
     return state
 
 @app.route('/changeVar/', methods=['POST'])
@@ -266,6 +272,22 @@ def get_options(game_id):
 @app.route("/findcards/<int:game_id>/")
 def find_cards(game_id):
     return {'res': games[game_id].find_card_objs([1, 2, 3, 4])}
+
+# Does not always work for some reason, I will look at it
+@app.route("/calculatescore/<int:game_id>/")
+def calculate_score(game_id):
+    score = 0
+    for c in games[game_id].deck:
+        if(c['name'] == 'estate'):
+            score += 1
+        if(c['name'] == 'duchy'):
+            score += 3
+        if(c['name'] == 'province'):
+            score += 6
+        if(c['name'] == "gardens"):
+            score += (len(games[game_id].deck)/10)
+    return {'score' : score}
+
 
 # @app.route("deckcomposition/<int:game_id>/")
 # def deck_composition(game_id):

@@ -81,8 +81,12 @@ def supply(game_id):
     end_what = f"End {gamestate['phase'].title()}"
     # TODO: call to backend, should be formatted as {card_name (str): num_left (int)}
     # make sure to pass into render template when done.
-    # remaining_cards = {}
-    return render_template("supply.html", cards=cards, card_pics=pics, turn_info=turn_info, end_what=end_what, remaining_cards={'curse' : 1})
+    remaining_cards = {}
+    cards_left = gamestate['supplySizes']
+    for c in cards:
+        remaining_cards[c] = cards_left[cards.index(c)]
+    print(remaining_cards)
+    return render_template("supply.html", cards=cards, card_pics=pics, turn_info=turn_info, end_what=end_what, remaining_cards = remaining_cards)
 
 
 @app.route("/<int:game_id>/cardbought/<card_id>/")
@@ -103,12 +107,41 @@ def card_played(game_id, card_id):
 @app.route("/<int:game_id>/endphase/")
 def end_phase(game_id):
     """ends current phase"""
+
+    # I don't know exactly how we are trying to orginize the endgame stuff but this works
+    score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    supplySizes = gamestate['supplySizes']
+    count = 0
+    for x in supplySizes:
+        if x == 0:
+            count += 1
+    if count >= 1:
+        pics = get_card_pics()
+        return render_template("game-over.html", victory_points=score, deck_composition={"curse": "777"}, card_pics=pics)
+
     requests.request("get", f"http://api:5000/endphase/{game_id}")
     return redirect(f'/{game_id}')
 
 @app.route("/<int:game_id>/supply/endphase/")
 def end_phase_supply(game_id):
     """ends current phase and redirects to supply if the turn hasn't changed"""
+
+    # I don't know exactly how we are trying to orginize the endgame stuff but this works
+    score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    supplySizes = gamestate['supplySizes']
+    count = 0
+    for x in supplySizes:
+        if x == 0:
+            count += 1
+    if count >= 1:
+        pics = get_card_pics()
+        return render_template("game-over.html", victory_points=score, deck_composition={"curse": "777"}, card_pics=pics)
+
+
+
+
     requests.request("get", f"http://api:5000/endphase/{game_id}")
     phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
     if phase == 'buy':
@@ -116,11 +149,19 @@ def end_phase_supply(game_id):
     return redirect(f'/{game_id}')
 
 
-@app.route("/<int:game_id>/gameover/")
-def game_over(game_id):
-    # TODO: There needs to be an if statement for if the game is, in fact, not over.
-    pics = get_card_pics()
-    return render_template("game-over.html", victory_points=-777, deck_composition={"curse": "777"}, card_pics=pics)
+# @app.route("/<int:game_id>/gameover/")
+# def game_over(game_id):
+#     # TODO: There needs to be an if statement for if the game is, in fact, not over.
+#     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+#     supplySizes = gamestate['supplySizes']
+#     count = 0
+#     for x in supplySizes:
+#         if x == 0:
+#             count += 1
+#     if count < 3:
+#         print("the game isnt over")
+#     pics = get_card_pics()
+#     return render_template("game-over.html", victory_points=-777, deck_composition={"curse": "777"}, card_pics=pics)
 
 @app.route("/<int:game_id>/select/")
 def select_cards(game_id):
