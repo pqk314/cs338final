@@ -132,8 +132,10 @@ def select_cards(game_id):
     cardNames = [card['name'] for card in cards]
     end_what = f"End {gamestate['phase'].title()}"
     selection = req['options']
+    max_num = req['n']
+    can_choose_less = 'true' if req['canChooseLess'] else 'false'
     #base_url = url_for(card_played)
-    return render_template("front-end-select.html", hand=cards, images=card_pics, turn_info=turn_info, end_what=end_what, game_id = game_id, selection=selection)
+    return render_template("front-end-select.html", hand=cards, images=card_pics, turn_info=turn_info, end_what=end_what, game_id = game_id, selection=selection, max_num=max_num, can_choose_less=can_choose_less)
 
 @app.route("/<int:game_id>/selected/", methods=["POST"])
 def selected(game_id):
@@ -145,9 +147,14 @@ def selected(game_id):
 def selected2(game_id):
     app.logger.info("relaying")
     req = request.get_json()
-    requests.post(f"http://api:5000/selected/{game_id}", json=req)
-    return 'hi'
+    res = requests.post(f"http://api:5000/selected/{game_id}", json=req).text
+    return res
     redirect(f'/{game_id}')
+
+@app.route("/ischoice/<int:game_id>/")
+def ischoice(game_id):
+    res = requests.get(f"http://api:5000/ischoice/{game_id}")
+    return res
 
 @app.route("/testpage/")
 def test_page():

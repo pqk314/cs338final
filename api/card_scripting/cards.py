@@ -71,8 +71,8 @@ cards = {
 
 
 cardTexts = {
-    'cellar': '#changeActions(1); x=#chooseSubset(#getHand(), -1, T); #discard($x); #draw(#count($x))',
-    'chapel': '#trash(#fromHand(4, T))',
+    'cellar': '#changeActions(1); x=#chooseSubset(#getHand(), -1, #true()); #discard($x); #draw(#count($x))',
+    'chapel': '#trash(#chooseSubset(#getHand(), 4, #true()))',
     'moat': '#draw(2)',
     'harbinger': '#draw(1); #changeActions(1); #toDeck(#chooseSubset(#getDiscard(), 1, T))',
     'merchant': '#draw(1); #changeActions(1); somethingelse#', #not implemented
@@ -81,7 +81,8 @@ cardTexts = {
     'workshop': '#gain(#chooseSubset(#getSubset(#getStore(), #makeArray(cost, <, 5)), 1, F))',
     'bureaucrat': '', #not implemented
     'militia': '#changeCoins(2)', #not implemented
-    'moneylender': '#set(x, #getSubset(#getHand(), #makeArray(name, =, copper))); #set(hasCopper, #eval(#count(#get(x)), >, 0)); #set(willTrash, #getFalse()) #cond(#get(hasCopper), #set(willTrash, #getChoice("Trash a copper?"))); #cond(#get(hasCopper), #trash(#getFirst(#get(x)))); #cond(#get(hasCopper), #changeCoins(3))',
+    #'moneylender': '#set(x, #getSubset(#getHand(), #makeArray(name, =, copper))); #set(hasCopper, #eval(#count(#get(x)), >, 0)); #set(willTrash, #false()) #cond(#get(hasCopper), #set(willTrash, #getChoice("Trash a copper?"))); #cond(#get(hasCopper), #trash(#getFirst(#get(x)))); #cond(#get(hasCopper), #changeCoins(3))',
+    'moneylender': 'x=#getSubset(#getHand(), #makeArray(name, =, copper)); hasCopper=#eval(#count(#get(x)), >, 0); willTrash=#false(); #cond(#get(hasCopper), #set(willTrash, #getChoice("Trash a copper?"))); #cond(#get(hasCopper), #trash(#getFirst(#get(x)))); #cond(#get(hasCopper), #changeCoins(3))',
     'poacher': '#draw(1); #changeActions(1); #changeCoins(1); #discard(#fromHand(#countEmptyPiles(), F))',
     'remodel': '#x=#fromHand(1, F); #trash($x); #gain(#chooseSubset(#getSubset(#getStore(), cost, <=, #addInts(#getCost($x), 2)), 1, F))',
     'smithy': '#draw(3)',

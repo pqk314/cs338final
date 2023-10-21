@@ -222,7 +222,7 @@ def end_phase(game_id):
 @app.route("/getsupply/<int:game_id>/")
 def get_supply(game_id):
     game = games[game_id]
-    return {"store": [game.supply[i] for i in range(10) if game.supplySizes[i] > 0]}
+    return {"store": [game.make_card(game.supply[i]) for i in range(10) if game.supplySizes[i] > 0]}
 
 @app.route("/draw/<int:game_id>/<int:num_cards>/")
 def draw(game_id, num_cards):
@@ -239,10 +239,15 @@ def selected(game_id):
     req = request.get_json()
     ids = req['ids']
     game = games[game_id]
+    game.options = None
     cards = game.find_card_objs(ids)
     game.cmd.setPlayerInput(cards)
-    game.cmd.execute()
-    return "hi"
+    res = game.cmd.execute()
+
+    if res == "yield":
+        return "yield"
+
+    return "Hello World!"
 
 @app.route("/setoptions/<int:game_id>/", methods=['POST'])
 def set_options(game_id):
@@ -250,6 +255,9 @@ def set_options(game_id):
     games[game_id].options = req
     return "hello world" # nothing actually needs to be returned, flask crashes without this.
 
+@app.route("/ischoice/<int:game_id>/")
+def ischoice(game_id):
+    return {'is_choice': games[game_id].options != None}
     
 @app.route("/getoptions/<int:game_id>/")
 def get_options(game_id):

@@ -40,7 +40,7 @@ def fromTop(args, gameID):
 def getStore(args, gameID):
     # no args
     # returns a list of the cards in the store (1 for each supply pile if nonempty)
-    return requests.get("http://api:5000/getStore/{gameID}").json()['store']
+    return requests.get("http://api:5000/getsupply/{gameID}").json()['store']
 
 def gain(args, gameID):
     # args: cards, destination
@@ -137,7 +137,7 @@ def getSubset(args, gameID):
     for card in args[0]:
         isLegal = True
         for cond in conditions:
-            val = getattr(card, cond[0])
+            val = card[cond[0]]
             target = cond[2]
             if isinstance(val, int):
                 target = int(target)
@@ -190,10 +190,10 @@ def removeFromSet(args, gameID):
             s.remove(x)
     return s
 
-def getTrue(args, gameID):
+def true(args, gameID):
     return True
 
-def getFalse(args, gameID):
+def false(args, gameID):
     return False
 
 def makeArray(args, gameID):
@@ -232,7 +232,7 @@ def countEmptyPiles(args, gameID):
     raise NotImplementedError
 
 
-funcs = [fromHand, getHand, getDiscard, fromTop, getStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, getTrue, getFalse, eval, countEmptyPiles]
+funcs = [fromHand, getHand, getDiscard, fromTop, getStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
 commands = {}
