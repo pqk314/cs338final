@@ -171,6 +171,7 @@ def chooseSubset(args, gameID):
     # args: set, n, canChooseLess
     # Asks the player to choose a subset of the set (list of cards), of size n, with the possible option to choose less than n
     # returns a list of the chosen cards
+    requests.post(f'http://api:5000/setoptions/{gameID}/', json={'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]})
     return "yield"
     return args[0][:-1]
     raise NotImplementedError

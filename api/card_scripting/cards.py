@@ -71,7 +71,7 @@ cards = {
 
 
 cardTexts = {
-    'cellar': 'x=#chooseSubset(#getHand(), -1, T); #discard($x); #draw(#count($x))',
+    'cellar': '#changeActions(1); x=#chooseSubset(#getHand(), -1, T); #discard($x); #draw(#count($x))',
     'chapel': '#trash(#fromHand(4, T))',
     'moat': '#draw(2)',
     'harbinger': '#draw(1); #changeActions(1); #toDeck(#chooseSubset(#getDiscard(), 1, T))',
@@ -80,7 +80,7 @@ cardTexts = {
     'village': '#draw(1); #changeActions(2)',
     'workshop': '#gain(#chooseSubset(#getSubset(#getStore(), #makeArray(cost, <, 5)), 1, F))',
     'bureaucrat': '', #not implemented
-    'militia': '', #not implemented
+    'militia': '#changeCoins(2)', #not implemented
     'moneylender': '#set(x, #getSubset(#getHand(), #makeArray(name, =, copper))); #set(hasCopper, #eval(#count(#get(x)), >, 0)); #set(willTrash, #getFalse()) #cond(#get(hasCopper), #set(willTrash, #getChoice("Trash a copper?"))); #cond(#get(hasCopper), #trash(#getFirst(#get(x)))); #cond(#get(hasCopper), #changeCoins(3))',
     'poacher': '#draw(1); #changeActions(1); #changeCoins(1); #discard(#fromHand(#countEmptyPiles(), F))',
     'remodel': '#x=#fromHand(1, F); #trash($x); #gain(#chooseSubset(#getSubset(#getStore(), cost, <=, #addInts(#getCost($x), 2)), 1, F))',

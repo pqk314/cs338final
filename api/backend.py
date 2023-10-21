@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, redirect, url_for
 import random
 
 from card_scripting import cardPlayer, cards
@@ -26,6 +26,8 @@ class Game:
         self.actions = 1
         self.buys = 1
         self.coins = 0
+        self.cmd = None
+        self.options = None
         global num_games
         self.id = num_games
         num_games += 1
@@ -63,6 +65,14 @@ class Game:
             if idx != -1:
                 return l, idx
         return [], -1
+    
+    def find_card_objs(self, card_ids):
+        objs = []
+        for card_id in card_ids:
+            l, idx = self.find_card(card_id)
+            if idx!= -1:
+                objs.append(l[idx])
+        return objs
 
     def shuffle(self):
         """shuffles deck"""
@@ -113,9 +123,14 @@ def card_played(game_id, card_id):
             else:
                 return "hi"
         game.in_play.append(card)
-        cardPlayer.playCard(game_id, card['name'])
         game.hand.pop(idx)
-    return "hi"  # nothing actually needs to be returned, flask crashes without this.
+        cmd = cardPlayer.getCardCmd(game_id, card['name'])
+        game.cmd = cmd
+        res = cmd.execute()
+        if res == "yield":
+            return {'yield': True}
+
+    return {'yield': False}
 
 
 @app.route("/gethand/<int:game_id>/")
@@ -171,7 +186,8 @@ def change_zone():
     req = request.get_json()
     gameID = req['gameID']
     game = games[gameID]
-    card_ids = req['cards']
+    cards = req['cards']
+    card_ids = [card['id'] for card in cards]
     zone = req['zone']
 
     dest = None
@@ -186,6 +202,8 @@ def change_zone():
 
     for card_id in card_ids:
         card_loc = game.find_card(card_id)
+        if card_loc[1] == -1:
+            continue
         dest.append(card_loc[0].pop(card_loc[1]))
 
     return 'Changed zone'
@@ -215,6 +233,31 @@ def draw(game_id, num_cards):
 def new_game():
     games.append(Game())
     return str(num_games - 1)
+
+@app.route("/selected/<int:game_id>/", methods=['POST'])
+def selected(game_id):
+    req = request.get_json()
+    ids = req['ids']
+    game = games[game_id]
+    cards = game.find_card_objs(ids)
+    game.cmd.setPlayerInput(cards)
+    game.cmd.execute()
+    return "hi"
+
+@app.route("/setoptions/<int:game_id>/", methods=['POST'])
+def set_options(game_id):
+    req = request.get_json()
+    games[game_id].options = req
+    return "hello world" # nothing actually needs to be returned, flask crashes without this.
+
+    
+@app.route("/getoptions/<int:game_id>/")
+def get_options(game_id):
+    return games[game_id].options
+
+@app.route("/findcards/<int:game_id>/")
+def find_cards(game_id):
+    return {'res': games[game_id].find_card_objs([1, 2, 3, 4])}
 
 
 if __name__ == "__main__":

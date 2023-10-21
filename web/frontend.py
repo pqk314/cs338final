@@ -1,12 +1,48 @@
 from flask import Flask
-from flask import render_template, url_for, redirect
+from flask import render_template, url_for, redirect, request
 import json
 import requests
 
 app = Flask(__name__)
 
 
-
+def make_images():
+    card_pics = {
+        "copper": url_for('static', filename='images/372px-Copper.jpg'),
+        "silver": url_for('static', filename='images/375px-Silver.jpg'),
+        "gold": url_for('static', filename='images/375px-Gold.jpg'),
+        "estate": url_for('static', filename='images/373px-Estate.jpg'),
+        "duchy": url_for('static', filename='images/372px-Duchy.jpg'),
+        "province": url_for('static', filename='images/375px-Province.jpg'),
+        "curse": url_for('static', filename='images/372px-Curse.jpg'),
+        "moat": url_for('static', filename='images/372px-Moat.jpg'),
+        "vassal": url_for('static', filename='images/372px-Vassal.jpg'),
+        "cellar": url_for('static', filename='images/373px-Cellar.jpg'),
+        "laboratory": url_for('static', filename='images/373px-Laboratory.jpg'),
+        "library": url_for('static', filename='images/373px-Library.jpg'),
+        "merchant": url_for('static', filename='images/373px-Merchant.jpg'),
+        "remodel": url_for('static', filename='images/373px-Remodel.jpg'),
+        "sentry": url_for('static', filename='images/373px-Sentry.jpg'),
+        "smithy": url_for('static', filename='images/373px-Smithy.jpg'),
+        "village": url_for('static', filename='images/373px-Village.jpg'),
+        "witch": url_for('static', filename='images/373px-Witch.jpg'),
+        "workshop": url_for('static', filename='images/373px-Workshop.jpg'),
+        "bandit": url_for('static', filename='images/374px-Bandit.jpg'),
+        "bureaucrat": url_for('static', filename='images/374px-Bureaucrat.jpg'),
+        "harbinger": url_for('static', filename='images/374px-Harbinger.jpg'),
+        "market": url_for('static', filename='images/374px-Market.jpg'),
+        "militia": url_for('static', filename='images/374px-Militia.jpg'),
+        "mine": url_for('static', filename='images/374px-Mine.jpg'),
+        "moneylender": url_for('static', filename='images/374px-Moneylender.jpg'),
+        "poacher": url_for('static', filename='images/374px-Poacher.jpg'),
+        "throne_room": url_for('static', filename='images/374px-Throne_Room.jpg'),
+        "artisan": url_for('static', filename='images/375px-Artisan.jpg'),
+        "chapel": url_for('static', filename='images/375px-Chapel.jpg'),
+        "council_room": url_for('static', filename='images/375px-Council_Room.jpg'),
+        "festival": url_for('static', filename='images/375px-Festival.jpg'),
+        "gardens": url_for('static', filename='images/375px-Gardens.jpg')
+    }
+    return card_pics
 
 @app.route("/")
 def home_page():
@@ -25,89 +61,17 @@ def new_game():
 def game_page(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
-    card_pics = {
-        "copper": url_for('static', filename='images/372px-Copper.jpg'),
-        "silver": url_for('static', filename='images/375px-Silver.jpg'),
-        "gold": url_for('static', filename='images/375px-Gold.jpg'),
-        "estate": url_for('static', filename='images/373px-Estate.jpg'),
-        "duchy": url_for('static', filename='images/372px-Duchy.jpg'),
-        "province": url_for('static', filename='images/375px-Province.jpg'),
-        "curse": url_for('static', filename='images/372px-Curse.jpg'),
-        "moat": url_for('static', filename='images/372px-Moat.jpg'),
-        "vassal": url_for('static', filename='images/372px-Vassal.jpg'),
-        "cellar": url_for('static', filename='images/373px-Cellar.jpg'),
-        "laboratory": url_for('static', filename='images/373px-Laboratory.jpg'),
-        "library": url_for('static', filename='images/373px-Library.jpg'),
-        "merchant": url_for('static', filename='images/373px-Merchant.jpg'),
-        "remodel": url_for('static', filename='images/373px-Remodel.jpg'),
-        "sentry": url_for('static', filename='images/373px-Sentry.jpg'),
-        "smithy": url_for('static', filename='images/373px-Smithy.jpg'),
-        "village": url_for('static', filename='images/373px-Village.jpg'),
-        "witch": url_for('static', filename='images/373px-Witch.jpg'),
-        "workshop": url_for('static', filename='images/373px-Workshop.jpg'),
-        "bandit": url_for('static', filename='images/374px-Bandit.jpg'),
-        "bureaucrat": url_for('static', filename='images/374px-Bureaucrat.jpg'),
-        "harbinger": url_for('static', filename='images/374px-Harbinger.jpg'),
-        "market": url_for('static', filename='images/374px-Market.jpg'),
-        "militia": url_for('static', filename='images/374px-Militia.jpg'),
-        "mine": url_for('static', filename='images/374px-Mine.jpg'),
-        "moneylender": url_for('static', filename='images/374px-Moneylender.jpg'),
-        "poacher": url_for('static', filename='images/374px-Poacher.jpg'),
-        "throne_room": url_for('static', filename='images/374px-Throne_Room.jpg'),
-        "artisan": url_for('static', filename='images/375px-Artisan.jpg'),
-        "chapel": url_for('static', filename='images/375px-Chapel.jpg'),
-        "council_room": url_for('static', filename='images/375px-Council_Room.jpg'),
-        "festival": url_for('static', filename='images/375px-Festival.jpg'),
-        "gardens": url_for('static', filename='images/375px-Gardens.jpg')
-    }
-    
+    card_pics = make_images()
     # hand = requests.request("get", f"http://api:5000/gethand/{game_id}").text
     cards = gamestate["hand"]
     cardNames = [card['name'] for card in cards]
-    '''cards = hand[1:-1].split(",")
-    for i in range(len(cards)):
-        cards[i] = cards[i].strip()[1:-1]'''
     end_what = f"End {gamestate['phase'].title()}"
     #base_url = url_for(card_played)
     return render_template("front-end.html", hand=cards, images=card_pics, turn_info=turn_info, end_what=end_what, game_id = game_id)
 
 @app.route("/<int:game_id>/supply")
 def supply(game_id):
-    card_pics = {
-        "copper": url_for('static', filename='images/372px-Copper.jpg'),
-        "silver": url_for('static', filename='images/375px-Silver.jpg'),
-        "gold": url_for('static', filename='images/375px-Gold.jpg'),
-        "estate": url_for('static', filename='images/373px-Estate.jpg'),
-        "duchy": url_for('static', filename='images/372px-Duchy.jpg'),
-        "province": url_for('static', filename='images/375px-Province.jpg'),
-        "curse": url_for('static', filename='images/372px-Curse.jpg'),
-        "moat": url_for('static', filename='images/372px-Moat.jpg'),
-        "vassal": url_for('static', filename='images/372px-Vassal.jpg'),
-        "cellar": url_for('static', filename='images/373px-Cellar.jpg'),
-        "laboratory": url_for('static', filename='images/373px-Laboratory.jpg'),
-        "library": url_for('static', filename='images/373px-Library.jpg'),
-        "merchant": url_for('static', filename='images/373px-Merchant.jpg'),
-        "remodel": url_for('static', filename='images/373px-Remodel.jpg'),
-        "sentry": url_for('static', filename='images/373px-Sentry.jpg'),
-        "smithy": url_for('static', filename='images/373px-Smithy.jpg'),
-        "village": url_for('static', filename='images/373px-Village.jpg'),
-        "witch": url_for('static', filename='images/373px-Witch.jpg'),
-        "workshop": url_for('static', filename='images/373px-Workshop.jpg'),
-        "bandit": url_for('static', filename='images/374px-Bandit.jpg'),
-        "bureaucrat": url_for('static', filename='images/374px-Bureaucrat.jpg'),
-        "harbinger": url_for('static', filename='images/374px-Harbinger.jpg'),
-        "market": url_for('static', filename='images/374px-Market.jpg'),
-        "militia": url_for('static', filename='images/374px-Militia.jpg'),
-        "mine": url_for('static', filename='images/374px-Mine.jpg'),
-        "moneylender": url_for('static', filename='images/374px-Moneylender.jpg'),
-        "poacher": url_for('static', filename='images/374px-Poacher.jpg'),
-        "throne_room": url_for('static', filename='images/374px-Throne_Room.jpg'),
-        "artisan": url_for('static', filename='images/375px-Artisan.jpg'),
-        "chapel": url_for('static', filename='images/375px-Chapel.jpg'),
-        "council_room": url_for('static', filename='images/375px-Council_Room.jpg'),
-        "festival": url_for('static', filename='images/375px-Festival.jpg'),
-        "gardens": url_for('static', filename='images/375px-Gardens.jpg')
-    }
+    card_pics = make_images()
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     cards = gamestate['supply']
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
@@ -125,7 +89,9 @@ def card_bought(game_id, card_id):
 @app.route("/<int:game_id>/cardplayed/<card_id>/")
 def card_played(game_id, card_id):
     """process for playing cards"""
-    requests.request("get", f"http://api:5000/cardplayed/{game_id}/{card_id}")
+    res = requests.request("get", f"http://api:5000/cardplayed/{game_id}/{card_id}").json()
+    if res['yield']:
+        return redirect(f'/{game_id}/select/')
     return redirect(f'/{game_id}')
 
 @app.route("/<int:game_id>/endphase/")
@@ -142,6 +108,40 @@ def end_phase_supply(game_id):
     if phase == 'buy':
         return redirect(f'/{game_id}/supply')
     return redirect(f'/{game_id}')
+
+@app.route("/<int:game_id>/select/")
+def select_cards(game_id):
+    req = requests.get(f"http://api:5000/getoptions/{game_id}").json()
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
+    cards = gamestate["hand"]
+    card_pics = make_images()
+    cardNames = [card['name'] for card in cards]
+    end_what = f"End {gamestate['phase'].title()}"
+    selection = req['options']
+    #base_url = url_for(card_played)
+    return render_template("front-end-select.html", hand=cards, images=card_pics, turn_info=turn_info, end_what=end_what, game_id = game_id, selection=selection)
+
+@app.route("/<int:game_id>/selected/", methods=["POST"])
+def selected(game_id):
+    req = request.get_json()
+    requests.post(f"http://api:5000/selected/{game_id}", json=req)
+    redirect(f'/{game_id}')
+
+@app.route("/selected/<int:game_id>/", methods=["POST"])
+def selected2(game_id):
+    app.logger.info("relaying")
+    req = request.get_json()
+    requests.post(f"http://api:5000/selected/{game_id}", json=req)
+    return 'hi'
+    redirect(f'/{game_id}')
+
+@app.route("/testpage/")
+def test_page():
+    gamestate = requests.request("get", f"http://api:5000/getgamestate/0/").json()
+    find = requests.request("get", f"http://api:5000/findcards/0/").json()
+    gamestate['res'] = find['res']
+    return gamestate
 
 
 if __name__ == "__main__":
