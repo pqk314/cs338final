@@ -86,9 +86,9 @@ cardTexts = {
     'poacher': '#draw(1); #changeActions(1); #changeCoins(1); #discard(#fromHand(#countEmptyPiles(), F))',
     'remodel': '#x=#fromHand(1, F); #trash($x); #gain(#chooseSubset(#getSubset(#getStore(), cost, <=, #addInts(#getCost($x), 2)), 1, F))',
     'smithy': '#draw(3)',
-    'throne room': '', #not implemented
+    'throne_room': '', #not implemented
     'bandit': '', # not implemented
-    'council room': '#draw(4); #changeBuys(1); ', #not implemented
+    'council_room': '#draw(4); #changeBuys(1)', #not implemented
     'festival': '#changeActions(2); #changeBuys(1); #changeCoins(2)',
     'laboratory': '#draw(2); #changeActions(1)',
     'library': '', #not implemented
