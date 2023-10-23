@@ -293,23 +293,9 @@ def calculate_score(game_id):
 @app.route("/deckcomposition/<int:game_id>/")
 def deck_composition(game_id):
     game = games[game_id]
+    cards = game.deck + game.hand + game.in_play + game.discard
     deck_comp = {}
-    for card in game.deck:
-        if card['name'] in deck_comp:
-            deck_comp[card['name']] += 1
-        else:
-            deck_comp[card['name']] = 1
-    for card in game.discard:
-        if card['name'] in deck_comp:
-            deck_comp[card['name']] += 1
-        else:
-            deck_comp[card['name']] = 1
-    for card in game.in_play:
-        if card['name'] in deck_comp:
-            deck_comp[card['name']] += 1
-        else:
-            deck_comp[card['name']] = 1
-    for card in game.hand:
+    for card in cards:
         if card['name'] in deck_comp:
             deck_comp[card['name']] += 1
         else:
