@@ -161,7 +161,8 @@ def end_phase_supply(game_id):
 #     if count < 3:
 #         print("the game isnt over")
 #     pics = get_card_pics()
-#     return render_template("game-over.html", victory_points=-777, deck_composition={"curse": "777"}, card_pics=pics)
+#     deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}.json()")
+#     return render_template("game-over.html", victory_points=-777, deck_composition=deck_comp, card_pics=pics)
 
 @app.route("/<int:game_id>/select/")
 def select_cards(game_id):
@@ -204,6 +205,15 @@ def test_page():
     gamestate['res'] = find['res']
     return gamestate
 
+@app.route("/test/")
+def test():
+    requests.get("http://api:5000/newgame/")
+    game_id = 0
+    pics = get_card_pics()
+    deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}/").json()
+    current_supply = supply(game_id)
+    return current_supply
+    # return render_template("game-over.html", victory_points=-777, deck_composition=deck_comp, card_pics=pics)
 
 if __name__ == "__main__":
     app.static_folder = "./static"

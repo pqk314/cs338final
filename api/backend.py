@@ -1,5 +1,6 @@
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, render_template
 import random
+import requests
 
 from card_scripting import cardPlayer, cards
 
@@ -288,11 +289,26 @@ def calculate_score(game_id):
             score += (len(games[game_id].deck)/10)
     return {'score' : score}
 
-
-# @app.route("deckcomposition/<int:game_id>/")
-# def deck_composition(game_id):
-#     deck_comp = { : }
-#     return deck_comp
+@app.route("/deckcomposition/<int:game_id>/")
+def deck_composition(game_id):
+    game = games[game_id]
+    deck_comp = {}
+    for card in game.deck:
+        if card['name'] in deck_comp:
+            deck_comp[card['name']] += 1
+        else:
+            deck_comp[card['name']] = 1
+    for card in game.discard:
+        if card['name'] in deck_comp:
+            deck_comp[card['name']] += 1
+        else:
+            deck_comp[card['name']] = 1
+    for card in game.in_play:
+        if card['name'] in deck_comp:
+            deck_comp[card['name']] += 1
+        else:
+            deck_comp[card['name']] = 1
+    return deck_comp
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
