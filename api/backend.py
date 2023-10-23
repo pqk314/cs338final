@@ -20,6 +20,7 @@ class Game:
         
         #to sort the cards by cost the self.supply needs to be sorted
         self.supply = ['market', 'festival', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
+        self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
         # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
         self.supplySizes = [2 for i in range(10)]
         self.hand = []
@@ -304,6 +305,11 @@ def deck_composition(game_id):
         else:
             deck_comp[card['name']] = 1
     for card in game.in_play:
+        if card['name'] in deck_comp:
+            deck_comp[card['name']] += 1
+        else:
+            deck_comp[card['name']] = 1
+    for card in game.hand:
         if card['name'] in deck_comp:
             deck_comp[card['name']] += 1
         else:

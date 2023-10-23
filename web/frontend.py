@@ -116,7 +116,8 @@ def end_phase(game_id):
     for x in supplySizes:
         if x == 0:
             count += 1
-    if count >= 1:
+    if count >= 2:
+        return redirect(url_for('game_over', game_id=game_id))
         pics = get_card_pics()
         return render_template("game-over.html", victory_points=score, deck_composition={"curse": "777"}, card_pics=pics)
 
@@ -135,9 +136,11 @@ def end_phase_supply(game_id):
     for x in supplySizes:
         if x == 0:
             count += 1
-    if count >= 1:
+    if count >= 2:
+        return redirect(url_for('game_over', game_id=game_id))
         pics = get_card_pics()
-        return render_template("game-over.html", victory_points=score, deck_composition={"curse": "777"}, card_pics=pics)
+        deck_composition = requests.get(f"http://api:5000/deckcomposition/{game_id}").json()
+        return render_template("game-over.html", victory_points=score, deck_composition=deck_composition, card_pics=pics)
 
 
 
@@ -149,20 +152,34 @@ def end_phase_supply(game_id):
     return redirect(f'/{game_id}')
 
 
-# @app.route("/<int:game_id>/gameover/")
-# def game_over(game_id):
-#     # TODO: There needs to be an if statement for if the game is, in fact, not over.
-#     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
-#     supplySizes = gamestate['supplySizes']
-#     count = 0
-#     for x in supplySizes:
-#         if x == 0:
-#             count += 1
-#     if count < 3:
-#         print("the game isnt over")
-#     pics = get_card_pics()
-#     deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}.json()")
-#     return render_template("game-over.html", victory_points=-777, deck_composition=deck_comp, card_pics=pics)
+@app.route("/<int:game_id>/gameover/")
+def game_over(game_id):
+    # TODO: There needs to be an if statement for if the game is, in fact, not over.
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    supplySizes = gamestate['supplySizes']
+    count = 0
+    for x in supplySizes:
+        if x == 0:
+            count += 1
+    if count < 2:
+        return redirect(f'/{game_id}')
+    pics = get_card_pics()
+    deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}/").json()
+
+    vp = 0
+    if 'curse' in deck_comp:
+        vp -= deck_comp['curse']
+    if 'estate' in deck_comp:
+        vp += deck_comp['estate']
+    if 'duchy' in deck_comp:
+        vp += deck_comp['duchy'] * 3
+    if 'province' in deck_comp:
+        vp += deck_comp['province'] * 6
+    if 'gardens' in deck_comp:
+        deck_size = sum(deck_comp.values())
+        vp += deck_comp['gardens'] * (deck_size // 10)
+        
+    return render_template("game-over.html", victory_points=vp, deck_composition=deck_comp, card_pics=pics)
 
 @app.route("/<int:game_id>/select/")
 def select_cards(game_id):
