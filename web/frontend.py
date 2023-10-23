@@ -166,18 +166,7 @@ def game_over(game_id):
     pics = get_card_pics()
     deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}/").json()
 
-    vp = 0
-    if 'curse' in deck_comp:
-        vp -= deck_comp['curse']
-    if 'estate' in deck_comp:
-        vp += deck_comp['estate']
-    if 'duchy' in deck_comp:
-        vp += deck_comp['duchy'] * 3
-    if 'province' in deck_comp:
-        vp += deck_comp['province'] * 6
-    if 'gardens' in deck_comp:
-        deck_size = sum(deck_comp.values())
-        vp += deck_comp['gardens'] * (deck_size // 10)
+    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()['score']
         
     return render_template("game-over.html", victory_points=vp, deck_composition=deck_comp, card_pics=pics)
 

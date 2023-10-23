@@ -279,7 +279,9 @@ def find_cards(game_id):
 @app.route("/calculatescore/<int:game_id>/")
 def calculate_score(game_id):
     score = 0
-    for c in games[game_id].deck:
+    game = games[game_id]
+    cards = game.deck + game.hand + game.in_play + game.discard
+    for c in cards:
         if(c['name'] == 'estate'):
             score += 1
         if(c['name'] == 'duchy'):
@@ -287,7 +289,7 @@ def calculate_score(game_id):
         if(c['name'] == 'province'):
             score += 6
         if(c['name'] == "gardens"):
-            score += (len(games[game_id].deck)/10)
+            score += (len(cards)//10)
     return {'score' : score}
 
 @app.route("/deckcomposition/<int:game_id>/")
