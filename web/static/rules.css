@@ -1,0 +1,18 @@
+p {
+    font-size: 18px;
+}
+
+#background {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: auto;
+    width: auto;
+    min-height: 100vw;
+    min-width: 100vw;
+    z-index: -1;
+}
+
+.card {
+    height: 350px;
+}

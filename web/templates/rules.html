@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='rules.css') }}">
+</head>
+<body>
+<img id="background" src="{{ url_for('static', filename='images/rules-background.jpg') }}" alt="">
+<div>
+    <h1 class="center">
+        Dominion Rules
+    </h1>
+    <h2>
+        The Game
+    </h2>
+    <p>
+        Each game of Dominion features 10 kingdom cards of the 26 total kingdom cards in the game. This means there are
+        5,311,735 possible setups for one game of Dominion! At the beginning of the game, each player starts with a deck
+        of 10 cards from the supply; these cards consist of 7 Coppers and 3 Estates. Using these cards, a player
+        upgrades their deck, with each new card creating a more powerful combination. At the end, whichever player has
+        the most victory points wins!
+    </p>
+    <h2>
+        How to Play
+    </h2>
+    <p>
+        At the beginning of Dominion, each player draws five cards and a random player is chosen to go first. Play then
+        continues in clockwise order, starting with the player who goes first.
+    </p>
+    <p>
+        Each turn is split into three phases, the first phase is the <b>Action Phase</b>. During this phase, the player
+        can play one card that says <b>Action</b> in the bottom to receive the effect described on the card. Actions can
+        do a number of things. Some actions say <b>&plus; Action(s)</b>, these cards allow you to play additional action
+        cards that turn. Others say <b>&plus; Card(s)</b>, these actions result in drawing extra cards from your deck.
+        Still, other cards say <b>&plus;Buy(s)</b>. These allow the player to buy additional cards during their <b>Buy
+        Phase</b>. Finally, some cards say <b>&plus;</b> <img src="{{ url_for('static', filename='images/Coin.png') }}" height="18px" alt="coin symbol">. These actions give the
+        player extra money to spend on that turn only. Some actions tell a player to <b>Gain a Card</b>, gained cards
+        automatically enter the discard pile unless otherwise stated (such as Mine, which says “gain a treasure to your
+        hand”). Finally, some cards allow you to trash a card. These cards are the only way to permanently remove a card
+        from your deck in Dominion.
+    </p>
+    <p>
+        The next phase of a player’s turn is the <b>Buy Phase</b>. During the buy phase, players can play any number of
+        cards which say <b>Treasure</b> on the bottom. Players can then buy one card with a cost less than or equal to
+        their total amount of money in this turn, unless they played a card that allowed them to buy extra cards. In
+        this event, the total cost of cards must not exceed the amount of money the player has acquired this turn. All
+        bought cards go to the player’s discard pile.
+    </p>
+    <p>
+        The turn ends with the <b>Clean-Up Phase</b>, this phase requires no input from the player, but an understanding
+        of it is essential for a player’s success! During this phase, every card in a player’s hand is discarded, along
+        with any cards still in play. The player then draws five cards from their deck and their turn is over.
+    </p>
+    <h2>
+        How Drawing Works
+    </h2>
+    <p>
+        In Dominion, your deck is constantly emptied as you play cards and go through turns. Any time a player would draw
+        a card, but their deck is empty, they instead shuffle their discard pile and draw any remaining cards. If their
+        discard pile is empty, they simply do not draw the remaining cards.
+    </p>
+    <h2>
+        Ending the Game
+    </h2>
+    <p>
+        Any game of Dominion can end in two separate ways. The first is if any three piles of cards from the supply (this
+        includes both the base cards present in every game and the kingdom cards that change out each game) are empty.
+        The second condition is when the <b>Province</b> pile is empty. When the game ends, players point totals are
+        added up. The player with the most points wins! In the event of a tie, the player who took the least turns wins.
+        If the players took the same number of turns, they enjoy their shared victory as equals.
+    </p>
+    <h2>Example Turn</h2>
+    <h3>Action Phase</h3>
+    <p>I can play one action, but I have two in my hand! Fortunately one of them is Market.</p>
+    <img src="{{ card_pics['market'] }}" class="card" alt="Market Card">
+    <p>By playing Market, I get to draw an extra card, gain an extra action, buy an extra card, and have one extra <img src="{{ url_for('static', filename='images/Coin.png') }}" height="18px" alt="coin symbol"> this turn.
+    I drew silver, so my hand how has 3 copper, 1 mine, and 1 silver.</p>
+    <img src="{{ card_pics['copper'] }}" class="card" alt="Copper">
+    <img src="{{ card_pics['mine'] }}" class="card" alt="Mine">
+    <img src="{{ card_pics['silver'] }}" class="card" alt="Silver">
+    <p>Now I can play a second action using the action I got from playing market. I'm going to play Mine. I start by trashing a treasure from my hand.
+    I'm going to trash Copper. I then get to gain a treasure to my hand that costs up to 3 more than it. Copper costs 0, so I can gain a silver, which costs 3! I
+    put the silver in my hand. Now my hand has 2 Copper, and 2 Silver. I move into the buy phase with 1 extra <img src="{{ url_for('static', filename='images/Coin.png') }}" height="18px" alt="coin symbol"> and 1 extra buy from market.</p>
+    <h3>Buy Phase</h3>
+    <p>I start by playing all my treasures. I have two Silvers, each of which give me two <img src="{{ url_for('static', filename='images/Coin.png') }}" height="18px" alt="coin symbol"> and two Coppers
+    which give me 1 <img src="{{ url_for('static', filename='images/Coin.png') }}" height="18px" alt="coin symbol">. In total, that gives me 6 <img src="{{ url_for('static', filename='images/Coin.png') }}" height="18px" alt="coin symbol">.
+    I also have 1 <img src="{{ url_for('static', filename='images/Coin.png') }}" height="18px" alt="coin symbol"> from Market, so my new total is 7 <img src="{{ url_for('static', filename='images/Coin.png') }}" height="18px" alt="coin symbol">,
+    which I can use to buy two cards because of my extra buy from Market. I'm going to buy a Silver and a Harbinger to end my turn.</p>
+    <img src="{{ card_pics['silver'] }}" class="card" alt="Silver">
+    <img src="{{ card_pics['harbinger'] }}" class="card" alt="Harbinger">
+    <h3>Clean-Up Phase</h3>
+    <p>I discard all cards in front of me and draw 5 cards. Since my deck only has two cards in it, I draw them, then shuffle my discard pile which becomes my deck.
+    I then draw the three remaining cards.</p>
+</div>
+</body>
+</html>
