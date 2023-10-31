@@ -223,6 +223,11 @@ def test():
     return current_supply
     # return render_template("game-over.html", victory_points=-777, deck_composition=deck_comp, card_pics=pics)
 
+@app.route("/rules/")
+def rules():
+    pics = get_card_pics()
+    return render_template("rules.html", card_pics=pics)
+
 if __name__ == "__main__":
     app.static_folder = "./static"
     app.template_folder = "./templates"
