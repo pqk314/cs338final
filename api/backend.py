@@ -1,8 +1,9 @@
 from flask import Flask, request, redirect, url_for, render_template
-import random
+import random, json
 import requests
 
 from card_scripting import cardPlayer, cards
+from player import player
 
 app = Flask(__name__)
 num_games = 0
@@ -10,34 +11,34 @@ games = []
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, num_players):
         """Initializes game, for now this just assumes 1 player and a starting deck
         TODO: support for more than one player"""
-        self.nextCardID = 0
-        deck = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
-        self.deck = [self.make_card(c) for c in deck]
-        # self.supply = random.sample(sorted(cards.supply_options), 10)
         
         #to sort the cards by cost the self.supply needs to be sorted
         self.supply = ['market', 'festival', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
         self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
         # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
         self.supplySizes = [2 for i in range(10)]
-        self.hand = []
-        self.discard = []
-        self.in_play = []
-        self.trash = []
-        self.phase = "action"
-        self.actions = 1
-        self.buys = 1
-        self.coins = 0
+        self.nextCardID = 0
+        deck_cards = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
+        custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
+                        ['cellar', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']]
+        self.players = []
+        for i in range(num_players):
+            deck = [self.make_card(c) for c in custom_decks[i]]
+            #deck = [self.make_card(c) for c in deck_cards]
+            newPlayer = player(self, deck, i)
+            #newPlayer.shuffle()
+            #newPlayer.draw_cards(5)
+            self.players.append(newPlayer)
+            
+
         self.cmd = None
         self.options = None
         global num_games
         self.id = num_games
         num_games += 1
-        self.shuffle()
-        self.draw_cards(5)
 
     def make_card(self, name):
         """returns a card object with the given name"""
@@ -65,10 +66,16 @@ class Game:
         return -1
 
     def find_card(self, card_id):
-        for l in [self.hand, self.deck, self.discard, self.in_play, self.trash]:
-            idx = self.find_card_in_list(l, card_id)
+        for player in self.players:
+            l, idx = player.find_card(card_id)
             if idx != -1:
                 return l, idx
+        return [], -1
+    
+    def find_card_in_trash(self, card_id):
+        idx = self.find_card_in_list(self.trash, card_id)
+        if idx != -1:
+            return self.trash, idx
         return [], -1
     
     def find_card_objs(self, card_ids):
@@ -100,12 +107,13 @@ class Game:
 @app.route("/cardbought/<int:game_id>/<card_name>/")
 def card_bought(game_id, card_name):
     game = games[game_id]
+    player = game.players[0]
     cost = cards.getCard(card_name)['cost']
-    if game.coins >= cost and game.buys >= 1:
+    if player.coins >= cost and player.buys >= 1:
         card = game.make_card(card_name)
-        game.discard.append(card)
-        game.coins -= cost
-        game.buys -= 1
+        player.discard.append(card)
+        player.coins -= cost
+        player.buys -= 1
         game.supplySizes[game.supply.index(card_name)] -= 1
 
         
@@ -114,25 +122,26 @@ def card_bought(game_id, card_name):
 @app.route("/cardplayed/<int:game_id>/<int:card_id>/")
 def card_played(game_id, card_id):
     game = games[game_id]
-    hand = game.hand
+    player = game.players[0]
+    hand = player.hand
 
-    idx = game.find_card_in_list(hand, card_id)
+    idx = player.find_card_in_list(hand, card_id)
 
     if idx == -1:
         raise ValueError
     
-    card = game.hand[idx]
+    card = player.hand[idx]
     type = card['type']
-    if (type == 'action' and game.phase == 'action') or (type == 'treasure' and game.phase == 'buy'):
+    if (type == 'action' and player.phase == 'action') or (type == 'treasure' and player.phase == 'buy'):
         if type == 'action':
-            if game.actions >= 1:
-                game.actions -= 1
+            if player.actions >= 1:
+                player.actions -= 1
             else:
                 return "hi"
-        game.in_play.append(card)
-        game.hand.pop(idx)
+        player.in_play.append(card)
+        player.hand.pop(idx)
         cmd = cardPlayer.getCardCmd(game_id, card['name'])
-        game.cmd = cmd
+        player.cmd = cmd
         res = cmd.execute()
         if res == "yield":
             return {'yield': True}
@@ -142,35 +151,40 @@ def card_played(game_id, card_id):
 
 @app.route("/gethand/<int:game_id>/")
 def get_hand(game_id):
-    return str(games[game_id].hand)
+    return str(games[game_id].players[0].hand)
 
 @app.route("/getgamestate/<int:game_id>/")
 def getgamestate(game_id):
+    game = games[game_id]
+    player = game.players[0]
     state = {}
-    state["hand"] = games[game_id].hand
-    state["discard"] = games[game_id].discard
-    state["in_play"] = games[game_id].in_play
-    state["deck"] = games[game_id].deck
-    state["phase"] = games[game_id].phase
-    state["actions"] = games[game_id].actions
-    state["buys"] = games[game_id].buys
-    state["coins"] = games[game_id].coins
-    state["supply"] = games[game_id].supply
+    state["hand"] = player.hand
+    state["discard"] = player.discard
+    state["in_play"] = player.in_play
+    state["deck"] = player.deck
+    state["phase"] = player.phase
+    state["actions"] = player.actions
+    state["buys"] = player.buys
+    state["coins"] = player.coins
+    state["supply"] = game.supply
+    state["supplySizes"] = game.supplySizes
     return state
 
 
 @app.route("/getfrontstate/<int:game_id>/")
 def getfrontstate(game_id):
+    game = games[game_id]
+    player = game.players[0]
     state = {}
-    state["hand"] = games[game_id].hand
-    state["discard"] = games[game_id].discard
-    state["in_play"] = games[game_id].in_play
-    state["phase"] = games[game_id].phase
-    state["actions"] = games[game_id].actions
-    state["buys"] = games[game_id].buys
-    state["coins"] = games[game_id].coins
-    state["supply"] = games[game_id].supply
-    state["supplySizes"] = games[game_id].supplySizes
+    state["hand"] = player.hand
+    state["discard"] = player.discard
+    state["in_play"] = player.in_play
+    state["phase"] = player.phase
+    state["actions"] = player.actions
+    state["buys"] = player.buys
+    state["coins"] = player.coins
+    state["supply"] = game.supply
+    state["supplySizes"] = game.supplySizes
     return state
 
 @app.route('/changeVar/', methods=['POST'])
@@ -179,12 +193,13 @@ def change_var():
     gameID = req['gameID']
     var = req['var']
     delta = int(req['delta'])
+    player = games[gameID].players[0]
     if var == "actions":
-        games[gameID].actions += delta
+        player.actions += delta
     elif var == "buys":
-        games[gameID].buys += delta
+        player.buys += delta
     elif var == "coins":
-        games[gameID].coins += delta
+        player.coins += delta
     else:
         raise ValueError("Invalid variable name")
     return 'Changed variable' # nothing actually needs to be returned, flask crashes without this.
@@ -194,22 +209,23 @@ def change_zone():
     req = request.get_json()
     gameID = req['gameID']
     game = games[gameID]
+    player = game.players[0]
     cards = req['cards']
     card_ids = [card['id'] for card in cards]
     zone = req['zone']
 
     dest = None
     if zone == 'discard':
-        dest = game.discard
+        dest = player.discard
     elif zone == 'hand':
-        dest = game.hand
+        dest = player.hand
     elif zone == 'deck':
-        dest = game.deck
+        dest = player.deck
     elif zone == 'trash':
         dest = game.trash
-
+    # TODO: only one trash zone per game
     for card_id in card_ids:
-        card_loc = game.find_card(card_id)
+        card_loc = player.find_card(card_id)
         if card_loc[1] == -1:
             continue
         dest.append(card_loc[0].pop(card_loc[1]))
@@ -221,10 +237,12 @@ def change_zone():
 @app.route('/endphase/<int:game_id>/')
 def end_phase(game_id):
     game = games[game_id]
-    if game.phase == "action":
-        game.phase = "buy"
-    elif game.phase == "buy":
-        game.end_turn()
+    player = game.players[0]
+    if player.phase == "action":
+        player.phase = "buy"
+    elif player.phase == "buy":
+        player.end_turn()
+        game.players.append(game.players.pop(0))
     return "ended phase"
 
 @app.route("/getsupply/<int:game_id>/")
@@ -234,12 +252,12 @@ def get_supply(game_id):
 
 @app.route("/draw/<int:game_id>/<int:num_cards>/")
 def draw(game_id, num_cards):
-    games[game_id].draw_cards(num_cards)
+    games[game_id].players[0].draw_cards(num_cards)
     return 'hello world' # nothing actually needs to be returned, flask crashes without this.
 
 @app.route("/newgame/")
 def new_game():
-    games.append(Game())
+    games.append(Game(2))
     return str(num_games - 1)
 
 @app.route("/selected/<int:game_id>/", methods=['POST'])
@@ -247,10 +265,14 @@ def selected(game_id):
     req = request.get_json()
     ids = req['ids']
     game = games[game_id]
-    game.options = None
+    if 'player' in req:
+        player = game.players[req['player']]
+    else:
+        player = game.players[0]
+    player.options = None
     cards = game.find_card_objs(ids)
-    game.cmd.setPlayerInput(cards)
-    res = game.cmd.execute()
+    player.cmd.setPlayerInput(cards)
+    res = player.cmd.execute()
 
     if res == "yield":
         return "yield"
@@ -259,43 +281,56 @@ def selected(game_id):
 
 @app.route("/setoptions/<int:game_id>/", methods=['POST'])
 def set_options(game_id):
+    game = games[game_id]
     req = request.get_json()
-    games[game_id].options = req
+    if 'player' in req:
+        player = game.players[req['player']]
+        del req['player']
+    else:
+        player = game.players[0]
+    player.options = req
     return "hello world" # nothing actually needs to be returned, flask crashes without this.
 
 @app.route("/ischoice/<int:game_id>/")
 def ischoice(game_id):
-    return {'is_choice': games[game_id].options != None}
+    return {'is_choice': games[game_id].players[0].options != None}
     
 @app.route("/getoptions/<int:game_id>/")
 def get_options(game_id):
-    return games[game_id].options
+    return games[game_id].players[0].options
 
 @app.route("/findcards/<int:game_id>/")
+#TODO
 def find_cards(game_id):
+
     return {'res': games[game_id].find_card_objs([1, 2, 3, 4])}
 
 # Does not always work for some reason, I will look at it
 @app.route("/calculatescore/<int:game_id>/")
 def calculate_score(game_id):
-    score = 0
     game = games[game_id]
-    cards = game.deck + game.hand + game.in_play + game.discard
-    for c in cards:
-        if(c['name'] == 'estate'):
-            score += 1
-        if(c['name'] == 'duchy'):
-            score += 3
-        if(c['name'] == 'province'):
-            score += 6
-        if(c['name'] == "gardens"):
-            score += (len(cards)//10)
-    return {'score' : score}
+    res = {}
+    for i in range(len(game.players)):
+        score = 0
+        player = game.players[i]
+        cards = player.deck + player.hand + player.in_play + player.discard
+        for c in cards:
+            if(c['name'] == 'estate'):
+                score += 1
+            if(c['name'] == 'duchy'):
+                score += 3
+            if(c['name'] == 'province'):
+                score += 6
+            if(c['name'] == "gardens"):
+                score += (len(cards)//10)
+        res[i] = score
+    return res
 
 @app.route("/deckcomposition/<int:game_id>/")
-def deck_composition(game_id):
+def deck_composition(game_id, player=0):
     game = games[game_id]
-    cards = game.deck + game.hand + game.in_play + game.discard
+    player = game.players[player]
+    cards = player.deck + player.hand + player.in_play + player.discard
     deck_comp = {}
     for card in cards:
         if card['name'] in deck_comp:
@@ -303,6 +338,22 @@ def deck_composition(game_id):
         else:
             deck_comp[card['name']] = 1
     return deck_comp
+
+@app.route("/deckcompositions/<int:game_id>/")
+def deck_compositions(game_id):
+    game = games[game_id]
+    res = {}
+    for i in range(len(game.players)):
+        player = game.players[i]
+        cards = player.deck + player.hand + player.in_play + player.discard
+        deck_comp = {}
+        for card in cards:
+            if card['name'] in deck_comp:
+                deck_comp[card['name']] += 1
+            else:
+                deck_comp[card['name']] = 1
+        res[i] = deck_comp
+    return res
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
