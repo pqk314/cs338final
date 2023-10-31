@@ -74,3 +74,28 @@ class player:
         self.buys = 1
         self.coins = 0
         self.phase = 'action'
+
+
+    def get_deck_composition(self):
+        cards = self.deck + self.hand + self.in_play + self.discard
+        deck_comp = {}
+        for card in cards:
+            if card['name'] in deck_comp:
+                deck_comp[card['name']] += 1
+            else:
+                deck_comp[card['name']] = 1
+        return deck_comp
+    
+    def calculate_score(self):
+        score = 0
+        cards = self.deck + self.hand + self.in_play + self.discard
+        for c in cards:
+            if(c['name'] == 'estate'):
+                score += 1
+            if(c['name'] == 'duchy'):
+                score += 3
+            if(c['name'] == 'province'):
+                score += 6
+            if(c['name'] == "gardens"):
+                score += (len(cards)//10)
+        return score

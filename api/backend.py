@@ -1,4 +1,5 @@
 from flask import Flask, request, redirect, url_for, render_template
+from game import Game
 import random, json
 import requests
 
@@ -10,97 +11,6 @@ num_games = 0
 games = []
 
 
-class Game:
-    def __init__(self, num_players):
-        """Initializes game, for now this just assumes 1 player and a starting deck
-        TODO: support for more than one player"""
-        
-        #to sort the cards by cost the self.supply needs to be sorted
-        self.supply = ['market', 'festival', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
-        self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
-        # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
-        self.supplySizes = [2 for i in range(10)]
-        self.nextCardID = 0
-        deck_cards = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
-        custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
-                        ['cellar', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']]
-        self.players = []
-        for i in range(num_players):
-            deck = [self.make_card(c) for c in custom_decks[i]]
-            #deck = [self.make_card(c) for c in deck_cards]
-            newPlayer = player(self, deck, i)
-            #newPlayer.shuffle()
-            #newPlayer.draw_cards(5)
-            self.players.append(newPlayer)
-            
-
-        self.cmd = None
-        self.options = None
-        global num_games
-        self.id = num_games
-        num_games += 1
-
-    def make_card(self, name):
-        """returns a card object with the given name"""
-        card = cards.getCard(name).copy()
-        card['id'] = self.nextCardID
-        card['name'] = name
-        self.nextCardID += 1
-        return card
-
-    def draw_cards(self, num_to_draw):
-        """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
-        for i in range(num_to_draw):
-            if len(self.deck) == 0 and len(self.discard) == 0:
-                break
-            if len(self.deck) == 0:
-                self.deck = self.discard
-                self.discard = []
-                self.shuffle()
-            self.hand.append(self.deck.pop())
-
-    def find_card_in_list(self, list, card_id):
-        for idx, card in enumerate(list):
-            if card['id'] == card_id:
-                return idx
-        return -1
-
-    def find_card(self, card_id):
-        for player in self.players:
-            l, idx = player.find_card(card_id)
-            if idx != -1:
-                return l, idx
-        return [], -1
-    
-    def find_card_in_trash(self, card_id):
-        idx = self.find_card_in_list(self.trash, card_id)
-        if idx != -1:
-            return self.trash, idx
-        return [], -1
-    
-    def find_card_objs(self, card_ids):
-        objs = []
-        for card_id in card_ids:
-            l, idx = self.find_card(card_id)
-            if idx!= -1:
-                objs.append(l[idx])
-        return objs
-
-    def shuffle(self):
-        """shuffles deck"""
-        random.shuffle(self.deck)
-
-    def end_turn(self):
-        """Discards all cards in hand and in front of player"""
-        while len(self.hand) > 0:
-            self.discard.append(self.hand.pop())
-        while len(self.in_play) > 0:
-            self.discard.append(self.in_play.pop())
-        self.draw_cards(5)
-        self.actions = 1
-        self.buys = 1
-        self.coins = 0
-        self.phase = 'action'
         
 
 
@@ -257,7 +167,11 @@ def draw(game_id, num_cards):
 
 @app.route("/newgame/")
 def new_game():
-    games.append(Game(2))
+    
+    global num_games
+    global games
+    games.append(Game(num_games, 2))
+    num_games += 1
     return str(num_games - 1)
 
 @app.route("/selected/<int:game_id>/", methods=['POST'])
@@ -309,51 +223,26 @@ def find_cards(game_id):
 @app.route("/calculatescore/<int:game_id>/")
 def calculate_score(game_id):
     game = games[game_id]
-    res = {}
+    scores = {}
     for i in range(len(game.players)):
-        score = 0
         player = game.players[i]
-        cards = player.deck + player.hand + player.in_play + player.discard
-        for c in cards:
-            if(c['name'] == 'estate'):
-                score += 1
-            if(c['name'] == 'duchy'):
-                score += 3
-            if(c['name'] == 'province'):
-                score += 6
-            if(c['name'] == "gardens"):
-                score += (len(cards)//10)
-        res[i] = score
-    return res
+        scores[i] = player.calculate_score()
+    return scores
 
 @app.route("/deckcomposition/<int:game_id>/")
 def deck_composition(game_id, player=0):
     game = games[game_id]
     player = game.players[player]
-    cards = player.deck + player.hand + player.in_play + player.discard
-    deck_comp = {}
-    for card in cards:
-        if card['name'] in deck_comp:
-            deck_comp[card['name']] += 1
-        else:
-            deck_comp[card['name']] = 1
-    return deck_comp
+    return player.get_deck_composition()
 
 @app.route("/deckcompositions/<int:game_id>/")
 def deck_compositions(game_id):
     game = games[game_id]
-    res = {}
+    decks = {}
     for i in range(len(game.players)):
         player = game.players[i]
-        cards = player.deck + player.hand + player.in_play + player.discard
-        deck_comp = {}
-        for card in cards:
-            if card['name'] in deck_comp:
-                deck_comp[card['name']] += 1
-            else:
-                deck_comp[card['name']] = 1
-        res[i] = deck_comp
-    return res
+        decks[i] = player.get_deck_composition()
+    return decks
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
