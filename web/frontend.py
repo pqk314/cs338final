@@ -109,7 +109,7 @@ def end_phase(game_id):
     """ends current phase"""
 
     # I don't know exactly how we are trying to orginize the endgame stuff but this works
-    score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
+    
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
@@ -118,6 +118,7 @@ def end_phase(game_id):
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
+        score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
         pics = get_card_pics()
         return render_template("game-over.html", victory_points=score, deck_composition={"curse": "777"}, card_pics=pics)
 
@@ -129,7 +130,6 @@ def end_phase_supply(game_id):
     """ends current phase and redirects to supply if the turn hasn't changed"""
 
     # I don't know exactly how we are trying to orginize the endgame stuff but this works
-    score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
@@ -138,6 +138,7 @@ def end_phase_supply(game_id):
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
+        score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
         pics = get_card_pics()
         deck_composition = requests.get(f"http://api:5000/deckcomposition/{game_id}").json()
         return render_template("game-over.html", victory_points=score, deck_composition=deck_composition, card_pics=pics)
@@ -164,11 +165,12 @@ def game_over(game_id):
     if count < 2:
         return redirect(f'/{game_id}')
     pics = get_card_pics()
-    deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}/").json()
-
-    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()['score']
+    #deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}/").json()
+    deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
+    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
+    #['score']
         
-    return render_template("game-over.html", victory_points=vp, deck_composition=deck_comp, card_pics=pics)
+    return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
 @app.route("/<int:game_id>/select/")
 def select_cards(game_id):
