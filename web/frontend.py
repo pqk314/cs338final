@@ -2,6 +2,7 @@ from flask import Flask
 from flask import render_template, url_for, redirect, request
 import json
 import requests
+import tutorial_executer
 
 app = Flask(__name__)
 card_pics = None
@@ -225,6 +226,11 @@ def test():
 def rules():
     pics = get_card_pics()
     return render_template("rules.html", card_pics=pics)
+
+@app.route("/tutorial/<int:step>")
+def tutorial(step):
+    pics = get_card_pics()
+    return tutorial_executer.do_step(step, pics)
 
 if __name__ == "__main__":
     app.static_folder = "./static"

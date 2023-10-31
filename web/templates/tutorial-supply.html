@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supply</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='supply-style.css') }}">
+</head>
+<body>
+<h1 style="text-align: center">{{ tutorial_step['message'] }}</h1>
+<div id="parent-div">
+    <div id="base-cards">
+        <article>
+            <img src="{{ card_pics['copper'] }}" class="buyable copper">
+        </article>
+        <article>
+            <img src="{{ card_pics['silver'] }}" class="buyable silver">
+        </article>
+        <article>
+            <img src="{{ card_pics['gold'] }}" class="buyable gold">
+        </article>
+        <article>
+            <img src="{{ card_pics['estate'] }}" class="buyable estate">
+        </article>
+        <article>
+            <img src="{{ card_pics['duchy'] }}" class="buyable duchy">
+        </article>
+        <article>
+            <img src="{{ card_pics['province'] }}" class="buyable province">
+        </article>
+        <article>
+            <img src="{{ card_pics['curse'] }}" class="buyable curse">
+        </article>
+    </div>
+    <div id="game-cards">
+        {% for card in cards %}
+        <article>
+            <img src="{{ card_pics[card] }}" class="buyable {{ card }}">
+        </article>
+        {% endfor %}
+    </div>
+</div>
+<button class="game" style="float:left;">Back to
+    Game
+</button>
+<button class="end">{{ tutorial_step['end_what'] }}</button>
+<div style="float: right; margin: 0;">
+    <h1>Your Money: {{ tutorial_step['turn_info']['Money'] }}</h1>
+    <h1>Your Buys: {{ tutorial_step['turn_info']['Buys'] }}</h1>
+</div>
+<script>
+    let click = "{{ tutorial_step['click'] }}"
+    document.querySelectorAll(`.${click}`).forEach(element => setup(element));
+    function setup(element) {
+        element.style.border = '3px solid lightgreen';
+        element.onclick = function() {window.location.href = '{{ step + 1 }}'};
+    }
+</script>
+</body>
+</html>
