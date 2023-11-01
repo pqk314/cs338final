@@ -64,6 +64,12 @@ def new_game():
 
 @app.route("/<int:game_id>/")
 def game_page(game_id):
+    exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
+    if not exists:
+        return redirect(url_for("home_page"))
+    isChoice = requests.get(f"http://api:5000/ischoice/{game_id}").json()['is_choice']
+    if isChoice:
+        return redirect(url_for("select_cards", game_id=game_id))
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     pics = get_card_pics()
@@ -75,6 +81,9 @@ def game_page(game_id):
 
 @app.route("/<int:game_id>/supply")
 def supply(game_id):
+    exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
+    if not exists:
+        return redirect(url_for("home_page"))
     pics = get_card_pics()
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     cards = gamestate['supply']
@@ -157,6 +166,10 @@ def end_phase_supply(game_id):
 @app.route("/<int:game_id>/gameover/")
 def game_over(game_id):
     # TODO: There needs to be an if statement for if the game is, in fact, not over.
+    
+    exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
+    if not exists:
+        return redirect(url_for("home_page"))
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
@@ -175,6 +188,12 @@ def game_over(game_id):
 
 @app.route("/<int:game_id>/select/")
 def select_cards(game_id):
+    exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
+    if not exists:
+        return redirect(url_for("home_page"))
+    isChoice = requests.get(f"http://api:5000/ischoice/{game_id}").json()['is_choice']
+    if not isChoice:
+        return redirect(url_for("game_page", game_id=game_id))
     req = requests.get(f"http://api:5000/getoptions/{game_id}").json()
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
@@ -196,7 +215,7 @@ def selected(game_id):
 
 @app.route("/gamestateID/<int:game_id>/")
 def gamestate_id(game_id):
-    return requests.get(f"http://api:5000/gamestateID/{game_id}")
+    return requests.get(f"http://api:5000/gamestateID/{game_id}").text
 
 @app.route("/selected/<int:game_id>/", methods=["POST"])
 def selected2(game_id):

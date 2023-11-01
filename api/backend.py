@@ -202,6 +202,7 @@ def selected(game_id):
 @app.route("/setoptions/<int:game_id>/", methods=['POST'])
 def set_options(game_id):
     game = games[game_id]
+    game.gamestateID += 1
     req = request.get_json()
     if 'player' in req:
         player = game.players[req['player']]
@@ -217,8 +218,8 @@ def ischoice(game_id):
     
 @app.route("/getoptions/<int:game_id>/")
 def get_options(game_id):
-    game.gamestateID += 1
-    return games[game_id].players[0].options
+    game = games[game_id]
+    return game.players[0].options
 
 @app.route("/findcards/<int:game_id>/")
 #TODO
@@ -229,7 +230,7 @@ def find_cards(game_id):
 
 @app.route("/gamestateID/<int:game_id>/")
 def gamestate_id(game_id):
-    return games[game_id].gamestateID
+    return str(games[game_id].gamestateID)
 
 # Does not always work for some reason, I will look at it
 @app.route("/calculatescore/<int:game_id>/")
@@ -255,6 +256,10 @@ def deck_compositions(game_id):
         player = game.players[i]
         decks[i] = player.get_deck_composition()
     return decks
+
+@app.route("/gameexists/<int:game_id>/")
+def game_exists(game_id):
+    return {'exists': game_id < num_games}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
