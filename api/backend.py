@@ -17,6 +17,7 @@ games = []
 @app.route("/cardbought/<int:game_id>/<card_name>/")
 def card_bought(game_id, card_name):
     game = games[game_id]
+    game.gamestateID += 1
     player = game.players[0]
     cost = cards.getCard(card_name)['cost']
     if player.coins >= cost and player.buys >= 1:
@@ -32,6 +33,7 @@ def card_bought(game_id, card_name):
 @app.route("/cardplayed/<int:game_id>/<int:card_id>/")
 def card_played(game_id, card_id):
     game = games[game_id]
+    game.gamestateID += 1
     player = game.players[0]
     hand = player.hand
 
@@ -103,7 +105,9 @@ def change_var():
     gameID = req['gameID']
     var = req['var']
     delta = int(req['delta'])
-    player = games[gameID].players[0]
+    game = games[gameID]
+    player = game.players[0]
+    game.gamestateID += 1
     if var == "actions":
         player.actions += delta
     elif var == "buys":
@@ -119,6 +123,7 @@ def change_zone():
     req = request.get_json()
     gameID = req['gameID']
     game = games[gameID]
+    game.gamestateID += 1
     player = game.players[0]
     cards = req['cards']
     card_ids = [card['id'] for card in cards]
@@ -147,6 +152,7 @@ def change_zone():
 @app.route('/endphase/<int:game_id>/')
 def end_phase(game_id):
     game = games[game_id]
+    game.gamestateID += 1
     player = game.players[0]
     if player.phase == "action":
         player.phase = "buy"
@@ -211,6 +217,7 @@ def ischoice(game_id):
     
 @app.route("/getoptions/<int:game_id>/")
 def get_options(game_id):
+    game.gamestateID += 1
     return games[game_id].players[0].options
 
 @app.route("/findcards/<int:game_id>/")
@@ -218,6 +225,11 @@ def get_options(game_id):
 def find_cards(game_id):
 
     return {'res': games[game_id].find_card_objs([1, 2, 3, 4])}
+
+
+@app.route("/gamestateID/<int:game_id>/")
+def gamestate_id(game_id):
+    return games[game_id].gamestateID
 
 # Does not always work for some reason, I will look at it
 @app.route("/calculatescore/<int:game_id>/")

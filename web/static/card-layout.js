@@ -41,14 +41,5 @@ function sendSelection(max, canSelectLess) {
     } else {
         window.location.href =`../`;
     }
-
-/*
-    var xhr2 = new XMLHttpRequest();
-    let url2 = new URL(window.location.href);
-    url2.pathname = `/ischoice/${url2.pathname.split('/')[1]}/`;
-    //url.port = 5000
-    xhr2.open("GET", url2.href, false);
-    xhr2.setRequestHeader('Content-Type', 'application/json');
-    xhr2.send */
     
 }

@@ -194,6 +194,10 @@ def selected(game_id):
     requests.post(f"http://api:5000/selected/{game_id}", json=req)
     redirect(f'/{game_id}')
 
+@app.route("/gamestateID/<int:game_id>/")
+def gamestate_id(game_id):
+    return requests.get(f"http://api:5000/gamestateID/{game_id}")
+
 @app.route("/selected/<int:game_id>/", methods=["POST"])
 def selected2(game_id):
     app.logger.info("relaying")

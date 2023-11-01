@@ -13,6 +13,7 @@ class Game:
         # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
         self.supplySizes = [2 for i in range(10)]
         self.nextCardID = 0
+        self.gamestateID = 0
         deck_cards = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
         custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
                         ['cellar', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']]
@@ -38,6 +39,7 @@ class Game:
 
     def draw_cards(self, num_to_draw):
         """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
+        self.gamestateID += 1
         for i in range(num_to_draw):
             if len(self.deck) == 0 and len(self.discard) == 0:
                 break
@@ -79,6 +81,7 @@ class Game:
         random.shuffle(self.deck)
 
     def end_turn(self):
+        self.gamestateID += 1
         """Discards all cards in hand and in front of player"""
         while len(self.hand) > 0:
             self.discard.append(self.hand.pop())
