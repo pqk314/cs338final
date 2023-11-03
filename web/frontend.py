@@ -230,23 +230,6 @@ def ischoice(game_id):
     res = requests.get(f"http://api:5000/ischoice/{game_id}")
     return res
 
-@app.route("/testpage/")
-def test_page():
-    gamestate = requests.request("get", f"http://api:5000/getgamestate/0/").json()
-    find = requests.request("get", f"http://api:5000/findcards/0/").json()
-    gamestate['res'] = find['res']
-    return gamestate
-
-@app.route("/test/")
-def test():
-    requests.get("http://api:5000/newgame/")
-    game_id = 0
-    pics = get_card_pics()
-    deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}/").json()
-    current_supply = supply(game_id)
-    return current_supply
-    # return render_template("game-over.html", victory_points=-777, deck_composition=deck_comp, card_pics=pics)
-
 @app.route("/rules/")
 def rules():
     pics = get_card_pics()
