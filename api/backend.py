@@ -2,7 +2,7 @@ from flask import Flask, request, redirect, url_for, render_template
 from game import Game
 import random, json
 import requests
-
+import psycopg2
 from card_scripting import cardPlayer, cards
 from player import player
 
@@ -11,8 +11,12 @@ num_games = 0
 games = []
 
 
-        
 
+DB_NAME = "docker"
+DB_USER = "docker"
+DB_PASS = "docker"
+DB_HOST = "db"
+DB_PORT = "5432"
 
 @app.route("/cardbought/<int:game_id>/<card_name>/")
 def card_bought(game_id, card_name):
@@ -243,6 +247,62 @@ def deck_compositions(game_id):
         player = game.players[i]
         decks[i] = player.get_deck_composition()
     return decks
+
+
+@app.route("/createtable/")
+def createtable():
+    works = {'works':"didn't run"}
+    try:
+        conn = psycopg2.connect(database=DB_NAME,
+                            user=DB_USER,
+                            password=DB_PASS,
+                            host=DB_HOST,
+                            port=DB_PORT)
+        works['works'] = "Database connected successfully"
+
+        cur = conn.cursor()  # creating a cursor
+ 
+        # executing queries to create table
+        cur.execute("""
+        CREATE TABLE Employee
+        (
+            ID INT   PRIMARY KEY NOT NULL,
+            NAME TEXT NOT NULL,
+            EMAIL TEXT NOT NULL
+        )
+        """)
+        
+        # commit the changes
+        conn.commit()
+        print("Table Created successfully")
+
+        # Trying to add people to table
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO Employee (ID,NAME,EMAIL) VALUES
+            (1,'Alan Walker','awalker@gmail.com'), 
+            (2,'Steve Jobs','sjobs@gmail.com')
+        """)
+        conn.commit()
+
+        # getting the people back
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM Employee")
+        rows = cur.fetchall()
+        names = ""
+        for data in rows:
+            names += data[1]
+            # print("ID :" + str(data[0]))
+            # print("NAME :" + data[1])
+            # print("EMAIL :" + data[2])
+        conn.close()
+        works['works'] = names
+    except:
+        works['works'] = "Database not connected successfully"
+    return works
+
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

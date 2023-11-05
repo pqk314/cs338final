@@ -4,6 +4,9 @@ import json
 import requests
 import tutorial_executer
 
+
+        
+
 app = Flask(__name__)
 card_pics = None
 
@@ -233,6 +236,12 @@ def rules():
 def tutorial(step):
     pics = get_card_pics()
     return tutorial_executer.do_step(step, pics)
+
+@app.route("/savegame/")
+def save_game():
+    info = requests.get(f"http://api:5000/createtable/").json()
+    result = info['works']
+    return render_template("db-connection.html", result = result)
 
 if __name__ == "__main__":
     app.static_folder = "./static"
