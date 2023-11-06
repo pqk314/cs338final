@@ -265,7 +265,7 @@ def createtable():
         CREATE TABLE Games
         (
             ID INT   PRIMARY KEY NOT NULL,
-            NAME TEXT NOT NULL
+            NAME TEXT[]
         )
         """)
         
@@ -296,20 +296,31 @@ def dbadd():
 
 @app.route("/save/<int:game_id>/")
 def save(game_id):
+    game = games[game_id]
+    player = game.players[0]
+    hand = player.deck
+    savehand = "{"
+    for card in hand:
+        savehand += card['name'] + ","
+    savehand = savehand[:len(savehand)-1]
+    savehand += "}"
+
+
     conn = psycopg2.connect(database=DB_NAME,
                             user=DB_USER,
                             password=DB_PASS,
                             host=DB_HOST,
                             port=DB_PORT)
     cur = conn.cursor()
-    cur.execute("INSERT INTO Games (ID,NAME) VALUES ('% s','% s')" % (game_id, "Peter"))
+    cur.execute("INSERT INTO Games (ID,NAME) VALUES ('% s','% s')" % (game_id, savehand))
     conn.commit()
     return "hi"
 
 
 @app.route("/dbget/")
 def dbget():
-    works = {'works':"didn't run"}
+    returnval = ""
+    returnjson = {'deck':""}
     # getting the people back
     conn = psycopg2.connect(database=DB_NAME,
                         user=DB_USER,
@@ -319,18 +330,15 @@ def dbget():
     cur = conn.cursor()
     cur.execute("SELECT * FROM Games")
     rows = cur.fetchall()
-    names = ""
-    for data in rows:
-        names += data[1]
-        # print("ID :" + str(data[0]))
-        # print("NAME :" + data[1])
-        
+    game = rows[0]
+    # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
+    handlist = game[1]
+    # handlist is a list
+    
     
     conn.close()
-    works['works'] = names
-    return works
-
-
+    returnjson['deck'] = handlist
+    return returnjson
 
 
 

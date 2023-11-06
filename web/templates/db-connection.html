@@ -7,7 +7,10 @@
 <body>
     
     <h1>Output</h1>
-    {{result}}
-        <h2></h2>
+    {% for x in range(cardlist|length) %}
+
+        <h2>Card: {{cardlist[x]}}</h2>
+
+    {% endfor %}
 </body>
 </html>

@@ -251,8 +251,8 @@ def save(game_id):
     requests.get(f"http://api:5000/createtable/")
     requests.get(f"http://api:5000/save/{game_id}")
     info = requests.get(f"http://api:5000/dbget/").json()
-    result = info['works']
-    return render_template("db-connection.html", result = result)
+    cardlist = info['deck']
+    return render_template("db-connection.html", cardlist = cardlist)
 
 if __name__ == "__main__":
     app.static_folder = "./static"
