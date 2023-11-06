@@ -6,7 +6,7 @@ html {
     background-size: 100% 100%;
 }
 
-#hand {
+.card-container {
     position: relative;
     height: 20vh;
     width: auto;
@@ -41,13 +41,8 @@ html {
 
 .select {
     position: absolute;
+    top: 50px;
     z-index: 20;
-    top: 30px;
-    left: 30px;
-    height: 20vh;
-    width: 93%;
-    display: grid;
-    align-items: stretch;
 }
 
 .selectable {
@@ -67,17 +62,6 @@ html {
     top: 0;
     left: 0;
     z-index: 10;
-}
-
-.select {
-    position: absolute;
-    z-index: 20;
-    top: 30px;
-    left: 30px;
-    height: 20vh;
-    width: 93%;
-    display: grid;
-    align-items: stretch;
 }
 
 .selectable {

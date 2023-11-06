@@ -75,7 +75,6 @@ class player:
         self.coins = 0
         self.phase = 'action'
 
-
     def get_deck_composition(self):
         cards = self.deck + self.hand + self.in_play + self.discard
         deck_comp = {}
