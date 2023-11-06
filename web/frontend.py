@@ -92,10 +92,10 @@ def supply(game_id):
     # TODO: call to backend, should be formatted as {card_name (str): num_left (int)}
     # make sure to pass into render template when done.
     remaining_cards = {}
+    remaining_cards = gamestate['supplySizes']
     cards_left = gamestate['supplySizes']
-    for c in cards:
-        remaining_cards[c] = cards_left[cards.index(c)]
-    print(remaining_cards)
+    #for c in cards:
+    #    remaining_cards[c] = cards_left[cards.index(c)]print(remaining_cards)
     return render_template("supply.html", cards=cards, card_pics=pics, turn_info=turn_info, end_what=end_what, remaining_cards = remaining_cards)
 
 

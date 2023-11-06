@@ -3,7 +3,7 @@ from game import Game
 import random, json
 import requests
 
-from card_scripting import cardPlayer, cards
+from card_scripting import cardPlayer, cards, commands, cardParser
 from player import player
 
 app = Flask(__name__)
@@ -11,7 +11,12 @@ num_games = 0
 games = []
 
 
-        
+
+def find_card_in_list(list, card_id):
+    for idx, card in enumerate(list):
+        if card['id'] == card_id:
+            return idx
+    return -1
 
 
 @app.route("/cardbought/<int:game_id>/<card_name>/")
@@ -25,7 +30,7 @@ def card_bought(game_id, card_name):
         player.discard.append(card)
         player.coins -= cost
         player.buys -= 1
-        game.supplySizes[game.supply.index(card_name)] -= 1
+        game.supplySizes[card_name] -= 1
 
         
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
@@ -37,7 +42,7 @@ def card_played(game_id, card_id):
     player = game.players[0]
     hand = player.hand
 
-    idx = player.find_card_in_list(hand, card_id)
+    idx = find_card_in_list(hand, card_id)
 
     if idx == -1:
         raise ValueError
@@ -126,7 +131,6 @@ def change_zone():
     game.gamestateID += 1
     player = game.players[0]
     cards = req['cards']
-    card_ids = [card['id'] for card in cards]
     zone = req['zone']
 
     dest = None
@@ -138,12 +142,12 @@ def change_zone():
         dest = player.deck
     elif zone == 'trash':
         dest = game.trash
-    # TODO: only one trash zone per game
-    for card_id in card_ids:
+    for card in cards:
+        card_id = card['id']
         card_loc = player.find_card(card_id)
-        if card_loc[1] == -1:
-            continue
-        dest.append(card_loc[0].pop(card_loc[1]))
+        if card_loc[1] != -1:
+            card_loc[0].pop(card_loc[1])
+        dest.append(card)
 
     return 'Changed zone'
 
@@ -164,7 +168,10 @@ def end_phase(game_id):
 @app.route("/getsupply/<int:game_id>/")
 def get_supply(game_id):
     game = games[game_id]
-    return {"store": [game.make_card(game.supply[i]) for i in range(10) if game.supplySizes[i] > 0]}
+    #return {'store': [game.make_card('curse')]}
+    cards = [game.make_card(name) for name, val in game.supplySizes.items() if val > 0]
+    game.floatingCards += cards
+    return {"store": cards}
 
 @app.route("/draw/<int:game_id>/<int:num_cards>/")
 def draw(game_id, num_cards):
@@ -191,6 +198,7 @@ def selected(game_id):
         player = game.players[0]
     player.options = None
     cards = game.find_card_objs(ids)
+    #raise ValueError(str(game.floatingCards))
     player.cmd.setPlayerInput(cards)
     res = player.cmd.execute()
 
@@ -260,6 +268,32 @@ def deck_compositions(game_id):
 @app.route("/gameexists/<int:game_id>/")
 def game_exists(game_id):
     return {'exists': game_id < num_games}
+
+@app.route("/attack/", methods=['POST'])
+def attack():
+    req = request.get_json()
+    game_id = req['gameID']
+    game = games[game_id]
+    multicommand = req['multicommand']
+    for player in game.players[1:]:
+        player.cmd = cardParser.multicommand(multicommand, game_id)
+        #res = player.cmd.execute()
+        player.cmd.execute()
+    return "yield"
+        
+
+@app.route("/makecard/<int:game_id>/<card_name>/")
+def make_card(game_id, card_name):
+    game = games[game_id]
+    if game.supplySizes[card_name] == 0:
+        return {'empty': True}
+    game.supplySizes[card_name] -= 1
+    card = game.make_card(card_name)
+    game.floatingCards.append(card)
+    
+    return card
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

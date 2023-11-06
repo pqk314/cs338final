@@ -7,6 +7,8 @@ def changeVar(gameID, var, delta):
     #return requests.request("get", f"http://api:5000/changeVar/{gameID}/{var}/{delta}")
     return requests.post('http://api:5000/changeVar/', json={'gameID': gameID, 'var': var, 'delta': delta})
 def changeZone(gameID, cards, zone):
+    if not type(cards) == list:
+        cards = [cards]
     return requests.post('http://api:5000/changeZone/', json={'gameID': gameID, 'cards': cards, 'zone': zone})
 
 def fromHand(args, gameID):
@@ -35,12 +37,18 @@ def fromTop(args, gameID):
     deck = getGameState(gameID)['deck']
     if len(deck) < n:
         return deck [::-1]
-    return deck[-1:-n-1:-1]
+    return deck[-n:][::-1]
 
 def getStore(args, gameID):
     # no args
     # returns a list of the cards in the store (1 for each supply pile if nonempty)
-    return requests.get("http://api:5000/getsupply/{gameID}").json()['store']
+    return requests.get(f"http://api:5000/getsupply/{gameID}").json()['store']
+
+def fromStore(args, gameID):
+    # args: cardname
+    # returns a new card object of the card name
+    cardname = args[0]
+    return requests.get(f"http://api:5000/makecard/{gameID}/{cardname}").json()
 
 def gain(args, gameID):
     # args: cards, destination
@@ -104,6 +112,14 @@ def draw(args, gameID):
 def count(args, gameID):
     # args: any number of list/set-like objects
     return sum([len(arg) for arg in args])
+
+def attack(args, gameID):
+    # args: multicommand string
+    # executes the multicommand for each player besides the current player
+    req = {'multicommand': args[0], 'gameID': gameID}
+    requests.post(f'http://api:5000/attack/', json=req)
+    return True
+    raise NotImplementedError
 
 def getChoice(args, gameID):
     # args: message to display, list of fString values
@@ -232,7 +248,7 @@ def countEmptyPiles(args, gameID):
     raise NotImplementedError
 
 
-funcs = [fromHand, getHand, getDiscard, fromTop, getStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray]
+funcs = [fromHand, getHand, getDiscard, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray, attack]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
 commands = {}
