@@ -251,24 +251,21 @@ def deck_compositions(game_id):
 
 @app.route("/createtable/")
 def createtable():
-    works = {'works':"didn't run"}
     try:
         conn = psycopg2.connect(database=DB_NAME,
                             user=DB_USER,
                             password=DB_PASS,
                             host=DB_HOST,
                             port=DB_PORT)
-        works['works'] = "Database connected successfully"
 
         cur = conn.cursor()  # creating a cursor
  
         # executing queries to create table
         cur.execute("""
-        CREATE TABLE Employee
+        CREATE TABLE Games
         (
             ID INT   PRIMARY KEY NOT NULL,
-            NAME TEXT NOT NULL,
-            EMAIL TEXT NOT NULL
+            NAME TEXT NOT NULL
         )
         """)
         
@@ -276,30 +273,63 @@ def createtable():
         conn.commit()
         print("Table Created successfully")
 
-        # Trying to add people to table
+    except:
+        print("Database not connected successfully")
+    return "hi"
+
+@app.route("/dbadd/")
+def dbadd():
+    # Trying to add people to table
+        conn = psycopg2.connect(database=DB_NAME,
+                            user=DB_USER,
+                            password=DB_PASS,
+                            host=DB_HOST,
+                            port=DB_PORT)
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO Employee (ID,NAME,EMAIL) VALUES
-            (1,'Alan Walker','awalker@gmail.com'), 
-            (2,'Steve Jobs','sjobs@gmail.com')
+            INSERT INTO Games (ID,NAME) VALUES
+            (1,'Alan Walker'), 
+            (2,'Steve Jobs')
         """)
         conn.commit()
+        return "hi"
 
-        # getting the people back
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM Employee")
-        rows = cur.fetchall()
-        names = ""
-        for data in rows:
-            names += data[1]
-            # print("ID :" + str(data[0]))
-            # print("NAME :" + data[1])
-            # print("EMAIL :" + data[2])
-        conn.close()
-        works['works'] = names
-    except:
-        works['works'] = "Database not connected successfully"
+@app.route("/save/<int:game_id>/")
+def save(game_id):
+    conn = psycopg2.connect(database=DB_NAME,
+                            user=DB_USER,
+                            password=DB_PASS,
+                            host=DB_HOST,
+                            port=DB_PORT)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO Games (ID,NAME) VALUES ('% s','% s')" % (game_id, "Peter"))
+    conn.commit()
+    return "hi"
+
+
+@app.route("/dbget/")
+def dbget():
+    works = {'works':"didn't run"}
+    # getting the people back
+    conn = psycopg2.connect(database=DB_NAME,
+                        user=DB_USER,
+                        password=DB_PASS,
+                        host=DB_HOST,
+                        port=DB_PORT)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM Games")
+    rows = cur.fetchall()
+    names = ""
+    for data in rows:
+        names += data[1]
+        # print("ID :" + str(data[0]))
+        # print("NAME :" + data[1])
+        
+    
+    conn.close()
+    works['works'] = names
     return works
+
 
 
 

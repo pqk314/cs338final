@@ -239,7 +239,18 @@ def tutorial(step):
 
 @app.route("/savegame/")
 def save_game():
-    info = requests.get(f"http://api:5000/createtable/").json()
+    requests.get(f"http://api:5000/createtable/")
+    requests.get(f"http://api:5000/dbadd/")
+    info = requests.get(f"http://api:5000/dbget/").json()
+    result = info['works']
+    return render_template("db-connection.html", result = result)
+
+
+@app.route("/<int:game_id>/save/")
+def save(game_id):
+    requests.get(f"http://api:5000/createtable/")
+    requests.get(f"http://api:5000/save/{game_id}")
+    info = requests.get(f"http://api:5000/dbget/").json()
     result = info['works']
     return render_template("db-connection.html", result = result)
 
