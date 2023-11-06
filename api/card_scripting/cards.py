@@ -66,7 +66,9 @@ cards = {
     'estate': {'type': 'victory', 'cost': 2},
     'duchy': {'type': 'victory', 'cost': 5},
     'province': {'type': 'victory', 'cost': 8},
-    'gardens': {'type': 'victory', 'cost': 4}
+    'gardens': {'type': 'victory', 'cost': 4},
+
+    'curse': {'type': 'curse', 'cost': 0}
 }
 
 
@@ -95,7 +97,7 @@ cardTexts = {
     'market': '#draw(1); #changeActions(1); #changeBuys(1); #changeCoins(1)',
     'mine': '#set(x, #fromHand(1, F)); ', #not implemented
     'sentry': '#draw(1); #changeActions(1); x=#fromTop(2); toTrash=#chooseSubset($x, 2, T); #trash($toTrash); x=#removeFromSet($x, $toTrash); toDiscard=#chooseSubset($x, 2, T); #discard($toDiscard); x=#removeFromSet($x, $toDiscard); x=#reorder($x); #toDeck($x)',
-    'witch': '#draw(2); ', # not implemented
+    'witch': '#draw(2); #attack(#gain(#fromStore(curse)))', # not implemented
     'artisan': 'notImplemented; #toDeck(#fromHand(1, F))',
 
 

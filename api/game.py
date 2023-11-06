@@ -8,15 +8,28 @@ class Game:
         TODO: support for more than one player"""
         
         #to sort the cards by cost the self.supply needs to be sorted
-        self.supply = ['market', 'festival', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
+        self.basesupply = ['copper', 'silver', 'gold', 'estate', 'duchy', 'province', 'curse']
+        self.supply = ['market', 'workshop', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
         self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
         # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
         self.supplySizes = [2 for i in range(10)]
+        self.supplySizes = {key: 2 for key in self.supply}
+        self.supplySizes['copper'] = 60 - 7*num_players
+        self.supplySizes['silver'] = 40
+        self.supplySizes['gold'] = 30
+        victorySizes = 12 if num_players > 2 else 8
+        self.supplySizes['estate'] = victorySizes
+        self.supplySizes['duchy'] = victorySizes
+        self.supplySizes['province'] = victorySizes
+        self.floatingCards = []
+        if 'gardens' in self.supply:
+            self.supplySizes['gardens'] = victorySizes
+        self.supplySizes['curse'] = 10*num_players - 10
         self.nextCardID = 0
         self.gamestateID = 0
         deck_cards = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
         custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
-                        ['cellar', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']]
+                        ['witch', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']]
         self.players = []
         for i in range(num_players):
             deck = [self.make_card(c) for c in custom_decks[i]]
@@ -56,6 +69,9 @@ class Game:
         return -1
 
     def find_card(self, card_id):
+        idx = self.find_card_in_list(self.floatingCards, card_id)
+        if idx != -1:
+            return self.floatingCards, idx
         for player in self.players:
             l, idx = player.find_card(card_id)
             if idx != -1:
@@ -83,6 +99,7 @@ class Game:
     def end_turn(self):
         self.gamestateID += 1
         """Discards all cards in hand and in front of player"""
+        self.floatingCards = []
         while len(self.hand) > 0:
             self.discard.append(self.hand.pop())
         while len(self.in_play) > 0:

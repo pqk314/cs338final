@@ -139,6 +139,8 @@ class command:
     internalFuncs = ["set", "get", "cond"]
 
     def createArgCommands(self) -> None:
+        if self.func == 'attack':
+            return
         for i, arg in enumerate(self.args):
             if arg[0] == "#":
                 self.args[i] = command(arg, self.gameID, self.vals)
