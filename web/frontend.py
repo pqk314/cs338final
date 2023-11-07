@@ -64,6 +64,9 @@ def new_game():
 
 @app.route("/<int:game_id>/")
 def game_page(game_id):
+    # TODO for some reason this causes problems but it'd be really nice if this worked.
+    # updates(game_id)
+
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
@@ -213,9 +216,9 @@ def selected(game_id):
     requests.post(f"http://api:5000/selected/{game_id}", json=req)
     redirect(f'/{game_id}')
 
-@app.route("/gamestateID/<int:game_id>/")
-def gamestate_id(game_id):
-    return requests.get(f"http://api:5000/gamestateID/{game_id}").text
+@app.route("/updates/<int:game_id>/")
+def updates(game_id):
+    return requests.get(f"http://api:5000/updates/{game_id}").json()
 
 @app.route("/selected/<int:game_id>/", methods=["POST"])
 def selected2(game_id):

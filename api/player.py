@@ -29,6 +29,7 @@ class player:
 
     def draw_cards(self, num_to_draw):
         """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
+        from backend import update_cards
         for i in range(num_to_draw):
             if len(self.deck) == 0 and len(self.discard) == 0:
                 break
@@ -37,6 +38,8 @@ class player:
                 self.discard = []
                 self.shuffle()
             self.hand.append(self.deck.pop())
+
+            update_cards('add', self.hand[-1], self, self.game)
 
     def find_card_in_list(self, list, card_id):
         for idx, card in enumerate(list):
@@ -65,8 +68,10 @@ class player:
 
     def end_turn(self):
         """Discards all cards in hand and in front of player"""
+        from backend import update_cards
         while len(self.hand) > 0:
             self.discard.append(self.hand.pop())
+            update_cards('remove', self.discard[-1], self, self.game)
         while len(self.in_play) > 0:
             self.discard.append(self.in_play.pop())
         self.draw_cards(5)
@@ -74,6 +79,7 @@ class player:
         self.buys = 1
         self.coins = 0
         self.phase = 'action'
+        self.game.updates['new_turn'] = True
 
     def get_deck_composition(self):
         cards = self.deck + self.hand + self.in_play + self.discard

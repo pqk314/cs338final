@@ -17,14 +17,15 @@
     <br>
     <div id="action-buttons">
         <button onclick="window.location.href=`${window.location}/supply`">View Supply</button>
-        <button onclick="window.location.href=`${window.location}/endphase`">{{ end_what }}</button>
+        <button onclick="endPhase()" id="phase">{{ end_what }}</button>
     </div>
     <div id="turn-info" style="float: right; background-color: white;">
     {% for key in turn_info.keys() %}
-        <p>{{ key }}: {{ turn_info[key] }}</p>
+        <p id="{{ key.lower() }}">{{ key }}: {{ turn_info[key] }}</p>
     {% endfor %}
     </div>
     <script src="{{ url_for('static', filename='card-layout.js') }}"></script>
+    <script>const card_pics = {{ images | tojson }}</script>
     <script src="{{ url_for('static', filename='autorefresh.js') }}"></script>
 </body>
 </html>
