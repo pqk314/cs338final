@@ -4,7 +4,18 @@ document.querySelectorAll(".card").forEach(element => {
 });
 
 function cardPlayed(card) {
-    window.location.href =`/${window.location.toString().split('/')[3]}/cardplayed/${card.id}`;
+    let card_id = card.id
+    let request = new XMLHttpRequest()
+    request.open('GET', `cardplayed/${card_id}`, false)
+    request.send()
+    checkForUpdates(true)
+}
+
+function endPhase() {
+    let request = new XMLHttpRequest()
+    request.open('GET', `endphase/`, false)
+    request.send()
+    checkForUpdates(true)
 }
 
 
@@ -22,7 +33,7 @@ function toggleSelected(element, max) {
 function sendSelection(max, canSelectLess) {
     let selection = document.querySelectorAll(".selected");
     let numSelected = selection.length
-    if (!canSelectLess & numSelected < max) {
+    if (!canSelectLess && numSelected < max) {
         return;
     }
     let ids = Object.values(selection).map(card => parseInt(card.id));

@@ -6,7 +6,24 @@ class Game:
     def __init__(self, id, num_players):
         """Initializes game, for now this just assumes 1 player and a starting deck
         TODO: support for more than one player"""
-        
+
+        # Dictionary of everything that should update on front-end valid keys:
+        # set_coins - sets coins to the value (integer) associated with key
+        # set_actions - sets actions to the value (integer) associated with key
+        # set_buys - sets buys to the value (integer) associated with key
+        # set_phase - sets end phase button to whatever phase is.
+        # add - tells game to add card (use card object). Add using update_cards('add', card: card, player: player, game: game)
+        # remove - do the same command as above but use remove for first parameter instead
+        # select - boolean value for select screen
+        # new_turn - boolean for if there is a new turn
+
+        # These next four I'm assuming will be implemented at some point
+        # discard_size - sets discard pile size to the value (integer) associated with key
+        # deck_size - sets discard pile size to the value (integer) associated with key
+        # hand_size - sets discard pile size to the value (integer) associated with key
+        # trash_size - sets discard pile size to the value (integer) associated with key
+        self.updates = {}
+
         #to sort the cards by cost the self.supply needs to be sorted
         self.basesupply = ['copper', 'silver', 'gold', 'estate', 'duchy', 'province', 'curse']
         self.supply = ['market', 'workshop', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
@@ -52,7 +69,8 @@ class Game:
 
     def draw_cards(self, num_to_draw):
         """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
-        self.gamestateID += 1
+        # self.gamestateID += 1
+        from backend import update_cards
         for i in range(num_to_draw):
             if len(self.deck) == 0 and len(self.discard) == 0:
                 break
@@ -61,6 +79,8 @@ class Game:
                 self.discard = []
                 self.shuffle()
             self.hand.append(self.deck.pop())
+
+            update_cards('add', self.hand[-1], player[0], self)
 
     def find_card_in_list(self, list, card_id):
         for idx, card in enumerate(list):
@@ -97,11 +117,13 @@ class Game:
         random.shuffle(self.deck)
 
     def end_turn(self):
-        self.gamestateID += 1
+        # self.gamestateID += 1
         """Discards all cards in hand and in front of player"""
+        from backend import update_cards
         self.floatingCards = []
         while len(self.hand) > 0:
             self.discard.append(self.hand.pop())
+            update_cards('remove', self.discard[-1], player[0], self)
         while len(self.in_play) > 0:
             self.discard.append(self.in_play.pop())
         self.draw_cards(5)

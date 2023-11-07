@@ -19,17 +19,29 @@ def find_card_in_list(list, card_id):
     return -1
 
 
+def update_cards(add_or_remove, card, player, game):
+    """Adds cards to game.updates, basically facilitates having a dictionary for simplicity's sake."""
+    if add_or_remove in game.updates:
+        game.updates[add_or_remove].append(card)
+    else:
+        game.updates[add_or_remove] = [card]
+
+
 @app.route("/cardbought/<int:game_id>/<card_name>/")
 def card_bought(game_id, card_name):
     game = games[game_id]
-    game.gamestateID += 1
+    # game.gamestateID += 1
     player = game.players[0]
+    game.updates['discard_size'] = len(player.discard) + 1
     cost = cards.getCard(card_name)['cost']
     if player.coins >= cost and player.buys >= 1:
         card = game.make_card(card_name)
         player.discard.append(card)
         player.coins -= cost
+        game.updates['set_coins'] = player.coins
         player.buys -= 1
+        game.updates['set_buys'] = player.buys
+        # TODO updates for this
         game.supplySizes[card_name] -= 1
 
         
@@ -38,7 +50,7 @@ def card_bought(game_id, card_name):
 @app.route("/cardplayed/<int:game_id>/<int:card_id>/")
 def card_played(game_id, card_id):
     game = games[game_id]
-    game.gamestateID += 1
+    # game.gamestateID += 1
     player = game.players[0]
     hand = player.hand
 
@@ -56,11 +68,13 @@ def card_played(game_id, card_id):
             else:
                 return "hi"
         player.in_play.append(card)
-        player.hand.pop(idx)
+        removed_card = player.hand.pop(idx)
+        update_cards('remove', removed_card, player, game)
         cmd = cardPlayer.getCardCmd(game_id, card['name'])
         player.cmd = cmd
         res = cmd.execute()
         if res == "yield":
+            game.updates['select'] = True
             return {'yield': True}
 
     return {'yield': False}
@@ -74,17 +88,9 @@ def get_hand(game_id):
 def getgamestate(game_id):
     game = games[game_id]
     player = game.players[0]
-    state = {}
-    state["hand"] = player.hand
-    state["discard"] = player.discard
-    state["in_play"] = player.in_play
-    state["deck"] = player.deck
-    state["phase"] = player.phase
-    state["actions"] = player.actions
-    state["buys"] = player.buys
-    state["coins"] = player.coins
-    state["supply"] = game.supply
-    state["supplySizes"] = game.supplySizes
+    state = {"hand": player.hand, "discard": player.discard, "in_play": player.in_play, "deck": player.deck,
+             "phase": player.phase, "actions": player.actions, "buys": player.buys, "coins": player.coins,
+             "supply": game.supply, "supplySizes": game.supplySizes}
     return state
 
 
@@ -92,16 +98,9 @@ def getgamestate(game_id):
 def getfrontstate(game_id):
     game = games[game_id]
     player = game.players[0]
-    state = {}
-    state["hand"] = player.hand
-    state["discard"] = player.discard
-    state["in_play"] = player.in_play
-    state["phase"] = player.phase
-    state["actions"] = player.actions
-    state["buys"] = player.buys
-    state["coins"] = player.coins
-    state["supply"] = game.supply
-    state["supplySizes"] = game.supplySizes
+    state = {"hand": player.hand, "discard": player.discard, "in_play": player.in_play, "phase": player.phase,
+             "actions": player.actions, "buys": player.buys, "coins": player.coins, "supply": game.supply,
+             "supplySizes": game.supplySizes}
     return state
 
 @app.route('/changeVar/', methods=['POST'])
@@ -115,10 +114,13 @@ def change_var():
     game.gamestateID += 1
     if var == "actions":
         player.actions += delta
+        game.updates['set_actions'] = player.actions
     elif var == "buys":
         player.buys += delta
+        game.updates['set_buys'] = player.buys
     elif var == "coins":
         player.coins += delta
+        game.updates['set_coins'] = player.coins
     else:
         raise ValueError("Invalid variable name")
     return 'Changed variable' # nothing actually needs to be returned, flask crashes without this.
@@ -128,7 +130,7 @@ def change_zone():
     req = request.get_json()
     gameID = req['gameID']
     game = games[gameID]
-    game.gamestateID += 1
+    # game.gamestateID += 1
     player = game.players[0]
     cards = req['cards']
     zone = req['zone']
@@ -147,6 +149,7 @@ def change_zone():
         card_loc = player.find_card(card_id)
         if card_loc[1] != -1:
             card_loc[0].pop(card_loc[1])
+            game.updates[f'{zone}_size'] = len(dest) + 1
         dest.append(card)
 
     return 'Changed zone'
@@ -156,13 +159,15 @@ def change_zone():
 @app.route('/endphase/<int:game_id>/')
 def end_phase(game_id):
     game = games[game_id]
-    game.gamestateID += 1
+    # game.gamestateID += 1
     player = game.players[0]
     if player.phase == "action":
         player.phase = "buy"
+        game.updates['set_phase'] = 'buy'
     elif player.phase == "buy":
         player.end_turn()
         game.players.append(game.players.pop(0))
+        game.updates['set_phase'] = 'action'
     return "ended phase"
 
 @app.route("/getsupply/<int:game_id>/")
@@ -209,8 +214,9 @@ def selected(game_id):
 
 @app.route("/setoptions/<int:game_id>/", methods=['POST'])
 def set_options(game_id):
+    # TODO what does this do?
     game = games[game_id]
-    game.gamestateID += 1
+    # game.gamestateID += 1
     req = request.get_json()
     if 'player' in req:
         player = game.players[req['player']]
@@ -236,9 +242,11 @@ def find_cards(game_id):
     return {'res': games[game_id].find_card_objs([1, 2, 3, 4])}
 
 
-@app.route("/gamestateID/<int:game_id>/")
-def gamestate_id(game_id):
-    return str(games[game_id].gamestateID)
+@app.route("/updates/<int:game_id>/")
+def updates(game_id):
+    updates = games[game_id].updates
+    games[game_id].updates = {}
+    return updates
 
 # Does not always work for some reason, I will look at it
 @app.route("/calculatescore/<int:game_id>/")
