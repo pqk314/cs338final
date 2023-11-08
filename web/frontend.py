@@ -4,6 +4,9 @@ import json
 import requests
 import tutorial_executer
 
+
+        
+
 app = Flask(__name__)
 card_pics = None
 
@@ -59,6 +62,7 @@ def home_page():
 def new_game():
     """makes a new game and allows user to navigate to it"""
     game_id = requests.request("get", "http://api:5000/newgame").text
+    requests.get(f"http://api:5000/createtable/")
     return render_template("new-game.html", game_id=int(game_id))
 
 
@@ -168,6 +172,8 @@ def end_phase_supply(game_id):
 
 @app.route("/<int:game_id>/gameover/")
 def game_over(game_id):
+    requests.get(f"http://api:5000/save/{game_id}")
+
     # TODO: There needs to be an if statement for if the game is, in fact, not over.
     
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
@@ -245,6 +251,23 @@ def rules():
 def tutorial(step):
     pics = get_card_pics()
     return tutorial_executer.do_step(step, pics)
+
+@app.route("/savegame/")
+def save_game():
+    
+    requests.get(f"http://api:5000/dbadd/")
+    info = requests.get(f"http://api:5000/dbget/").json()
+    result = info['works']
+    return render_template("db-connection.html", result = result)
+
+
+@app.route("/<int:game_id>/save/")
+def save(game_id):
+    # requests.get(f"http://api:5000/createtable/")
+    # requests.get(f"http://api:5000/save/{game_id}")
+    info = requests.get(f"http://api:5000/dbget/{game_id}").json()
+    cardlist = info['deck']
+    return render_template("db-connection.html", cardlist = cardlist)
 
 if __name__ == "__main__":
     app.static_folder = "./static"

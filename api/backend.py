@@ -2,7 +2,7 @@ from flask import Flask, request, redirect, url_for, render_template
 from game import Game
 import random, json
 import requests
-
+import psycopg2
 from card_scripting import cardPlayer, cards, commands, cardParser
 from player import player
 
@@ -11,6 +11,12 @@ num_games = 0
 games = []
 
 
+
+DB_NAME = "docker"
+DB_USER = "docker"
+DB_PASS = "docker"
+DB_HOST = "db"
+DB_PORT = "5432"
 
 def find_card_in_list(list, card_id):
     for idx, card in enumerate(list):
@@ -264,6 +270,7 @@ def deck_composition(game_id, player=0):
     player = game.players[player]
     return player.get_deck_composition()
 
+# used
 @app.route("/deckcompositions/<int:game_id>/")
 def deck_compositions(game_id):
     game = games[game_id]
@@ -300,6 +307,90 @@ def make_card(game_id, card_name):
     game.floatingCards.append(card)
     
     return card
+
+
+
+
+@app.route("/createtable/")
+def createtable():
+    try:
+        conn = psycopg2.connect(database=DB_NAME,
+                            user=DB_USER,
+                            password=DB_PASS,
+                            host=DB_HOST,
+                            port=DB_PORT)
+
+        cur = conn.cursor()  # creating a cursor
+ 
+        # executing queries to create table
+        cur.execute("""
+        CREATE TABLE Games
+        (
+            ID INT   PRIMARY KEY NOT NULL,
+            NAME TEXT[]
+        )
+        """)
+        
+        # commit the changes
+        conn.commit()
+        print("Table Created successfully")
+
+    except:
+        print("Database not connected successfully")
+    return "hi"
+
+
+@app.route("/save/<int:game_id>/")
+def save(game_id):
+    game = games[game_id]
+
+    # change for multiple players
+    hand = deck_compositions(game_id)[0]
+
+    savehand = "{"
+    for s in hand.keys():
+        for x in range(hand[s]):
+            savehand += s + ","
+
+
+
+    savehand = savehand[:len(savehand)-1]
+    print("The hand is this long:" + str(len(hand)))
+    savehand += "}"
+
+
+    conn = psycopg2.connect(database=DB_NAME,
+                            user=DB_USER,
+                            password=DB_PASS,
+                            host=DB_HOST,
+                            port=DB_PORT)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO Games (ID,NAME) VALUES ('% s','% s')" % (game_id, savehand))
+    conn.commit()
+    return "hi"
+
+# returns a list that conatins all of the cards in the first player's hand
+@app.route("/dbget/<int:game_id>")
+def dbget(game_id):
+    returnjson = {'deck':""}
+    # getting the people back
+    conn = psycopg2.connect(database=DB_NAME,
+                        user=DB_USER,
+                        password=DB_PASS,
+                        host=DB_HOST,
+                        port=DB_PORT)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM Games")
+    rows = cur.fetchall()
+    game = rows[game_id]
+    # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
+    handlist = game[1]
+    # handlist is a list
+    
+    
+    conn.close()
+    returnjson['deck'] = handlist
+    return returnjson
 
 
 
