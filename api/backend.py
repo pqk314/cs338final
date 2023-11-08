@@ -239,6 +239,7 @@ def deck_composition(game_id, player=0):
     player = game.players[player]
     return player.get_deck_composition()
 
+# used
 @app.route("/deckcompositions/<int:game_id>/")
 def deck_compositions(game_id):
     game = games[game_id]
@@ -277,32 +278,27 @@ def createtable():
         print("Database not connected successfully")
     return "hi"
 
-@app.route("/dbadd/")
-def dbadd():
-    # Trying to add people to table
-        conn = psycopg2.connect(database=DB_NAME,
-                            user=DB_USER,
-                            password=DB_PASS,
-                            host=DB_HOST,
-                            port=DB_PORT)
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO Games (ID,NAME) VALUES
-            (1,'Alan Walker'), 
-            (2,'Steve Jobs')
-        """)
-        conn.commit()
-        return "hi"
 
 @app.route("/save/<int:game_id>/")
 def save(game_id):
     game = games[game_id]
-    player = game.players[0]
-    hand = player.deck
+    
+    # doesn't get hand cards
+    # player = game.players[0]
+    # hand = player.deck
+
+    # change for multiple players
+    hand = deck_compositions(game_id)[0]
+
     savehand = "{"
-    for card in hand:
-        savehand += card['name'] + ","
+    for s in hand.keys():
+        for x in range(hand[s]):
+            savehand += s + ","
+
+
+
     savehand = savehand[:len(savehand)-1]
+    print("The hand is this long:" + str(len(hand)))
     savehand += "}"
 
 
@@ -319,7 +315,6 @@ def save(game_id):
 
 @app.route("/dbget/")
 def dbget():
-    returnval = ""
     returnjson = {'deck':""}
     # getting the people back
     conn = psycopg2.connect(database=DB_NAME,
