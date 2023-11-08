@@ -218,6 +218,9 @@ def selected(game_id):
 
 @app.route("/updates/<int:game_id>/")
 def updates(game_id):
+    exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
+    if not exists:
+        return {'home_page': True}
     return requests.get(f"http://api:5000/updates/{game_id}").json()
 
 @app.route("/selected/<int:game_id>/", methods=["POST"])
