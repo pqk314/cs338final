@@ -14,6 +14,7 @@ function checkForUpdates(makeChanges) {
 }
 
 function change(updates) {
+    if(updates.hasOwnProperty('home_page')) window.location.href = "/"
     if(updates.hasOwnProperty('set_coins')) document.querySelector('#money').innerHTML = `Money: ${updates['set_coins']}`
     if(updates.hasOwnProperty('set_actions')) document.querySelector('#actions').innerHTML = `Actions: ${updates['set_actions']}`
     if(updates.hasOwnProperty('set_buys')) document.querySelector('#actions').innerHTML = `Buys: ${updates['set_buys']}`
@@ -21,20 +22,16 @@ function change(updates) {
     if(updates.hasOwnProperty('select') && updates['select']) window.location.reload()
     if(updates.hasOwnProperty('remove')) {
         for(let i = 0; i < updates['remove'].length; i++) {
-            document.querySelectorAll('#hand img').forEach(element => {
-                if(parseInt(element.id) === updates['remove'][i]['id']) {
-                    document.querySelector('#hand').removeChild(element)
-                }
-            })
+            document.querySelector('#hand').removeChild(document.querySelector(`#card${updates['remove'][i]['id']}`))
         }
     }
     if(updates.hasOwnProperty('add')) {
         for(let i = 0; i < updates['add'].length; i++) {
             let new_card = document.createElement('img')
+            new_card.src = card_pics[updates['add'][i]['name']]
             new_card.classList.add('card')
-            new_card.id = updates['add'][i]['id']
             new_card.alt = updates['add'][i]['name']
-            new_card.src = card_pics[new_card.alt]
+            new_card.id = 'card' + updates['add'][i]['id']
             new_card.addEventListener("click", () => cardPlayed(new_card));
             document.querySelector('#hand').appendChild(new_card)
         }

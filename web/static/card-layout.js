@@ -6,7 +6,7 @@ document.querySelectorAll(".card").forEach(element => {
 function cardPlayed(card) {
     let card_id = card.id
     let request = new XMLHttpRequest()
-    request.open('GET', `cardplayed/${card_id}`, false)
+    request.open('GET', `cardplayed/${card_id.substring(4)}`, false)
     request.send()
     checkForUpdates(true)
 }

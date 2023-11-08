@@ -11,7 +11,7 @@
     
     <div id="hand" class="card-container">
         {% for card in hand %}
-            <img src="{{ images[card.name] }}"class="card" alt="{{ card.name }} " id="{{ card.id }}">
+            <img src="{{ images[card.name] }}"class="card" alt="{{ card.name }}" id="card{{ card.id }}">
         {% endfor %}
     </div>
     <br>
