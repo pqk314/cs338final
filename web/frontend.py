@@ -243,6 +243,10 @@ def tutorial(step):
     pics = get_card_pics()
     return tutorial_executer.do_step(step, pics)
 
+@app.route("/data/")
+def data():
+    return render_template("data.html")
+
 if __name__ == "__main__":
     app.static_folder = "./static"
     app.template_folder = "./templates"
