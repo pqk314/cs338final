@@ -282,10 +282,6 @@ def createtable():
 @app.route("/save/<int:game_id>/")
 def save(game_id):
     game = games[game_id]
-    
-    # doesn't get hand cards
-    # player = game.players[0]
-    # hand = player.deck
 
     # change for multiple players
     hand = deck_compositions(game_id)[0]
@@ -312,9 +308,9 @@ def save(game_id):
     conn.commit()
     return "hi"
 
-
-@app.route("/dbget/")
-def dbget():
+# returns a list that conatins all of the cards in the first player's hand
+@app.route("/dbget/<int:game_id>")
+def dbget(game_id):
     returnjson = {'deck':""}
     # getting the people back
     conn = psycopg2.connect(database=DB_NAME,
@@ -325,7 +321,7 @@ def dbget():
     cur = conn.cursor()
     cur.execute("SELECT * FROM Games")
     rows = cur.fetchall()
-    game = rows[0]
+    game = rows[game_id]
     # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
     handlist = game[1]
     # handlist is a list
