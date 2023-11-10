@@ -34,7 +34,7 @@ class player:
             if len(self.deck) == 0 and len(self.discard) == 0:
                 break
             if len(self.deck) == 0:
-                self.deck = self.discard
+                self.deck = [card for card in self.discard]
                 self.discard = []
                 self.shuffle()
             self.hand.append(self.deck.pop())
