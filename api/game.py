@@ -29,7 +29,7 @@ class Game:
         self.supply = ['market', 'workshop', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
         self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
         # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
-        self.supplySizes = [2 for i in range(10)]
+        # self.supplySizes = [2 for i in range(10)]
         self.supplySizes = {key: 2 for key in self.supply}
         self.supplySizes['copper'] = 60 - 7*num_players
         self.supplySizes['silver'] = 40
