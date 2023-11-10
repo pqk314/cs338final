@@ -65,6 +65,7 @@ def card_played(game_id, card_id):
         if type == 'action':
             if player.actions >= 1:
                 player.actions -= 1
+                game.updates['set_actions'] = player.actions
             else:
                 return "hi"
         player.in_play.append(card)

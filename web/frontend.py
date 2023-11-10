@@ -52,14 +52,15 @@ def get_card_pics():
 @app.route("/")
 def home_page():
     """prompts user to make a new game"""
-    return render_template("home-page.html")
+    pics = get_card_pics()
+    return render_template("home-page.html", card_pics=pics)
 
 
-@app.route("/newgame")
+@app.route("/newgame/")
 def new_game():
     """makes a new game and allows user to navigate to it"""
     game_id = requests.request("get", "http://api:5000/newgame").text
-    return render_template("new-game.html", game_id=int(game_id))
+    return redirect(f'/{game_id}/')
 
 
 @app.route("/<int:game_id>/")
@@ -235,11 +236,6 @@ def selected2(game_id):
 def ischoice(game_id):
     res = requests.get(f"http://api:5000/ischoice/{game_id}")
     return res
-
-@app.route("/rules/")
-def rules():
-    pics = get_card_pics()
-    return render_template("rules.html", card_pics=pics)
 
 @app.route("/tutorial/<int:step>")
 def tutorial(step):
