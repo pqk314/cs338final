@@ -126,8 +126,8 @@ def end_phase(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
@@ -146,8 +146,8 @@ def end_phase_supply(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
@@ -176,8 +176,8 @@ def game_over(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count < 2:
         return redirect(f'/{game_id}')
