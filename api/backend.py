@@ -331,7 +331,7 @@ def createtable():
         CREATE TABLE Games
         (
             ID INT   PRIMARY KEY NOT NULL,
-            NAME TEXT[]
+            NAME TEXT[][]
         )
         """)
         
@@ -347,12 +347,12 @@ def createtable():
 @app.route("/save/<int:game_id>/")
 def save(game_id):
     game = games[game_id]
-    decks = deck_compositions(game_id)[0]
+    decks = deck_compositions(game_id)
 
     hand = []
     # change for multiple players
     for h in range(len(decks)):
-        hand[h] = decks[h]
+        hand.append(decks[h])
     
     handlists = "{"
     for x in range(len(hand)):
@@ -363,8 +363,8 @@ def save(game_id):
         savehand = savehand[:len(savehand)-1]
         savehand += "}"
         handlists += savehand + ","
-        handlists = handlists[:len(handlists)-1]
-        handlists += "}"
+    handlists = handlists[:len(handlists)-1]
+    handlists += "}"
 
 
     conn = psycopg2.connect(database=DB_NAME,
@@ -397,6 +397,7 @@ def dbget(game_id):
     
     
     conn.close()
+    # due to multihands
     returnjson['deck'] = handlist[0]
     return returnjson
 

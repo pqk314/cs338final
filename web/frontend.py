@@ -179,8 +179,7 @@ def game_over(game_id):
         return redirect(f'/{game_id}')
     pics = get_card_pics()
     deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
-    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
-        
+    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()        
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
 @app.route("/<int:game_id>/select/")
@@ -243,7 +242,7 @@ def tutorial(step):
 @app.route("/savegame/")
 def save_game():
     
-    requests.get(f"http://api:5000/dbadd/")
+    # requests.get(f"http://api:5000/dbadd/")
     info = requests.get(f"http://api:5000/dbget/").json()
     result = info['works']
     return render_template("db-connection.html", result = result)
