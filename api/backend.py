@@ -402,6 +402,33 @@ def dbget(game_id):
     return returnjson
 
 
+# This is the endpoint we need completed
+# This returns a [game1, game2, game3] where gamex = [play1hand, player2hand, player3hand] where playerxhand = ['copper', 'cellar']
+@app.route("/getstats/")
+def getstats():
+    ans = []
+
+    conn = psycopg2.connect(database=DB_NAME,
+                        user=DB_USER,
+                        password=DB_PASS,
+                        host=DB_HOST,
+                        port=DB_PORT)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM Games")
+    rows = cur.fetchall()
+
+    # like a list of game = rows[game_id]
+    for r in rows:
+        ans.append(r[1]) 
+
+    # game = rows[game_id]
+    # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
+    # handlist = game[1]
+    # handlist is a list
+
+    conn.close()
+    return ans
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
