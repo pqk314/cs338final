@@ -78,27 +78,28 @@ cardTexts = {
     'moat': '#draw(2)',
     'harbinger': '#draw(1); #changeActions(1); #toDeck(#chooseSubset(#getDiscard(), 1, T))',
     'merchant': '#draw(1); #changeActions(1); somethingelse#', #not implemented
-    'vassal': '#changeCoins(2); x=#getFirst(#fromTop(1)); #discard($x); #cond(#eval(#getType($x), =, action), #cond(#getChoice("Play {}?", #getName($x)), #play($x)))',
+    #'vassal': '#changeCoins(2); x=#getFirst(#fromTop(1)); #discard($x); willPlay=#false(); #cond(#eval(#getType($x), =, action), #cond(#chooseSubset($x, 1, #true()), willPlay=#true())); #cond($willPlay, #play($x))',
+    'vassal': '#changeCoins(2); x=#getFirst(#fromTop(1)); #discard($x); actions=#getSubset($x, #makeArray(type, =, action)); toPlay=#chooseSubset($x, 1, #true()), #cond(#eval(#count($toPlay), >, 0), #play(#getFirst($toPlay)))',
     'village': '#draw(1); #changeActions(2)',
     'workshop': '#gain(#chooseSubset(#getSubset(#getStore(), #makeArray(cost, <, 5)), 1, F))',
     'bureaucrat': '', #not implemented
     'militia': '#changeCoins(2)', #not implemented
-    #'moneylender': '#set(x, #getSubset(#getHand(), #makeArray(name, =, copper))); #set(hasCopper, #eval(#count(#get(x)), >, 0)); #set(willTrash, #false()) #cond(#get(hasCopper), #set(willTrash, #getChoice("Trash a copper?"))); #cond(#get(hasCopper), #trash(#getFirst(#get(x)))); #cond(#get(hasCopper), #changeCoins(3))',
-    'moneylender': 'x=#getSubset(#getHand(), #makeArray(name, =, copper)); hasCopper=#eval(#count(#get(x)), >, 0); willTrash=#false(); #cond(#get(hasCopper), #set(willTrash, #getChoice("Trash a copper?"))); #cond(#get(hasCopper), #trash(#getFirst(#get(x)))); #cond(#get(hasCopper), #changeCoins(3))',
-    'poacher': '#draw(1); #changeActions(1); #changeCoins(1); #discard(#fromHand(#countEmptyPiles(), F))',
-    'remodel': '#x=#fromHand(1, F); #trash($x); #gain(#chooseSubset(#getSubset(#getStore(), cost, <=, #addInts(#getCost($x), 2)), 1, F))',
+    'moneylender': 'x=#getSubset(#getHand(), #makeArray(name, =, copper)); toTrash=#chooseSubset($x, 1, #true()); willTrash=#false(); #cond(#eval(#count($toTrash), >, 0), willTrash=#true()); #cond($willTrash, #trash($toTrash)); #cond($willTrash, #changeCoins(3))',
+    'poacher': '#draw(1); #changeActions(1); #changeCoins(1); #discard(#chooseSubset(#getHand(), #eval(17, -, #count(#getStore())), #false()))',
+    'remodel': 'x=#chooseSubset(#getHand(), 1, #false()); cost=#getCost(#getFirst($x)); #trash($x); options=#getSubset(#getStore(), #makeArray(cost, <=, #eval($cost, +, 2))); #gain(#chooseSubset($options, 1, #false()))',
     'smithy': '#draw(3)',
     'throne_room': '', #not implemented
     'bandit': '', # not implemented
-    'council_room': '#draw(4); #changeBuys(1)', #not implemented
+    'council_room': '#draw(4); #changeBuys(1); #attack(#draw(1))',
     'festival': '#changeActions(2); #changeBuys(1); #changeCoins(2)',
     'laboratory': '#draw(2); #changeActions(1)',
     'library': '', #not implemented
     'market': '#draw(1); #changeActions(1); #changeBuys(1); #changeCoins(1)',
-    'mine': '#set(x, #fromHand(1, F)); ', #not implemented
+    
+    'mine':'x=#chooseSubset(#getSubset(#getHand(), #makeArray(type, =, treasure)), 1, #false()); cost=#getCost(#getFirst($x)); #trash($x); options=#getSubset(#getStore(), #makeArray(cost, <=, #eval($cost, +, 3)), #makeArray(type, =, treasure)); #gain(#chooseSubset($options, 1, #false()))',
     'sentry': '#draw(1); #changeActions(1); x=#fromTop(2); toTrash=#chooseSubset($x, 2, T); #trash($toTrash); x=#removeFromSet($x, $toTrash); toDiscard=#chooseSubset($x, 2, T); #discard($toDiscard); x=#removeFromSet($x, $toDiscard); x=#reorder($x); #toDeck($x)',
     'witch': '#draw(2); #attack(#gain(#fromStore(curse)))', # not implemented
-    'artisan': 'notImplemented; #toDeck(#fromHand(1, F))',
+    'artisan': '#gain(#chooseSubset(#getSubset(#getStore(), #makeArray(cost, <, 6)), 1, F), hand); #toDeck(#chooseSubset(#getHand(), 1, #false()))',
 
 
     'copper': '#changeCoins(1)',

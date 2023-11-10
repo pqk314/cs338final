@@ -223,7 +223,11 @@ def set_options(game_id):
         del req['player']
     else:
         player = game.players[0]
-    player.options = req
+
+    if req['n'] > 0 and len(req['options']) > 0:
+        player.options = req
+    else:
+        player.cmd.setPlayerInput([])
     return "hello world" # nothing actually needs to be returned, flask crashes without this.
 
 @app.route("/ischoice/<int:game_id>/")
