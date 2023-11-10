@@ -130,8 +130,8 @@ def end_phase(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
@@ -147,8 +147,8 @@ def end_phase_supply(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
@@ -172,15 +172,14 @@ def game_over(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count < 2:
         return redirect(f'/{game_id}')
     pics = get_card_pics()
     deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
-    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
-        
+    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()        
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
 @app.route("/<int:game_id>/select/")
@@ -243,7 +242,7 @@ def tutorial(step):
 @app.route("/savegame/")
 def save_game():
     
-    requests.get(f"http://api:5000/dbadd/")
+    # requests.get(f"http://api:5000/dbadd/")
     info = requests.get(f"http://api:5000/dbget/").json()
     result = info['works']
     return render_template("db-connection.html", result = result)
