@@ -135,9 +135,6 @@ def end_phase(game_id):
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
-        score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
-        pics = get_card_pics()
-        return render_template("game-over.html", victory_points=score, deck_composition={"curse": "777"}, card_pics=pics)
 
     requests.request("get", f"http://api:5000/endphase/{game_id}")
     return redirect(f'/{game_id}')
@@ -155,13 +152,6 @@ def end_phase_supply(game_id):
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
-        score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
-        pics = get_card_pics()
-        deck_composition = requests.get(f"http://api:5000/deckcomposition/{game_id}").json()
-        return render_template("game-over.html", victory_points=score, deck_composition=deck_composition, card_pics=pics)
-
-
-
 
     requests.request("get", f"http://api:5000/endphase/{game_id}")
     phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
@@ -188,10 +178,8 @@ def game_over(game_id):
     if count < 2:
         return redirect(f'/{game_id}')
     pics = get_card_pics()
-    #deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}/").json()
     deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
     vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
-    #['score']
         
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 

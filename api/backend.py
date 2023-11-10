@@ -343,20 +343,24 @@ def createtable():
 @app.route("/save/<int:game_id>/")
 def save(game_id):
     game = games[game_id]
+    decks = deck_compositions(game_id)[0]
 
+    hand = []
     # change for multiple players
-    hand = deck_compositions(game_id)[0]
-
-    savehand = "{"
-    for s in hand.keys():
-        for x in range(hand[s]):
-            savehand += s + ","
-
-
-
-    savehand = savehand[:len(savehand)-1]
-    print("The hand is this long:" + str(len(hand)))
-    savehand += "}"
+    for h in range(len(decks)):
+        hand[h] = decks[h]
+    
+    handlists = "{"
+    for x in range(len(hand)):
+        savehand = "{"
+        for s in hand[x].keys():
+            for y in range(hand[x][s]):
+                savehand += s + ","
+        savehand = savehand[:len(savehand)-1]
+        savehand += "}"
+        handlists += savehand + ","
+        handlists = handlists[:len(handlists)-1]
+        handlists += "}"
 
 
     conn = psycopg2.connect(database=DB_NAME,
@@ -365,7 +369,7 @@ def save(game_id):
                             host=DB_HOST,
                             port=DB_PORT)
     cur = conn.cursor()
-    cur.execute("INSERT INTO Games (ID,NAME) VALUES ('% s','% s')" % (game_id, savehand))
+    cur.execute("INSERT INTO Games (ID,NAME) VALUES ('% s','% s')" % (game_id, handlists))
     conn.commit()
     return "hi"
 
@@ -389,7 +393,7 @@ def dbget(game_id):
     
     
     conn.close()
-    returnjson['deck'] = handlist
+    returnjson['deck'] = handlist[0]
     return returnjson
 
 
