@@ -142,7 +142,7 @@ def getType(args, gameID):
 
 def getFirst(args, gameID):
     # args: set of cards
-    return args[0]
+    return args[0][0]
 
 def getSubset(args, gameID):
     # args: set of cards, condition1, condition2...
@@ -150,6 +150,8 @@ def getSubset(args, gameID):
     # operators are <, >, <=, >=, and =
     newSet = []
     conditions = args[1:]
+    if type(args[0]) != list:
+        args[0] = [args[0]]
     for card in args[0]:
         isLegal = True
         for cond in conditions:
@@ -221,22 +223,29 @@ def addInts(args, gameID):
 
 def eval(args, gameID):
     # args: val, operator, target
-    val = args[0]
+    val1 = args[0]
     operator = args[1]
-    target = args[2]
-    if isinstance(val, int):
-        target = int(target)
+    val2 = args[2]
+    if isinstance(val1, int):
+        val2 = int(val2)
+    elif val1.isdigit():
+        val1 = int(val1)
+        val2 = int(val2)
 
     if operator == '=':
-        return val == target
+        return val1 == val2
     elif operator == '>':
-        return val > target
+        return val1 > val2
     elif operator == '<':
-        return val < target
+        return val1 < val2
     elif operator == '>=':
-        return val >= target
+        return val1 >= val2
     elif operator == '<=':
-        return val <= target
+        return val1 <= val2
+    elif operator == '+':
+        return val1 + val2
+    elif operator == '-':
+        return val1 - val2
     raise ValueError
     
     

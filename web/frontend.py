@@ -60,6 +60,7 @@ def home_page():
 def new_game():
     """makes a new game and allows user to navigate to it"""
     game_id = requests.request("get", "http://api:5000/newgame").text
+    requests.get(f"http://api:5000/createtable/")
     return redirect(f'/{game_id}/')
 
 
@@ -127,14 +128,11 @@ def end_phase(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
-        score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
-        pics = get_card_pics()
-        return render_template("game-over.html", victory_points=score, deck_composition={"curse": "777"}, card_pics=pics)
 
     requests.request("get", f"http://api:5000/endphase/{game_id}")
     return redirect(f'/{game_id}')
@@ -147,18 +145,11 @@ def end_phase_supply(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count >= 2:
         return redirect(url_for('game_over', game_id=game_id))
-        score = requests.request("get", f"http://api:5000/calculatescore/{game_id}").json()['score']
-        pics = get_card_pics()
-        deck_composition = requests.get(f"http://api:5000/deckcomposition/{game_id}").json()
-        return render_template("game-over.html", victory_points=score, deck_composition=deck_composition, card_pics=pics)
-
-
-
 
     requests.request("get", f"http://api:5000/endphase/{game_id}")
     phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
@@ -169,6 +160,8 @@ def end_phase_supply(game_id):
 
 @app.route("/<int:game_id>/gameover/")
 def game_over(game_id):
+    requests.get(f"http://api:5000/save/{game_id}")
+
     # TODO: There needs to be an if statement for if the game is, in fact, not over.
     
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
@@ -177,17 +170,14 @@ def game_over(game_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
-    for x in supplySizes:
-        if x == 0:
+    for x in supplySizes.keys():
+        if supplySizes[x] < 1:
             count += 1
     if count < 2:
         return redirect(f'/{game_id}')
     pics = get_card_pics()
-    #deck_comp = requests.get(f"http://api:5000/deckcomposition/{game_id}/").json()
     deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
     vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
-    #['score']
-        
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
 @app.route("/<int:game_id>/select/")
@@ -241,6 +231,23 @@ def ischoice(game_id):
 def tutorial(step):
     pics = get_card_pics()
     return tutorial_executer.do_step(step, pics)
+
+@app.route("/savegame/")
+def save_game():
+
+    # requests.get(f"http://api:5000/dbadd/")
+    info = requests.get(f"http://api:5000/dbget/").json()
+    result = info['works']
+    return render_template("db-connection.html", result = result)
+
+
+@app.route("/<int:game_id>/save/")
+def save(game_id):
+    # requests.get(f"http://api:5000/createtable/")
+    # requests.get(f"http://api:5000/save/{game_id}")
+    info = requests.get(f"http://api:5000/dbget/{game_id}").json()
+    cardlist = info['deck']
+    return render_template("db-connection.html", cardlist = cardlist)
 
 if __name__ == "__main__":
     app.static_folder = "./static"
