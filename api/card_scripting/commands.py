@@ -1,56 +1,91 @@
 import requests
 import json
 
-def getGameState(gameID):
-    return requests.request("get", f"http://api:5000/getgamestate/{gameID}").json()
-def changeVar(gameID, var, delta):
-    #return requests.request("get", f"http://api:5000/changeVar/{gameID}/{var}/{delta}")
-    return requests.post('http://api:5000/changeVar/', json={'gameID': gameID, 'var': var, 'delta': delta})
-def changeZone(gameID, cards, zone):
+def getGameState(player):
+    game = player.game
+    state = {"hand": player.hand, "discard": player.discard, "in_play": player.in_play, "deck": player.deck,
+             "phase": player.phase, "actions": player.actions, "buys": player.buys, "coins": player.coins,
+             "supply": game.supply, "supplySizes": game.supplySizes}
+    return state
+def changeVar(player, var, delta):
+    game = player.game
+    delta = int(delta)
+    if var == "actions":
+        player.actions += delta
+        game.updates['set_actions'] = player.actions
+    elif var == "buys":
+        player.buys += delta
+        game.updates['set_buys'] = player.buys
+    elif var == "coins":
+        player.coins += delta
+        game.updates['set_coins'] = player.coins
+    else:
+        raise ValueError("Invalid variable name")
+    return True
+
+def changeZone(player, cards, zone):
     if not type(cards) == list:
         cards = [cards]
-    return requests.post('http://api:5000/changeZone/', json={'gameID': gameID, 'cards': cards, 'zone': zone})
+    game = player.game
+    dest = None
+    if zone == 'discard':
+        dest = player.discard
+    elif zone == 'hand':
+        dest = player.hand
+    elif zone == 'deck':
+        dest = player.deck
+    elif zone == 'trash':
+        dest = game.trash
+    for card in cards:
+        card_id = card['id']
+        card_loc = player.find_card(card_id)
+        if card_loc[1] != -1:
+            card_loc[0].pop(card_loc[1])
+            game.updates[f'{zone}_size'] = len(dest) + 1
+        dest.append(card)
+    return True
 
-def fromHand(args, gameID):
-    # args: number, canPickLess
-    # if number is negative allows picking any number
-    n, canPickLess = args[0], args[1]
-    return "yield"
-    n = int(args[0])
-    canPickLess = args[1] == 'T'
-    return [str(i) for i in range(n)]
-
-def getHand(args, gameID):
+def getHand(args, player):
     # no args
     # returns list of all cards in players hand
-    return getGameState(gameID)['hand']
+    return getGameState(player)['hand']
 
-def getDiscard(args, gameID):
+def getDiscard(args, player):
     # no args
     # returns list of all cards in discard pile
-    return getGameState(gameID)['discard']
+    return getGameState(player)['discard']
 
-def fromTop(args, gameID):
+def fromTop(args, player):
     # args: number
     # returns the top n cards
     n=int(args[0])
-    deck = getGameState(gameID)['deck']
+    deck = getGameState(player)['deck']
     if len(deck) < n:
         return deck [::-1]
     return deck[-n:][::-1]
 
-def getStore(args, gameID):
+def getStore(args, player):
     # no args
     # returns a list of the cards in the store (1 for each supply pile if nonempty)
-    return requests.get(f"http://api:5000/getsupply/{gameID}").json()['store']
+    game = player.game
+    cards = [game.make_card(name) for name, val in game.supplySizes.items() if val > 0]
+    game.floatingCards += cards
+    return cards
 
-def fromStore(args, gameID):
+def fromStore(args, player):
     # args: cardname
     # returns a new card object of the card name
-    cardname = args[0]
-    return requests.get(f"http://api:5000/makecard/{gameID}/{cardname}").json()
+    game = player.game
+    card_name = args[0]
+    if game.supplySizes[card_name] == 0:
+        return {'empty': True}
+    game.supplySizes[card_name] -= 1
+    card = game.make_card(card_name)
+    game.floatingCards.append(card)
+    
+    return card
 
-def gain(args, gameID):
+def gain(args, player):
     # args: cards, destination
     # moves the cards in the cards list to the destination zone
     cards = args[0]
@@ -58,93 +93,97 @@ def gain(args, gameID):
         dest = 'discard'
     else:
         dest = args[1]
-    return changeZone(gameID, cards, dest)
+    return changeZone(player, cards, dest)
 
-def trash(args, gameID):
+def trash(args, player):
     # args: cards
     # moves the specified cards to trash
     cards = args[0]
-    return changeZone(gameID, cards, 'trash')
+    return changeZone(player, cards, 'trash')
     
-def play(args, gameID):
+def play(args, player):
     # args: card
     # moves the specified card to play area
     raise NotImplementedError
 
-def toHand(args, gameID):
+def toHand(args, player):
     # args: cards
     # moves the cards in the list to hand
     cards = args[0]
-    return changeZone(gameID, cards, 'hand')
+    return changeZone(player, cards, 'hand')
 
-def discard(args, gameID):
+def discard(args, player):
     # args: cards
     # moves the cards in the list to discard pile
     cards = args[0]
-    return changeZone(gameID, cards, 'discard')
+    return changeZone(player, cards, 'discard')
 
-def toDeck(args, gameID):
+def toDeck(args, player):
     # args: cards
     # moves the cards in the list to top of deck
     cards = args[0]
-    return changeZone(gameID, cards, 'deck')
+    return changeZone(player, cards, 'deck')
 
-def changeCoins(args, gameID):
+def changeCoins(args, player):
     # args: delta
     # changes coins by the amount
-    return changeVar(gameID, 'coins', args[0])
+    return changeVar(player, 'coins', args[0])
 
-def changeBuys(args, gameID):
+def changeBuys(args, player):
     # args: delta
     # change buys by the amount
-    return changeVar(gameID, 'buys', args[0])
+    return changeVar(player, 'buys', args[0])
 
-def changeActions(args, gameID):
+def changeActions(args, player):
     # args: delta
     # change actions by the amount
-    return changeVar(gameID, 'actions', args[0])
+    return changeVar(player, 'actions', args[0])
 
-def draw(args, gameID):
+def draw(args, player):
     # args: num
     # draws num cards
-    return requests.request("get", f"http://api:5000/draw/{gameID}/{args[0]}")
+    player.draw_cards(int(args[0]))
+    return True
 
-def count(args, gameID):
+def count(args, player):
     # args: any number of list/set-like objects
     return sum([len(arg) for arg in args])
 
-def attack(args, gameID):
+def attack(args, player):
     # args: multicommand string
     # executes the multicommand for each player besides the current player
-    req = {'multicommand': args[0], 'gameID': gameID}
-    requests.post(f'http://api:5000/attack/', json=req)
+    cmd = args[0]
+    for p in player.game.players:
+        if p is player:
+            continue
+        p.execute_command(cmd)
     return True
-    raise NotImplementedError
+# TODO: implement attack
 
-def getChoice(args, gameID):
+def getChoice(args, player):
     # args: message to display, list of fString values
     # asks the player for a y/n choice, showing them the message which is an fstring
     # example inpug: args = ["Discard {arg1} from the top of your deck?", "Copper"]
     return True
     raise NotImplementedError
 
-def getName(args, gameID):
+def getName(args, player):
     # args: card
     return args[0]['name']
 
-def getCost(args, gameID):
+def getCost(args, player):
     # args: card
     return args[0]['cost']
 
-def getType(args, gameID):
+def getType(args, player):
     # args: card
     return args[0]['type']
 
-def getFirst(args, gameID):
+def getFirst(args, player):
     # args: set of cards
     return args[0]
 
-def getSubset(args, gameID):
+def getSubset(args, player):
     # args: set of cards, condition1, condition2...
     # conditions are formatted "[<propertyName> <operator> <target>]"
     # operators are <, >, <=, >=, and =
@@ -183,22 +222,23 @@ def getSubset(args, gameID):
             newSet.append(card)
     return newSet
 
-def chooseSubset(args, gameID):
+def chooseSubset(args, player):
     # args: set, n, canChooseLess
     # Asks the player to choose a subset of the set (list of cards), of size n, with the possible option to choose less than n
     # returns a list of the chosen cards
-    requests.post(f'http://api:5000/setoptions/{gameID}/', json={'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]})
+    player.options = {'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]}
+    #requests.post(f'http://api:5000/setoptions/{gameID}/', json={'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]})
     return "yield"
     return args[0][:-1]
     raise NotImplementedError
 
-def reorder(args, gameID):
+def reorder(args, player):
     # args: set
     # allows the player to reorder the cards, then returns the new order
     return args[0][::-1]
     raise NotADirectoryError
 
-def removeFromSet(args, gameID):
+def removeFromSet(args, player):
     # args: set, toRemove
     s = args[0].copy()
     for x in args[1]:
@@ -206,20 +246,20 @@ def removeFromSet(args, gameID):
             s.remove(x)
     return s
 
-def true(args, gameID):
+def true(args, player):
     return True
 
-def false(args, gameID):
+def false(args, player):
     return False
 
-def makeArray(args, gameID):
+def makeArray(args, player):
     # I know this looks weird but its meant to be this way
     return args
 
-def addInts(args, gameID):
+def addInts(args, player):
     return sum([int(n) for n in args])
 
-def eval(args, gameID):
+def eval(args, player):
     # args: val, operator, target
     val = args[0]
     operator = args[1]
@@ -241,20 +281,20 @@ def eval(args, gameID):
     
     
         
-def countEmptyPiles(args, gameID):
+def countEmptyPiles(args, player):
     # no args
     # counts the number of empty supply piles and returns that number
     return 0
     raise NotImplementedError
 
 
-funcs = [fromHand, getHand, getDiscard, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray, attack]
+funcs = [getHand, getDiscard, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray, attack]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
 commands = {}
 for func in funcs:
     commands[func.__name__] = func
 
-def doCommand(func, args, gameID):
-    return commands[func](args, gameID)
+def doCommand(func, args, player):
+    return commands[func](args, player)
 

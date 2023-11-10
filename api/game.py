@@ -46,7 +46,7 @@ class Game:
         self.gamestateID = 0
         deck_cards = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
         custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
-                        ['witch', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']]
+                        ['poacher', 'moneylender', 'harbinger', 'remodel', 'mine', 'artisan', 'copper', 'estate', 'estate', 'estate']]
         self.players = []
         for i in range(num_players):
             deck = [self.make_card(c) for c in custom_decks[i]]
