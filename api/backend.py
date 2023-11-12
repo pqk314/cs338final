@@ -244,7 +244,7 @@ def ischoice(game_id):
 @app.route("/getoptions/<int:game_id>/")
 def get_options(game_id):
     game = games[game_id]
-    return game.players[0].options
+    return game.players[0].options if game.players[0].options is not None else {}
 
 @app.route("/findcards/<int:game_id>/")
 #TODO
