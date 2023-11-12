@@ -147,17 +147,29 @@ class command:
 
     def executeInternalFunc(self):
         if self.func == "set":
-            self.args[1].vals = self.vals
-            res = self.args[1].execute()
-            if res == "yield":
-                return "yield"
-            self.vals[self.args[0]] = res
-            return True
+                try:
+                    self.args[1].vals = self.vals
+                
+                except:
+                    raise ValueError(self.command, self.args)
+                res = self.args[1].execute()
+                if res == "yield":
+                    return "yield"
+                self.vals = self.args[1].vals
+                self.vals[self.args[0]] = res
+                return True
         elif self.func == "get":
             return self.vals[self.args[0]]
         elif self.func == "cond":
-            if self.args[0].execute():
+            self.args[0].vals = self.vals
+            res = self.args[0].execute()
+            self.vals = self.args[0].getVals()
+            
+            #raise ValueError(self.args)
+            if res:
+                self.args[1].vals = self.vals
                 self.args[1].execute()
+                self.vals = self.args[1].getVals()
                 return True
             return False
 
@@ -166,6 +178,7 @@ class command:
             if isinstance(arg, command):
                 arg.setVals(self.vals)
                 self.args[i] = arg.execute()
+                self.vals = arg.getVals()
         return commands.doCommand(self.func, self.args, self.gameID)
 
     def execute(self):
@@ -186,9 +199,22 @@ class command:
     @staticmethod
     def replaceSetter(cmd) -> str:
         equal_idx = cmd.find('=')
-        i = cmd.find('(')
-        if equal_idx > -1 and (i == -1 or equal_idx < i):
-            cmd = f"#set({cmd[:equal_idx].strip()}, {cmd[equal_idx+1:].strip()})"
+        if equal_idx > -1 and cmd[equal_idx-1] not in ' <>!':
+            i = cmd.find('(', equal_idx)
+            if (i == -1 or equal_idx < i):
+                s = equal_idx
+                while s > 0 and cmd[s]!= ' ':
+                    s -= 1
+                if s > 0: s += 1
+                e = i
+                layer = 1
+                while layer > 0:
+                    e += 1
+                    if cmd[e] == '(':
+                        layer += 1
+                    elif cmd[e] == ')':
+                        layer -= 1
+                cmd = f"{cmd[:s]}#set({cmd[s:equal_idx].strip()}, {cmd[equal_idx+1:e+1].strip()}){cmd[e+1:]}"
         return cmd
     
     @staticmethod

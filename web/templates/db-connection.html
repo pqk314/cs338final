@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    
+    <h1>Output</h1>
+    {% for x in range(cardlist|length) %}
+
+        <h2>Card: {{cardlist[x]}}</h2>
+
+    {% endfor %}
+    <h1>{{cardlist}}</h1>
+</body>
+</html>

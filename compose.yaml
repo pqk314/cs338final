@@ -16,7 +16,7 @@ services:
     build: ./api
     expose:
       - "5000"
-  # db:
-  #   build: ./db
-  #   ports:
-  #     - "5432:5432"
+  db:
+    build: ./db
+    ports:
+      - "5432:5432"
