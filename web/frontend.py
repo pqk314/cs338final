@@ -72,17 +72,14 @@ def game_page(game_id):
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
-    isChoice = requests.get(f"http://api:5000/ischoice/{game_id}").json()['is_choice']
-    if isChoice:
-        return redirect(url_for("select_cards", game_id=game_id))
+    select_info = select_cards(game_id)
+    select_info = None if len(select_info.keys()) == 0 else select_info
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     pics = get_card_pics()
     cards = gamestate["hand"]
-    cardNames = [card['name'] for card in cards]
     end_what = f"End {gamestate['phase'].title()}"
-    #base_url = url_for(card_played)
-    return render_template("front-end.html", hand=cards, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id)
+    return render_template("front-end.html", hand=cards, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id, select_info=select_info)
 
 @app.route("/<int:game_id>/supply")
 def supply(game_id):
@@ -115,8 +112,6 @@ def card_bought(game_id, card_id):
 def card_played(game_id, card_id):
     """process for playing cards"""
     res = requests.request("get", f"http://api:5000/cardplayed/{game_id}/{card_id}").json()
-    if res['yield']:
-        return redirect(f'/{game_id}/select/')
     return redirect(f'/{game_id}')
 
 @app.route("/<int:game_id>/endphase/")
@@ -180,26 +175,15 @@ def game_over(game_id):
     vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
-@app.route("/<int:game_id>/select/")
+@app.route('/<int:game_id>/selectinfo/')
 def select_cards(game_id):
-    exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
-    if not exists:
-        return redirect(url_for("home_page"))
-    isChoice = requests.get(f"http://api:5000/ischoice/{game_id}").json()['is_choice']
-    if not isChoice:
-        return redirect(url_for("game_page", game_id=game_id))
+    select_info = {}
     req = requests.get(f"http://api:5000/getoptions/{game_id}").json()
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
-    turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
-    cards = gamestate["hand"]
-    card_pics = get_card_pics()
-    cardNames = [card['name'] for card in cards]
-    end_what = f"End {gamestate['phase'].title()}"
-    selection = req['options']
-    max_num = req['n']
-    can_choose_less = 'true' if req['canChooseLess'] else 'false'
-    #base_url = url_for(card_played)
-    return render_template("front-end-select.html", hand=cards, images=card_pics, turn_info=turn_info, end_what=end_what, game_id = game_id, selection=selection, max_num=max_num, can_choose_less=can_choose_less)
+    if len(req.keys()) > 0:
+        select_info['options'] = req['options']
+        select_info['max_num'] = req['n']
+        select_info['can_choose_less'] = 'true' if req['canChooseLess'] else 'false'
+    return select_info
 
 @app.route("/<int:game_id>/selected/", methods=["POST"])
 def selected(game_id):
