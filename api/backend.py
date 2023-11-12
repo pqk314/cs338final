@@ -155,8 +155,13 @@ def change_zone():
         card_id = card['id']
         card_loc = player.find_card(card_id)
         if card_loc[1] != -1:
-            card_loc[0].pop(card_loc[1])
+            removed = card_loc[0].pop(card_loc[1])
+            if card_loc[0] == player.hand:
+                update_cards('remove', removed, player, game)
+            # TODO subtract one figure out how this works
             game.updates[f'{zone}_size'] = len(dest) + 1
+        if dest == player.hand:
+            update_cards('add', card, player, game)
         dest.append(card)
 
     return 'Changed zone'

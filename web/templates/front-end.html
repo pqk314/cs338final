@@ -9,11 +9,7 @@
     <p style="text-align:center; background:white">Your Hand:</p>
 
     
-    <div id="hand" class="card-container">
-        {% for card in hand %}
-            <img src="{{ images[card.name] }}"class="card" alt="{{ card.name }}" id="card{{ card.id }}">
-        {% endfor %}
-    </div>
+    <div id="hand" class="card-container">{% for card in hand %}<img src="{{ images[card.name] }}"class="card playable" alt="{{ card.name }}" id="card{{ card.id }}">{% endfor %}</div>
     <br>
     <div id="action-buttons">
         <button onclick="window.location.href=`${window.location}/supply`">View Supply</button>
@@ -24,22 +20,15 @@
         <p id="{{ key.lower() }}">{{ key }}: {{ turn_info[key] }}</p>
     {% endfor %}
     </div>
-    {% if select_info is not none %}
-    <div class="blocker"></div>
-    <div id="select" class="select card-container">
-        {% for card in select_info['options'] %}
-        <img src="{{ images[card.name] }}"class="card selectable {{ card.name }}" alt="{{ card.name }} " id="{{ card.id }}" onclick="toggleSelected(this, {{ select_info['max_num'] }})">
-        {% endfor %}
-        <br>
-        <button onclick="sendSelection({{ select_info['max_num'] }}, {{ select_info['can_choose_less'] }})" style="position: relative; left: 50%; transform: translate(-50%, 0)">Submit</button>
-    </div>
-    {% endif %}
 
 
     <script src="{{ url_for('static', filename='card-layout.js') }}"></script>
+    <script src="{{ url_for('static', filename='autorefresh.js') }}"></script>
     <script>
         const card_pics = {{ images | tojson }}
+        {% if select_info is not none %}
+        doSelect()
+        {% endif %}
     </script>
-    <script src="{{ url_for('static', filename='autorefresh.js') }}"></script>
 </body>
 </html>

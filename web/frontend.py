@@ -112,8 +112,6 @@ def card_bought(game_id, card_id):
 def card_played(game_id, card_id):
     """process for playing cards"""
     res = requests.request("get", f"http://api:5000/cardplayed/{game_id}/{card_id}").json()
-    if res['yield']:
-        return redirect(f'/{game_id}/select/')
     return redirect(f'/{game_id}')
 
 @app.route("/<int:game_id>/endphase/")
@@ -177,6 +175,7 @@ def game_over(game_id):
     vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
+@app.route('/<int:game_id>/selectinfo/')
 def select_cards(game_id):
     select_info = {}
     req = requests.get(f"http://api:5000/getoptions/{game_id}").json()
