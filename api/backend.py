@@ -76,7 +76,7 @@ def card_played(game_id, card_id):
         player.in_play.append(card)
         removed_card = player.hand.pop(idx)
         update_cards('remove', removed_card, player, game)
-        cmd = cardPlayer.getCardCmd(game_id, card['name'])
+        cmd = cardPlayer.getCardCmd(player, card['name'])
         player.cmd = cmd
         res = cmd.execute()
         if res == "yield":
@@ -230,7 +230,7 @@ def set_options(game_id):
     else:
         player = game.players[0]
 
-    if req['n'] > 0 and len(req['options']) > 0:
+    if req['n'] != 0 and len(req['options']) > 0:
         player.options = req
     else:
         player.cmd.setPlayerInput([])
