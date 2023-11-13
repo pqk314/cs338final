@@ -229,8 +229,8 @@ def save_game():
 def save(game_id):
     # requests.get(f"http://api:5000/createtable/")
     # requests.get(f"http://api:5000/save/{game_id}")
-    info = requests.get(f"http://api:5000/dbget/{game_id}").json()
-    cardlist = info['deck']
+    info = requests.get(f"http://api:5000/getstats/").json()
+    cardlist = info['deck'][1][0]
     return render_template("db-connection.html", cardlist = cardlist)
 
 if __name__ == "__main__":
