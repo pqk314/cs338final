@@ -53,8 +53,9 @@ class Game:
             deck = [self.make_card(c) for c in custom_decks[i]]
             #deck = [self.make_card(c) for c in deck_cards]
             newPlayer = player(self, deck, i)
+            #newPlayer.shuffle()
+            #newPlayer.draw_cards(5)
             self.players.append(newPlayer)
-        self.currentPlayer = player[0]
             
         self.id = id
 
@@ -66,6 +67,21 @@ class Game:
         card['name'] = name
         self.nextCardID += 1
         return card
+
+    def draw_cards(self, num_to_draw):
+        """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
+        # self.gamestateID += 1
+        from backend import update_cards
+        for i in range(num_to_draw):
+            if len(self.deck) == 0 and len(self.discard) == 0:
+                break
+            if len(self.deck) == 0:
+                self.deck = self.discard
+                self.discard = []
+                self.shuffle()
+            self.hand.append(self.deck.pop())
+
+            update_cards('add', self.hand[-1], player[0], self)
 
     def find_card_in_list(self, list, card_id):
         for idx, card in enumerate(list):
@@ -100,3 +116,19 @@ class Game:
     def shuffle(self):
         """shuffles deck"""
         random.shuffle(self.deck)
+
+    def end_turn(self):
+        # self.gamestateID += 1
+        """Discards all cards in hand and in front of player"""
+        from backend import update_cards
+        self.floatingCards = []
+        while len(self.hand) > 0:
+            self.discard.append(self.hand.pop())
+            update_cards('remove', self.discard[-1], player[0], self)
+        while len(self.in_play) > 0:
+            self.discard.append(self.in_play.pop())
+        self.draw_cards(5)
+        self.actions = 1
+        self.buys = 1
+        self.coins = 0
+        self.phase = 'action'
