@@ -24,31 +24,23 @@ def find_card_in_list(list, card_id):
             return idx
     return -1
 
-
-def update_cards(add_or_remove, card, player, game):
-    """Adds cards to game.updates, basically facilitates having a dictionary for simplicity's sake."""
-    if add_or_remove in game.updates:
-        game.updates[add_or_remove].append(card)
-    else:
-        game.updates[add_or_remove] = [card]
-
-
 @app.route("/cardbought/<int:game_id>/<int:player_id>/<card_name>/")
 def card_bought(game_id, player_id, card_name):
     game = games[game_id]
     # game.gamestateID += 1
-    player = game.players[0]
+    player = game.currentPlayer
     if player_id != player.id:
         return "Nice try"
-    game.updates['discard_size'] = len(player.discard) + 1
+    player_number = game.get_player_number(player_id)
+    game.update_list_all_players('discard_size', {player_number: len(player.discard) + 1})
     cost = cards.getCard(card_name)['cost']
     if player.coins >= cost and player.buys >= 1:
         card = game.make_card(card_name)
         player.discard.append(card)
         player.coins -= cost
-        game.updates['set_coins'] = player.coins
+        game.update_all_players('set_coins', player.coins)
         player.buys -= 1
-        game.updates['set_buys'] = player.buys
+        game.update_all_players('set_buys', player.buys)
         # TODO updates for this
         game.supplySizes[card_name] -= 1
 
@@ -59,7 +51,7 @@ def card_bought(game_id, player_id, card_name):
 def card_played(game_id, card_id, player_id):
     game = games[game_id]
     # game.gamestateID += 1
-    player = game.players[0]
+    player = game.currentPlayer
     if player_id != player.id:
         return "not current player"
     hand = player.hand
@@ -75,30 +67,31 @@ def card_played(game_id, card_id, player_id):
         if type == 'action':
             if player.actions >= 1:
                 player.actions -= 1
-                game.updates['set_actions'] = player.actions
+                game.update_all_players('set_actions', player.actions)
             else:
                 return "hi"
         player.in_play.append(card)
         removed_card = player.hand.pop(idx)
-        update_cards('remove', removed_card, player, game)
+        player.update_list('remove', removed_card)
+        game.update_list_all_players('hand_size', {game.get_player_number(player.id): len(player.hand)})
         cmd = cardPlayer.getCardCmd(game_id, card['name'])
         player.cmd = cmd
         res = cmd.execute()
         if res == "yield":
-            game.updates['select'] = True
+            player.updates['select'] = True
             return {'yield': True}
 
     return {'yield': False}
 
-
+# TODO is this used?
 @app.route("/gethand/<int:game_id>/")
 def get_hand(game_id):
-    return str(games[game_id].players[0].hand)
+    return str(games[game_id].currentPlayer.hand)
 
 @app.route("/getgamestate/<int:game_id>/")
 def getgamestate(game_id):
     game = games[game_id]
-    player = game.players[0]
+    player = game.currentPlayer
     state = {"hand": player.hand, "discard": player.discard, "in_play": player.in_play, "deck": player.deck,
              "phase": player.phase, "actions": player.actions, "buys": player.buys, "coins": player.coins,
              "supply": game.supply, "supplySizes": game.supplySizes}
@@ -108,15 +101,9 @@ def getgamestate(game_id):
 @app.route("/getfrontstate/<int:game_id>/<int:playerid>/")
 def getfrontstate(game_id, playerid):
     game = games[game_id]
-    x = None
-    for player in game.players:
-        if player.id == playerid:
-            x = player
-            break
-    if x is None:
-        raise ValueError
-    currentPlayer = game.players[0]
-    state = {"hand": x.hand, "discard": x.discard, "in_play": currentPlayer.in_play, "phase": currentPlayer.phase,
+    player = game.players[game.get_player_number(playerid) - 1]
+    currentPlayer = game.currentPlayer
+    state = {"hand": player.hand, "discard": player.discard, "in_play": currentPlayer.in_play, "phase": currentPlayer.phase,
              "actions": currentPlayer.actions, "buys": currentPlayer.buys, "coins": currentPlayer.coins, "supply": game.supply,
              "supplySizes": game.supplySizes}
     return state
@@ -128,17 +115,17 @@ def change_var():
     var = req['var']
     delta = int(req['delta'])
     game = games[gameID]
-    player = game.players[0]
+    player = game.currentPlayer
     game.gamestateID += 1
     if var == "actions":
         player.actions += delta
-        game.updates['set_actions'] = player.actions
+        game.update_all_players('set_actions', player.actions)
     elif var == "buys":
         player.buys += delta
-        game.updates['set_buys'] = player.buys
+        game.update_all_players('set_buys', player.buys)
     elif var == "coins":
         player.coins += delta
-        game.updates['set_coins'] = player.coins
+        game.update_all_players('set_coins', player.coins)
     else:
         raise ValueError("Invalid variable name")
     return 'Changed variable' # nothing actually needs to be returned, flask crashes without this.
@@ -149,7 +136,7 @@ def change_zone():
     gameID = req['gameID']
     game = games[gameID]
     # game.gamestateID += 1
-    player = game.players[0]
+    player = game.currentPlayer
     cards = req['cards']
     zone = req['zone']
 
@@ -168,36 +155,31 @@ def change_zone():
         if card_loc[1] != -1:
             removed = card_loc[0].pop(card_loc[1])
             if card_loc[0] == player.hand:
-                update_cards('remove', removed, player, game)
+                player.update_list('remove', removed)
             # TODO subtract one figure out how this works
             game.updates[f'{zone}_size'] = len(dest) + 1
         if dest == player.hand:
-            update_cards('add', card, player, game)
+            player.update_list('add', card)
         dest.append(card)
 
     return 'Changed zone'
 
 
 
-@app.route('/endphase/<int:game_id>/<int:playerid>/')
-def end_phase(game_id, playerid):
+@app.route('/endphase/<int:game_id>/<int:player_id>/')
+def end_phase(game_id, player_id):
     game = games[game_id]
-    x = None
-    for player in game.players:
-        if player.id == playerid and game.players[0] == player:
-            x = player
-            break
-    if x is None:
-        return "Not player's turn or player ID doesn't exist"
-    # currentPlayer = game.players[0]
-    # game.gamestateID += 1
-    if x.phase == "action":
-        x.phase = "buy"
-        game.updates['set_phase'] = 'buy'
-    elif x.phase == "buy":
-        x.end_turn()
-        game.players.append(game.players.pop(0))
-        game.updates['set_phase'] = 'action'
+    player = game.currentPlayer
+    if player_id != player.id:
+        return "Nice try"
+
+    if player.phase == "action":
+        player.phase = "buy"
+        game.update_all_players('set_phase', 'buy')
+    elif player.phase == "buy":
+        player.end_turn()
+        game.currentPlayer = game.players[game.get_player_number(player.id) % len(game.players)]
+        game.update_all_players('set_phase', 'action')
     return "ended phase"
 
 @app.route("/getsupply/<int:game_id>/")
@@ -210,7 +192,7 @@ def get_supply(game_id):
 
 @app.route("/draw/<int:game_id>/<int:num_cards>/")
 def draw(game_id, num_cards):
-    games[game_id].players[0].draw_cards(num_cards)
+    games[game_id].currentPlayer.draw_cards(num_cards)
     return 'hello world' # nothing actually needs to be returned, flask crashes without this.
 
 @app.route("/newgame/")
@@ -230,7 +212,7 @@ def selected(game_id):
     if 'player' in req:
         player = game.players[req['player']]
     else:
-        player = game.players[0]
+        player = game.currentPlayer
     player.options = None
     cards = game.find_card_objs(ids)
     #raise ValueError(str(game.floatingCards))
@@ -252,7 +234,7 @@ def set_options(game_id):
         player = game.players[req['player']]
         del req['player']
     else:
-        player = game.players[0]
+        player = game.currentPlayer
 
     if req['n'] > 0 and len(req['options']) > 0:
         player.options = req
@@ -260,27 +242,29 @@ def set_options(game_id):
         player.cmd.setPlayerInput([])
     return "hello world" # nothing actually needs to be returned, flask crashes without this.
 
-@app.route("/ischoice/<int:game_id>/")
-def ischoice(game_id):
-    return {'is_choice': games[game_id].players[0].options != None}
+# TODO fix
+# @app.route("/ischoice/<int:game_id>/<int:player_id>")
+# def ischoice(game_id, player_id):
+#     return {'is_choice': games[game_id].players[games[game_id].get_player_number(player_id) - 1].options is not None}
     
-@app.route("/getoptions/<int:game_id>/")
-def get_options(game_id):
+@app.route("/getoptions/<int:game_id>/<int:player_id>/")
+def get_options(game_id, player_id):
     game = games[game_id]
-    return game.players[0].options if game.players[0].options is not None else {}
+    player_options = game.players[game.get_player_number(player_id) - 1].options
+    return player_options if player_options is not None else {}
 
 @app.route("/findcards/<int:game_id>/")
-#TODO
 def find_cards(game_id):
 
     return {'res': games[game_id].find_card_objs([1, 2, 3, 4])}
 
 
-@app.route("/updates/<int:game_id>/")
-def updates(game_id):
-    updates = games[game_id].updates
-    games[game_id].updates = {}
-    return updates
+@app.route("/updates/<int:game_id>/<int:player_id>")
+def updates(game_id, player_id):
+    game = games[game_id]
+    update_list = game.players[game.get_player_number(player_id) - 1].updates
+    game.players[game.get_player_number(player_id) - 1].updates = {}
+    return update_list
 
 # Does not always work for some reason, I will look at it
 @app.route("/calculatescore/<int:game_id>/")

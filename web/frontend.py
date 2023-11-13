@@ -72,7 +72,7 @@ def game_page(game_id, player_id):
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
-    select_info = select_cards(game_id)
+    select_info = select_cards(game_id, player_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
@@ -175,10 +175,10 @@ def game_over(game_id, player_id):
     vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
-@app.route('/<int:game_id>/selectinfo/')
-def select_cards(game_id):
+@app.route('/<int:game_id>/<int:player_id>/selectinfo/')
+def select_cards(game_id, player_id):
     select_info = {}
-    req = requests.get(f"http://api:5000/getoptions/{game_id}").json()
+    req = requests.get(f"http://api:5000/getoptions/{game_id}/{player_id}").json()
     if len(req.keys()) > 0:
         select_info['options'] = req['options']
         select_info['max_num'] = req['n']
@@ -191,12 +191,12 @@ def selected(game_id):
     requests.post(f"http://api:5000/selected/{game_id}", json=req)
     redirect(f'/{game_id}')
 
-@app.route("/updates/<int:game_id>/")
-def updates(game_id):
+@app.route("/<int:game_id>/<int:player_id>/updates/")
+def updates(game_id, player_id):
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return {'home_page': True}
-    return requests.get(f"http://api:5000/updates/{game_id}").json()
+    return requests.get(f"http://api:5000/updates/{game_id}/{player_id}").json()
 
 @app.route("/selected/<int:game_id>/", methods=["POST"])
 def selected2(game_id):
@@ -205,11 +205,6 @@ def selected2(game_id):
     res = requests.post(f"http://api:5000/selected/{game_id}", json=req).text
     return res
     redirect(f'/{game_id}')
-
-@app.route("/ischoice/<int:game_id>/")
-def ischoice(game_id):
-    res = requests.get(f"http://api:5000/ischoice/{game_id}")
-    return res
 
 @app.route("/tutorial/<int:step>")
 def tutorial(step):

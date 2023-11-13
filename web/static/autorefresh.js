@@ -5,9 +5,8 @@ checkForUpdates(false)
 
 function checkForUpdates(makeChanges) {
     xhr = new XMLHttpRequest();
-    url = new URL(window.location.href);
-    url.pathname = `/updates/${game_id}/`;
-    xhr.open("GET", url.href, false);
+    let url = window.location.href + '/updates/'
+    xhr.open("GET", url, false);
     xhr.send();
     let updates = JSON.parse(xhr.responseText)
     if(Object.keys(updates).length > 0 && makeChanges) change(updates)
@@ -43,9 +42,10 @@ function change(updates) {
 
 function doSelect() {
     xhr = new XMLHttpRequest();
-    url = new URL(window.location.href);
-    url.pathname = `/${game_id}/selectinfo/`;
-    xhr.open("GET", url.href, false);
+    // url = new URL(window.location.href);
+    // url.pathname = `/${game_id}/selectinfo/`;
+    let url = window.location.href + '/selectinfo/'
+    xhr.open("GET", url, false);
     xhr.send();
     let selection = JSON.parse(xhr.responseText)
     if(Object.keys(selection).length === 0) return;

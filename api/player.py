@@ -7,8 +7,25 @@ from card_scripting import cardPlayer, cards
 
 class player:
     def __init__(self, game, deck, id):
-        self.game = game
         """Initializes a player, for now this just assumes 1 player and a starting deck"""
+        # Dictionary of everything that should update on front-end valid keys:
+        # set_coins - sets coins to the value (integer) associated with key
+        # set_actions - sets actions to the value (integer) associated with key
+        # set_buys - sets buys to the value (integer) associated with key
+        # set_phase - sets end phase button to whatever phase is.
+        # add - tells game to add card (use card object). Add using update_cards('add', card: card, player: player, game: game)
+        # remove - do the same command as above but use remove for first parameter instead
+        # select - boolean value for select screen
+        # new_turn - boolean for if there is a new turn
+
+        # These next four I'm assuming will be implemented at some point
+        # discard_size - sets discard pile size to the value (integer) associated with key
+        # deck_size - sets discard pile size to the value (integer) associated with key
+        # hand_size - sets discard pile size to the value (integer) associated with key
+        # trash_size - sets discard pile size to the value (integer) associated with key
+        self.updates = {}
+
+        self.game = game
         self.deck = deck
         self.id = id
         # self.supply = random.sample(sorted(cards.supply_options), 10)
@@ -26,10 +43,16 @@ class player:
         self.shuffle()
         self.draw_cards(5)
 
+    def update_list(self, key, val):
+        """Makes having list in dictionaries simpler, basically facilitates having a dictionary for simplicity's
+        sake."""
+        if key in self.updates:
+            self.updates[key].append(val)
+        else:
+            self.updates[key] = [val]
 
     def draw_cards(self, num_to_draw):
         """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
-        from backend import update_cards
         for i in range(num_to_draw):
             if len(self.deck) == 0 and len(self.discard) == 0:
                 break
@@ -39,7 +62,7 @@ class player:
                 self.shuffle()
             self.hand.append(self.deck.pop())
 
-            update_cards('add', self.hand[-1], self, self.game)
+            self.update_list('add', self.hand[-1])
 
     def find_card_in_list(self, list, card_id):
         for idx, card in enumerate(list):
@@ -68,18 +91,17 @@ class player:
 
     def end_turn(self):
         """Discards all cards in hand and in front of player"""
-        from backend import update_cards
         while len(self.hand) > 0:
             self.discard.append(self.hand.pop())
-            update_cards('remove', self.discard[-1], self, self.game)
+            self.update_list('remove', self.discard[-1])
         while len(self.in_play) > 0:
             self.discard.append(self.in_play.pop())
         self.draw_cards(5)
+        # TODO make these changeVar calls
         self.actions = 1
         self.buys = 1
         self.coins = 0
         self.phase = 'action'
-        self.game.updates['new_turn'] = True
 
     def get_deck_composition(self):
         cards = self.deck + self.hand + self.in_play + self.discard
