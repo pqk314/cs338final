@@ -71,6 +71,7 @@ def card_played(game_id, card_id):
         if type == 'action':
             if player.actions >= 1:
                 player.actions -= 1
+                game.updates['set_actions'] = player.actions
             else:
                 return "hi"
         player.in_play.append(card)
@@ -154,8 +155,13 @@ def change_zone():
         card_id = card['id']
         card_loc = player.find_card(card_id)
         if card_loc[1] != -1:
-            card_loc[0].pop(card_loc[1])
+            removed = card_loc[0].pop(card_loc[1])
+            if card_loc[0] == player.hand:
+                update_cards('remove', removed, player, game)
+            # TODO subtract one figure out how this works
             game.updates[f'{zone}_size'] = len(dest) + 1
+        if dest == player.hand:
+            update_cards('add', card, player, game)
         dest.append(card)
 
     return 'Changed zone'
@@ -243,7 +249,7 @@ def ischoice(game_id):
 @app.route("/getoptions/<int:game_id>/")
 def get_options(game_id):
     game = games[game_id]
-    return game.players[0].options
+    return game.players[0].options if game.players[0].options is not None else {}
 
 @app.route("/findcards/<int:game_id>/")
 #TODO
@@ -331,7 +337,7 @@ def createtable():
         CREATE TABLE Games
         (
             ID INT   PRIMARY KEY NOT NULL,
-            NAME TEXT[]
+            NAME TEXT[][]
         )
         """)
         
@@ -347,12 +353,12 @@ def createtable():
 @app.route("/save/<int:game_id>/")
 def save(game_id):
     game = games[game_id]
-    decks = deck_compositions(game_id)[0]
+    decks = deck_compositions(game_id)
 
     hand = []
     # change for multiple players
     for h in range(len(decks)):
-        hand[h] = decks[h]
+        hand.append(decks[h])
     
     handlists = "{"
     for x in range(len(hand)):
@@ -363,8 +369,8 @@ def save(game_id):
         savehand = savehand[:len(savehand)-1]
         savehand += "}"
         handlists += savehand + ","
-        handlists = handlists[:len(handlists)-1]
-        handlists += "}"
+    handlists = handlists[:len(handlists)-1]
+    handlists += "}"
 
 
     conn = psycopg2.connect(database=DB_NAME,
@@ -397,9 +403,38 @@ def dbget(game_id):
     
     
     conn.close()
+    # due to multihands
     returnjson['deck'] = handlist[0]
     return returnjson
 
+
+# This is the endpoint we need completed
+# This returns a [game1, game2, game3] where gamex = [play1hand, player2hand, player3hand] where playerxhand = ['copper', 'cellar']
+@app.route("/getstats/")
+def getstats():
+    ans = []
+
+    conn = psycopg2.connect(database=DB_NAME,
+                        user=DB_USER,
+                        password=DB_PASS,
+                        host=DB_HOST,
+                        port=DB_PORT)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM Games")
+    rows = cur.fetchall()
+
+    # like a list of game = rows[game_id]
+    for r in rows:
+        ans.append(r[1]) 
+
+    # game = rows[game_id]
+    # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
+    # handlist = game[1]
+    # handlist is a list
+
+    conn.close()
+    rtn = {'deck': ans}
+    return rtn
 
 
 if __name__ == "__main__":

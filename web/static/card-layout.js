@@ -1,5 +1,4 @@
-document.querySelectorAll(".card").forEach(element => {
-    if (element.classList.contains('selectable')) { return; }
+document.querySelectorAll(".playable").forEach(element => {
     element.addEventListener("click", () => cardPlayed(element));
 });
 
@@ -19,15 +18,14 @@ function endPhase() {
 }
 
 
-function toggleSelected(element, max) {
-    if (element.classList.contains("selected")) {
-        element.classList.remove("selected");
-        return
-    }
-    numSelected = document.querySelectorAll(".selected").length
-    if (numSelected < max || max == -1) {
-        element.classList.add("selected");
-    }
+function toggleSelected(element, max, canSelectLess) {
+    element.classList.toggle('selected')
+    submitButton(max, canSelectLess)
+}
+
+function submitButton(max, canSelectLess) {
+    let numSelected = document.querySelectorAll(".selected").length
+    document.querySelector('#submit-selection').disabled = numSelected > max && max !== -1 || numSelected < max && !canSelectLess;
 }
 
 function sendSelection(max, canSelectLess) {
@@ -47,10 +45,11 @@ function sendSelection(max, canSelectLess) {
         ids: ids
     }));
 
-    if (xhr.responseText == 'yield') {
-        location.reload()
-    } else {
-        window.location.href =`../`;
+    checkForUpdates(true)
+
+    document.querySelector('body').removeChild(document.querySelector('.blocker'));
+    document.querySelector('body').removeChild(document.querySelector('#select'));
+    if (xhr.responseText === 'yield') {
+        doSelect()
     }
-    
 }
