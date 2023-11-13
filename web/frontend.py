@@ -219,9 +219,9 @@ def tutorial(step):
 @app.route("/data/")
 def data():
     res = requests.get(f"http://api:5000/getstats/")
-    # most_common_card = get_most_common_card(res)
-    # return render_template("data.html", card = most_common_card)
-    return render_template("data.html", card = "copper")
+    most_common_card = get_most_common_card(res)
+    return render_template("data.html", card = most_common_card)
+    # return render_template("data.html", card = "copper")
 
 '''gets the most common card in the final hands of all players given a list of games'''
 # move to backend?

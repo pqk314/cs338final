@@ -334,7 +334,7 @@ def createtable():
  
         # executing queries to create table
         cur.execute("""
-        CREATE TABLE Games
+        CREATE TABLE IF NOT EXISTS Games
         (
             ID INT   PRIMARY KEY NOT NULL,
             NAME TEXT[][]
