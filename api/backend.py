@@ -428,7 +428,8 @@ def getstats():
     # handlist is a list
 
     conn.close()
-    return ans
+    rtn = {'deck': ans}
+    return rtn
 
 
 if __name__ == "__main__":
