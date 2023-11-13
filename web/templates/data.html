@@ -11,12 +11,14 @@
         <h1 class="center">
             Data on Game Results
         </h1>
-        <h2>Most common card at end of game: {{ card }} </h2>
-        <div>
+        <h2>Most common card at end of game: </h2>
+        <p>{{ card }} </p>
+        <img src="{{ images[card] }}"class="card" alt="{{ card }} ">
+        <!-- <div>
             Money: _%
             Action: _%
             Victory: _%
-        </div>
+        </div> -->
     </div>
 </body>
 </html>
