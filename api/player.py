@@ -28,8 +28,7 @@ class player:
         self.game = game
         self.deck = deck
         self.id = id
-        # self.supply = random.sample(sorted(cards.supply_options), 10)
-        
+
         self.hand = []
         self.discard = []
         self.in_play = []

@@ -34,7 +34,7 @@ def card_bought(game_id, player_id, card_name):
     player_number = game.get_player_number(player_id)
     game.update_list_all_players('discard_size', {player_number: len(player.discard) + 1})
     cost = cards.getCard(card_name)['cost']
-    if player.coins >= cost and player.buys >= 1:
+    if player.coins >= cost and player.buys >= 1 and player.phase == 'buy':
         card = game.make_card(card_name)
         player.discard.append(card)
         player.coins -= cost
@@ -435,7 +435,8 @@ def getstats():
     # handlist is a list
 
     conn.close()
-    return ans
+    rtn = {'deck': ans}
+    return rtn
 
 
 if __name__ == "__main__":

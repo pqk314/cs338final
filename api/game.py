@@ -35,11 +35,9 @@ class Game:
             deck = [self.make_card(c) for c in custom_decks[i]]
             #deck = [self.make_card(c) for c in deck_cards]
             newPlayer = player(self, deck, i)
-            #newPlayer.shuffle()
-            #newPlayer.draw_cards(5)
             self.players.append(newPlayer)
         self.currentPlayer = self.players[0]
-            
+
         self.id = id
 
     def get_player_number(self, player_id):
