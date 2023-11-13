@@ -54,8 +54,7 @@ class Game:
             #deck = [self.make_card(c) for c in deck_cards]
             newPlayer = player(self, deck, i)
             self.players.append(newPlayer)
-        self.currentPlayer = player[0]
-            
+
         self.id = id
 
 
