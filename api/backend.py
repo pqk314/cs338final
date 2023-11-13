@@ -33,11 +33,13 @@ def update_cards(add_or_remove, card, player, game):
         game.updates[add_or_remove] = [card]
 
 
-@app.route("/cardbought/<int:game_id>/<card_name>/")
-def card_bought(game_id, card_name):
+@app.route("/cardbought/<int:game_id>/<int:player_id>/<card_name>/")
+def card_bought(game_id, player_id, card_name):
     game = games[game_id]
     # game.gamestateID += 1
     player = game.players[0]
+    if player_id != player.id:
+        return "Nice try"
     game.updates['discard_size'] = len(player.discard) + 1
     cost = cards.getCard(card_name)['cost']
     if player.coins >= cost and player.buys >= 1:
@@ -53,39 +55,34 @@ def card_bought(game_id, card_name):
         
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
-@app.route("/cardplayed/<int:game_id>/<int:playerid>/<int:card_id>/")
-def card_played(game_id, card_id, playerid):
+@app.route("/cardplayed/<int:game_id>/<int:player_id>/<int:card_id>/")
+def card_played(game_id, card_id, player_id):
     game = games[game_id]
     # game.gamestateID += 1
-    x = None
-    for player in game.players:
-        if player.id == playerid:
-            x = player
-            break
-    if x is None or x != game.players[0]:
-        raise ValueError
-    # currentPlayer = game.players[0]
-    hand = x.hand
+    player = game.players[0]
+    if player_id != player.id:
+        return "not current player"
+    hand = player.hand
 
     idx = find_card_in_list(hand, card_id)
 
     if idx == -1:
         raise ValueError
     
-    card = x.hand[idx]
+    card = player.hand[idx]
     type = card['type']
-    if (type == 'action' and x.phase == 'action') or (type == 'treasure' and x.phase == 'buy'):
+    if (type == 'action' and player.phase == 'action') or (type == 'treasure' and player.phase == 'buy'):
         if type == 'action':
-            if x.actions >= 1:
-                x.actions -= 1
-                game.updates['set_actions'] = x.actions
+            if player.actions >= 1:
+                player.actions -= 1
+                game.updates['set_actions'] = player.actions
             else:
                 return "hi"
-        x.in_play.append(card)
-        removed_card = x.hand.pop(idx)
-        update_cards('remove', removed_card, x, game)
+        player.in_play.append(card)
+        removed_card = player.hand.pop(idx)
+        update_cards('remove', removed_card, player, game)
         cmd = cardPlayer.getCardCmd(game_id, card['name'])
-        x.cmd = cmd
+        player.cmd = cmd
         res = cmd.execute()
         if res == "yield":
             game.updates['select'] = True
@@ -187,11 +184,11 @@ def end_phase(game_id, playerid):
     game = games[game_id]
     x = None
     for player in game.players:
-        if player.id == playerid:
+        if player.id == playerid and game.players[0] == player:
             x = player
             break
     if x is None:
-        raise ValueError
+        return "Not player's turn or player ID doesn't exist"
     # currentPlayer = game.players[0]
     # game.gamestateID += 1
     if x.phase == "action":
