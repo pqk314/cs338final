@@ -53,32 +53,39 @@ def card_bought(game_id, card_name):
         
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
 
-@app.route("/cardplayed/<int:game_id>/<int:card_id>/")
-def card_played(game_id, card_id):
+@app.route("/cardplayed/<int:game_id>/<int:playerid>/<int:card_id>/")
+def card_played(game_id, card_id, playerid):
     game = games[game_id]
     # game.gamestateID += 1
-    player = game.players[0]
-    hand = player.hand
+    x = None
+    for player in game.players:
+        if player.id == playerid:
+            x = player
+            break
+    if x is None or x != game.players[0]:
+        raise ValueError
+    # currentPlayer = game.players[0]
+    hand = x.hand
 
     idx = find_card_in_list(hand, card_id)
 
     if idx == -1:
         raise ValueError
     
-    card = player.hand[idx]
+    card = x.hand[idx]
     type = card['type']
-    if (type == 'action' and player.phase == 'action') or (type == 'treasure' and player.phase == 'buy'):
+    if (type == 'action' and x.phase == 'action') or (type == 'treasure' and x.phase == 'buy'):
         if type == 'action':
-            if player.actions >= 1:
-                player.actions -= 1
-                game.updates['set_actions'] = player.actions
+            if x.actions >= 1:
+                x.actions -= 1
+                game.updates['set_actions'] = x.actions
             else:
                 return "hi"
-        player.in_play.append(card)
-        removed_card = player.hand.pop(idx)
-        update_cards('remove', removed_card, player, game)
+        x.in_play.append(card)
+        removed_card = x.hand.pop(idx)
+        update_cards('remove', removed_card, x, game)
         cmd = cardPlayer.getCardCmd(game_id, card['name'])
-        player.cmd = cmd
+        x.cmd = cmd
         res = cmd.execute()
         if res == "yield":
             game.updates['select'] = True
@@ -101,12 +108,19 @@ def getgamestate(game_id):
     return state
 
 
-@app.route("/getfrontstate/<int:game_id>/")
-def getfrontstate(game_id):
+@app.route("/getfrontstate/<int:game_id>/<int:playerid>/")
+def getfrontstate(game_id, playerid):
     game = games[game_id]
-    player = game.players[0]
-    state = {"hand": player.hand, "discard": player.discard, "in_play": player.in_play, "phase": player.phase,
-             "actions": player.actions, "buys": player.buys, "coins": player.coins, "supply": game.supply,
+    x = None
+    for player in game.players:
+        if player.id == playerid:
+            x = player
+            break
+    if x is None:
+        raise ValueError
+    currentPlayer = game.players[0]
+    state = {"hand": x.hand, "discard": x.discard, "in_play": currentPlayer.in_play, "phase": currentPlayer.phase,
+             "actions": currentPlayer.actions, "buys": currentPlayer.buys, "coins": currentPlayer.coins, "supply": game.supply,
              "supplySizes": game.supplySizes}
     return state
 
@@ -168,16 +182,23 @@ def change_zone():
 
 
 
-@app.route('/endphase/<int:game_id>/')
-def end_phase(game_id):
+@app.route('/endphase/<int:game_id>/<int:playerid>/')
+def end_phase(game_id, playerid):
     game = games[game_id]
+    x = None
+    for player in game.players:
+        if player.id == playerid:
+            x = player
+            break
+    if x is None:
+        raise ValueError
+    # currentPlayer = game.players[0]
     # game.gamestateID += 1
-    player = game.players[0]
-    if player.phase == "action":
-        player.phase = "buy"
+    if x.phase == "action":
+        x.phase = "buy"
         game.updates['set_phase'] = 'buy'
-    elif player.phase == "buy":
-        player.end_turn()
+    elif x.phase == "buy":
+        x.end_turn()
         game.players.append(game.players.pop(0))
         game.updates['set_phase'] = 'action'
     return "ended phase"

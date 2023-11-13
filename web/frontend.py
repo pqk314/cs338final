@@ -61,11 +61,11 @@ def new_game():
     """makes a new game and allows user to navigate to it"""
     game_id = requests.request("get", "http://api:5000/newgame").text
     requests.get(f"http://api:5000/createtable/")
-    return redirect(f'/{game_id}/')
+    return redirect(f'/{game_id}/0')
 
 
-@app.route("/<int:game_id>/")
-def game_page(game_id):
+@app.route("/<int:game_id>/<int:playerid>/")
+def game_page(game_id, playerid):
     # TODO for some reason this causes problems but it'd be really nice if this worked.
     # updates(game_id)
 
@@ -74,20 +74,20 @@ def game_page(game_id):
         return redirect(url_for("home_page"))
     select_info = select_cards(game_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{playerid}").json()
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     pics = get_card_pics()
     cards = gamestate["hand"]
     end_what = f"End {gamestate['phase'].title()}"
     return render_template("front-end.html", hand=cards, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id, select_info=select_info)
 
-@app.route("/<int:game_id>/supply")
-def supply(game_id):
+@app.route("/<int:game_id>/<int:playerid>/supply")
+def supply(game_id, playerid):
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
     pics = get_card_pics()
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{playerid}").json()
     cards = gamestate['supply']
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     end_what = f"End {gamestate['phase'].title()}"
@@ -101,26 +101,26 @@ def supply(game_id):
     return render_template("supply.html", cards=cards, card_pics=pics, turn_info=turn_info, end_what=end_what, remaining_cards = remaining_cards)
 
 
-@app.route("/<int:game_id>/cardbought/<card_id>/")
-def card_bought(game_id, card_id):
+@app.route("/<int:game_id>/<int:playerid>/cardbought/<card_id>/")
+def card_bought(game_id, playerid, card_id):
     """process for buying cards"""
     requests.request("get", f"http://api:5000/cardbought/{game_id}/{card_id}")
-    return redirect(f'/{game_id}/supply')
+    return redirect(f'/{game_id}/{playerid}/supply')
 
 
-@app.route("/<int:game_id>/cardplayed/<card_id>/")
-def card_played(game_id, card_id):
+@app.route("/<int:game_id>/<int:playerid>/cardplayed/<card_id>/")
+def card_played(game_id, card_id, playerid):
     """process for playing cards"""
-    res = requests.request("get", f"http://api:5000/cardplayed/{game_id}/{card_id}").json()
-    return redirect(f'/{game_id}')
+    res = requests.request("get", f"http://api:5000/cardplayed/{game_id}/{playerid}/{card_id}").json()
+    return redirect(f'/{game_id}/{playerid}')
 
-@app.route("/<int:game_id>/endphase/")
-def end_phase(game_id):
+@app.route("/<int:game_id>/<int:playerid>/endphase/")
+def end_phase(game_id, playerid):
     """ends current phase"""
 
     # I don't know exactly how we are trying to orginize the endgame stuff but this works
     
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{playerid}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
@@ -130,14 +130,14 @@ def end_phase(game_id):
         return redirect(url_for('game_over', game_id=game_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}")
-    return redirect(f'/{game_id}')
+    return redirect(f'/{game_id}/{playerid}')
 
-@app.route("/<int:game_id>/supply/endphase/")
-def end_phase_supply(game_id):
+@app.route("/<int:game_id>/<int:playerid>/supply/endphase/")
+def end_phase_supply(game_id, playerid):
     """ends current phase and redirects to supply if the turn hasn't changed"""
 
     # I don't know exactly how we are trying to orginize the endgame stuff but this works
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{playerid}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
@@ -150,11 +150,11 @@ def end_phase_supply(game_id):
     phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
     if phase == 'buy':
         return redirect(f'/{game_id}/supply')
-    return redirect(f'/{game_id}')
+    return redirect(f'/{game_id}/{playerid}')
 
 
-@app.route("/<int:game_id>/gameover/")
-def game_over(game_id):
+@app.route("/<int:game_id>/<int:playerid>/gameover/")
+def game_over(game_id, playerid):
     requests.get(f"http://api:5000/save/{game_id}")
 
     # TODO: There needs to be an if statement for if the game is, in fact, not over.
@@ -162,7 +162,7 @@ def game_over(game_id):
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
+    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{playerid}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
