@@ -3,5 +3,5 @@ document.querySelectorAll(".buyable").forEach(element => {
 });
 
 function cardBought(card) {
-    window.location.href =`/${window.location.toString().split('/')[3]}/cardbought/${card.id}`;
+    window.location.href =`cardbought/${card.id}`;
 }
