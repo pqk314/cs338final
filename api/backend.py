@@ -76,7 +76,7 @@ def card_played(game_id, card_id):
                 return "hi"
         player.in_play.append(card)
         removed_card = player.hand.pop(idx)
-        update_cards('remove', removed_card, player, game)
+        game.update_cards('remove', removed_card)
         cmd = cardPlayer.getCardCmd(player, card['name'])
         player.cmd = cmd
         res = cmd.execute()
@@ -157,11 +157,11 @@ def change_zone():
         if card_loc[1] != -1:
             removed = card_loc[0].pop(card_loc[1])
             if card_loc[0] == player.hand:
-                update_cards('remove', removed, player, game)
+                game.update_cards('remove', removed)
             # TODO subtract one figure out how this works
             game.updates[f'{zone}_size'] = len(dest) + 1
         if dest == player.hand:
-            update_cards('add', card, player, game)
+            game.update_cards('add', card)
         dest.append(card)
 
     return 'Changed zone'

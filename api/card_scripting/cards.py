@@ -94,7 +94,8 @@ cardTexts = {
     'festival': '#changeActions(2); #changeBuys(1); #changeCoins(2)',
     'laboratory': '#draw(2); #changeActions(1)',
     #'library': 'n=#eval(7, -, #count(#getHand())); cards=#fromTop($n); actions=#getSubset($cards, #makeArray(type, =, action)); skip=#chooseSubset($actions, -1, #true()); #toHand(#removeFromSet($cards, $skip)); #trash($skip); #execute(#makeCard(library)); #discard($skip)', #not implemented
-    'library': 'n=0; #cond(#eval(#count(#getHand()), <, 7), n=1); cards=#fromTop($n); actions=#getSubset($cards, #makeArray(type, =, action)); skip=#chooseSubset($actions, -1, #true()); #toHand(#removeFromSet($cards, $skip)); #trash($skip); #cond(#eval(#count(#getHand())), #execute(#makeCard(library))); #discard($skip)', #not implemented
+    #'library': 'n=0; #cond(#eval(#count(#getHand()), <, 7), #set(n, 1)); cards=#fromTop($n); actions=#getSubset($cards, #makeArray(type, =, action)); skip=#chooseSubset($actions, -1, #true()); #toHand(#removeFromSet($cards, $skip)); #trash($skip); #cond(#eval(#count(#getHand())), #execute(#makeCard(library))); #discard($skip)', #not implemented
+    'library': '#cond(#eval(#count(#getHand()), >=, 7), #endEarly()); cards=#fromTop(1); actions=#getSubset($cards, #makeArray(type, =, action)); skip=#chooseSubset($actions, -1, #true()); #toHand($cards); #trash($skip); #execute(#makeCard(library)); #discard($skip)', #not implemented
     'market': '#draw(1); #changeActions(1); #changeBuys(1); #changeCoins(1)',
     
     'mine':'x=#chooseSubset(#getSubset(#getHand(), #makeArray(type, =, treasure)), 1, #false()); cost=#getCost(#getFirst($x)); #trash($x); options=#getSubset(#getStore(), #makeArray(cost, <=, #eval($cost, +, 3)), #makeArray(type, =, treasure)); #gain(#chooseSubset($options, 1, #false()), hand)',

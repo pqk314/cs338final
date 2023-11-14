@@ -99,3 +99,11 @@ class Game:
     def shuffle(self):
         """shuffles deck"""
         random.shuffle(self.deck)
+
+
+    def update_cards(self, add_or_remove, card):
+        """Adds cards to game.updates, basically facilitates having a dictionary for simplicity's sake."""
+        if add_or_remove in self.updates:
+            self.updates[add_or_remove].append(card)
+        else:
+            self.updates[add_or_remove] = [card]

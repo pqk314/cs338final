@@ -47,6 +47,11 @@ def changeZone(player, cards, zone):
         if card_loc[1] != -1:
             card_loc[0].pop(card_loc[1])
             game.updates[f'{zone}_size'] = len(dest) + 1
+        if dest == player.hand:
+            game.update_cards('add', card)
+            #update_cards('add', card, player, game)
+        if card_loc[0] == player.hand:
+            game.update_cards('remove', card)
         dest.append(card)
     return True
 
@@ -180,6 +185,12 @@ def makeCard(args, player):
     # args: card name
     # creates and returns an object of the card with the specified name
     return player.game.make_card(args[0])
+
+def endEarly(args, player):
+    # args: none
+    # ends the execution early
+    player.cmd.commands = player.cmd.commands[:1]
+    return True
 
 def getChoice(args, player):
     # args: message to display, list of fString values
@@ -327,7 +338,7 @@ def countEmptyPiles(args, player):
     raise NotImplementedError
 
 
-funcs = [getHand, getDiscard, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray, attack, execute, makeCard]
+funcs = [getHand, getDiscard, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray, attack, execute, makeCard, endEarly]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
 commands = {}

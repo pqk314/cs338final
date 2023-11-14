@@ -145,5 +145,6 @@ class player:
             self.cmd = self.cmd_stack.pop()
             res = self.cmd.execute()
             if res == 'yield':
+                self.game.updates['select'] = True
                 return {'yield': True}
         return {'yield': False}
