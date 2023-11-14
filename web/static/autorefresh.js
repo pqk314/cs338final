@@ -17,7 +17,7 @@ function change(updates) {
     if(updates.hasOwnProperty('home_page')) window.location.href = "/"
     if(updates.hasOwnProperty('set_coins')) document.querySelector('#money').innerHTML = `Money: ${updates['set_coins']}`
     if(updates.hasOwnProperty('set_actions')) document.querySelector('#actions').innerHTML = `Actions: ${updates['set_actions']}`
-    if(updates.hasOwnProperty('set_buys')) document.querySelector('#actions').innerHTML = `Buys: ${updates['set_buys']}`
+    if(updates.hasOwnProperty('set_buys')) document.querySelector('#buys').innerHTML = `Buys: ${updates['set_buys']}`
     if(updates.hasOwnProperty('set_phase')) document.querySelector('#phase').innerHTML = updates['set_phase'] === 'buy' ? 'End Buys' : 'End Action'
     if(updates.hasOwnProperty('select') && updates['select']) doSelect();
     if(updates.hasOwnProperty('remove')) {
