@@ -20,11 +20,6 @@ function change(updates) {
     if(updates.hasOwnProperty('set_buys')) document.querySelector('#buys').innerHTML = `Buys: ${updates['set_buys']}`
     if(updates.hasOwnProperty('set_phase')) document.querySelector('#phase').innerHTML = updates['set_phase'] === 'buy' ? 'End Buys' : 'End Action'
     if(updates.hasOwnProperty('select') && updates['select']) doSelect();
-    if(updates.hasOwnProperty('remove')) {
-        for(let i = 0; i < updates['remove'].length; i++) {
-            document.querySelector('#hand').removeChild(document.querySelector(`#card${updates['remove'][i]['id']}`))
-        }
-    }
     if(updates.hasOwnProperty('add')) {
         for(let i = 0; i < updates['add'].length; i++) {
             let new_card = document.createElement('img')
@@ -37,6 +32,22 @@ function change(updates) {
             document.querySelector('#hand').appendChild(new_card)
         }
     }
+    if(updates.hasOwnProperty('play')) {
+        for(let i = 0; i < updates['play'].length; i++) {
+            document.querySelector('#in-play').appendChild(Object.assign(document.createElement('img'), {
+                src: card_pics[updates['play'][i]],
+                alt: updates['play'][i],
+                className: 'card'
+                }
+            ));
+        }
+    }
+    if(updates.hasOwnProperty('remove')) {
+        for(let i = 0; i < updates['remove'].length; i++) {
+            document.querySelector('#hand').removeChild(document.querySelector(`#card${updates['remove'][i]['id']}`))
+        }
+    }
+
     if (updates.hasOwnProperty(`${playerNum}_deck_size`)) document.querySelector('#deck-info p:nth-child(2)').innerHTML = `Your Deck: ${updates[`${playerNum}_deck_size`]} cards`
     if (updates.hasOwnProperty(`${playerNum}_discard_size`)) document.querySelector('#deck-info p:nth-child(3)').innerHTML = `Your Discard: ${updates[`${playerNum}_discard_size`]} cards`
 
@@ -50,6 +61,26 @@ function change(updates) {
         if (updates.hasOwnProperty('2_discard_size')) document.querySelector('#deck-info p:nth-child(6)').innerHTML = `Player 2's deck: ${updates['2_discard_size']} cards`
     }
 
+    if(updates.hasOwnProperty('new_turn')) {
+        document.querySelectorAll('#in-play img').forEach(element => document.querySelector('#in-play').removeChild(element));
+        isTurn()
+    }
+}
+
+function isTurn() {
+    xhr = new XMLHttpRequest();
+    let url = window.location.href + '/turnnumber/'
+    xhr.open('GET', url, false);
+    xhr.send();
+    let current = parseInt(xhr.responseText)
+    if(current !== playerNum) {
+        document.querySelector('#turn-blocker').style.display = 'block';
+        document.querySelector('#turn-text').style.display = 'inline';
+        document.querySelector('#turn-text').innerHTML = `It is Player ${current}'s turn.`;
+    } else {
+        document.querySelector('#turn-blocker').style.display = 'none';
+        document.querySelector('#turn-text').style.display = 'none';
+    }
 }
 
 function doSelect() {
