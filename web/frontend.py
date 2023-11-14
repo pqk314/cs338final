@@ -71,8 +71,6 @@ def game_page(game_id, player_id):
         return redirect(url_for("home_page"))
     select_info = select_cards(game_id, player_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
-    turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys'], 'Deck': gamestate['deckSize'], 'Discard': len(gamestate['discard'])}
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
     deck_info = requests.request("get", f"http://api:5000/getdeckinfo/{game_id}/{player_id}").json()
     player_num = deck_info.pop()
