@@ -201,6 +201,9 @@ def end_phase(game_id, player_id):
         player.end_turn()
         game.currentPlayer = game.players[game.get_player_number(player.id) % len(game.players)]
         game.update_all_players('set_phase', 'action')
+        game.update_all_players('set_actions', 1)
+        game.update_all_players('set_buys', 1)
+        game.update_all_players('set_coins', 0)
     return "ended phase"
 
 @app.route("/getsupply/<int:game_id>/")
