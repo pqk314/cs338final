@@ -32,7 +32,7 @@ def card_bought(game_id, player_id, card_name):
     if player_id != player.id:
         return "Nice try"
     player_number = game.get_player_number(player_id)
-    game.update_list_all_players('discard_size', {player_number: len(player.discard) + 1})
+    game.update_all_players(f'{player_number}_discard_size', len(player.discard) + 1)
     cost = cards.getCard(card_name)['cost']
     if player.coins >= cost and player.buys >= 1 and player.phase == 'buy':
         card = game.make_card(card_name)
@@ -73,7 +73,7 @@ def card_played(game_id, card_id, player_id):
         player.in_play.append(card)
         removed_card = player.hand.pop(idx)
         player.update_list('remove', removed_card)
-        game.update_list_all_players('hand_size', {game.get_player_number(player.id): len(player.hand)})
+        game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand))
         cmd = cardPlayer.getCardCmd(game_id, card['name'])
         player.cmd = cmd
         res = cmd.execute()
@@ -107,6 +107,22 @@ def getfrontstate(game_id, playerid):
              "actions": currentPlayer.actions, "buys": currentPlayer.buys, "coins": currentPlayer.coins, "supply": game.supply,
              "supplySizes": game.supplySizes}
     return state
+
+@app.route("/getdeckinfo/<int:game_id>/<int:player_id>")
+def get_deck_info(game_id, player_id):
+    game = games[game_id]
+    player_num = game.get_player_number(player_id) - 1
+    deck_info = [
+        f'Your Deck: {str(len(game.players[player_num].deck))} cards',
+        f'Your Discard: {str(len(game.players[player_num].discard))} cards'
+    ]
+    for i in range(len(game.players)):
+        if i != player_num:
+            deck_info.append(f"Player {i + 1}'s deck: {str(len(game.players[i].deck))} cards")
+            deck_info.append(f"Player {i + 1}'s hand: {str(len(game.players[i].hand))} cards")
+            deck_info.append(f"Player {i + 1}'s discard: {str(len(game.players[i].discard))} cards")
+    deck_info.append(player_num + 1)
+    return deck_info
 
 @app.route('/changeVar/', methods=['POST'])
 def change_var():
@@ -156,10 +172,15 @@ def change_zone():
             removed = card_loc[0].pop(card_loc[1])
             if card_loc[0] == player.hand:
                 player.update_list('remove', removed)
-            # TODO subtract one figure out how this works
-            game.updates[f'{zone}_size'] = len(dest) + 1
+                game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand))
+            if card_loc[0] == player.deck:
+                game.update_all_players(f'{game.get_player_number(player.id)}_deck_size', len(player.hand))
+            if card_loc[0] == player.discard:
+                game.update_all_players(f'{game.get_player_number(player.id)}_discard_size', len(player.hand))
+            player.updates[f'{zone}_size'] = len(dest) + 1
         if dest == player.hand:
             player.update_list('add', card)
+            game.update_list_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand) + 1)
         dest.append(card)
 
     return 'Changed zone'

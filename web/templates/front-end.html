@@ -11,14 +11,21 @@
     
     <div id="hand" class="card-container">{% for card in hand %}<img src="{{ images[card.name] }}"class="card playable" alt="{{ card.name }}" id="card{{ card.id }}">{% endfor %}</div>
     <br>
+    <div id="deck-info" style="float:left; background-color: white">
+        <h1>Deck Info:</h1>
+        {% for line in deck_info %}
+        <p>{{ line }}</p>
+        {% endfor %}
+    </div>
     <div id="action-buttons">
         <button onclick="window.location.href=`${window.location}/supply`">View Supply</button>
         <button onclick="endPhase()" id="phase">{{ end_what }}</button>
     </div>
     <div id="turn-info" style="float: right; background-color: white;">
-    {% for key in turn_info.keys() %}
-        <p id="{{ key.lower() }}">{{ key }}: {{ turn_info[key] }}</p>
-    {% endfor %}
+        <h1>Current Turn Info:</h1>
+        {% for key in turn_info.keys() %}
+            <p id="{{ key.lower() }}">{{ key }}: {{ turn_info[key] }}</p>
+        {% endfor %}
     </div>
 
 
@@ -29,6 +36,7 @@
         {% if select_info is not none %}
         doSelect()
         {% endif %}
+        const playerNum = {{player_num}}
     </script>
 </body>
 </html>

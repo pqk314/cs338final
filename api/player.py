@@ -40,7 +40,8 @@ class player:
         self.cmd = None
         self.options = None
         self.shuffle()
-        self.draw_cards(5)
+        self.hand = self.deck[-5:]
+        self.deck = self.deck[0:-5]
 
     def update_list(self, key, val):
         """Makes having list in dictionaries simpler, basically facilitates having a dictionary for simplicity's
@@ -59,9 +60,14 @@ class player:
                 self.deck = [card for card in self.discard]
                 self.discard = []
                 self.shuffle()
-            self.hand.append(self.deck.pop())
 
+            self.hand.append(self.deck.pop())
             self.update_list('add', self.hand[-1])
+
+        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_discard_size', len(self.discard))
+        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_hand_size', len(self.hand))
+        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_deck_size', len(self.deck))
+
 
     def find_card_in_list(self, list, card_id):
         for idx, card in enumerate(list):
@@ -95,6 +101,7 @@ class player:
             self.update_list('remove', self.discard[-1])
         while len(self.in_play) > 0:
             self.discard.append(self.in_play.pop())
+        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_discard_size', len(self.discard))
         self.draw_cards(5)
         # TODO make these changeVar calls
         self.actions = 1

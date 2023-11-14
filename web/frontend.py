@@ -66,20 +66,19 @@ def new_game():
 
 @app.route("/<int:game_id>/<int:player_id>/")
 def game_page(game_id, player_id):
-    # TODO for some reason this causes problems but it'd be really nice if this worked.
-    # updates(game_id)
-
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
     select_info = select_cards(game_id, player_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
+    deck_info = requests.request("get", f"http://api:5000/getdeckinfo/{game_id}/{player_id}").json()
+    player_num = deck_info.pop()
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     pics = get_card_pics()
     cards = gamestate["hand"]
     end_what = f"End {gamestate['phase'].title()}"
-    return render_template("front-end.html", hand=cards, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id, select_info=select_info)
+    return render_template("front-end.html", hand=cards, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id, deck_info=deck_info, select_info=select_info, player_num=player_num)
 
 @app.route("/<int:game_id>/<int:player_id>/supply")
 def supply(game_id, player_id):

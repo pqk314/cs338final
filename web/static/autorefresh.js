@@ -37,7 +37,19 @@ function change(updates) {
             document.querySelector('#hand').appendChild(new_card)
         }
     }
-    if(updates.hasOwnProperty('new_turn') && updates['new_turn']) window.location.reload()
+    if (updates.hasOwnProperty(`${playerNum}_deck_size`)) document.querySelector('#deck-info p:nth-child(2)').innerHTML = `Your Deck: ${updates[`${playerNum}_deck_size`]} cards`
+    if (updates.hasOwnProperty(`${playerNum}_discard_size`)) document.querySelector('#deck-info p:nth-child(3)').innerHTML = `Your Discard: ${updates[`${playerNum}_discard_size`]} cards`
+
+    if(playerNum !== 1) {
+        if (updates.hasOwnProperty('1_deck_size')) document.querySelector('#deck-info p:nth-child(4)').innerHTML = `Player 1's deck: ${updates['1_deck_size']} cards`
+        if (updates.hasOwnProperty('1_hand_size')) document.querySelector('#deck-info p:nth-child(5)').innerHTML = `Player 1's hand: ${updates['1_hand_size']} cards`
+        if (updates.hasOwnProperty('1_discard_size')) document.querySelector('#deck-info p:nth-child(6)').innerHTML = `Player 1's deck: ${updates['1_discard_size']} cards`
+    } else {
+        if (updates.hasOwnProperty('2_deck_size')) document.querySelector('#deck-info p:nth-child(4)').innerHTML = `Player 2's deck: ${updates['2_deck_size']} cards`
+        if (updates.hasOwnProperty('2_hand_size')) document.querySelector('#deck-info p:nth-child(5)').innerHTML = `Player 2's hand: ${updates['2_hand_size']} cards`
+        if (updates.hasOwnProperty('2_discard_size')) document.querySelector('#deck-info p:nth-child(6)').innerHTML = `Player 2's deck: ${updates['2_discard_size']} cards`
+    }
+
 }
 
 function doSelect() {
