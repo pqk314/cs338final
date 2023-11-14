@@ -61,7 +61,7 @@ function doSelect() {
     xhr.send();
     let selection = JSON.parse(xhr.responseText)
     if(Object.keys(selection).length === 0) return;
-    selection['can_choose_less'] = (selection['can_choose_less'] == 'True') 
+    selection['can_choose_less'] = (selection['can_choose_less'] === 'true')
     document.body.appendChild(Object.assign(document.createElement('div'), {
         className: 'blocker'
     }));
