@@ -74,7 +74,7 @@ function doSelect() {
         onclick: () => sendSelection(selection['max_num'], selection['can_choose_less']),
         innerHTML: 'Submit'
     }));
-    submitButton(max_num, can_choose_less);
+    submitButton(selection['max_num'], selection['can_choose_less']);
 }
 
 
