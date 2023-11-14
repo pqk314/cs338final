@@ -74,6 +74,7 @@ def card_played(game_id, card_id, player_id):
         removed_card = player.hand.pop(idx)
         player.update_list('remove', removed_card)
         game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand))
+        game.update_list_all_players('play', card['name'])
         cmd = cardPlayer.getCardCmd(player, card['name'])
         player.cmd = cmd
         res = cmd.execute()
@@ -204,6 +205,7 @@ def end_phase(game_id, player_id):
         game.update_all_players('set_actions', 1)
         game.update_all_players('set_buys', 1)
         game.update_all_players('set_coins', 0)
+        game.update_all_players('new_turn', True)
     return "ended phase"
 
 @app.route("/getsupply/<int:game_id>/")
@@ -227,6 +229,11 @@ def new_game():
     games.append(Game(num_games, 2))
     num_games += 1
     return str(num_games - 1)
+
+@app.route('/<int:game_id>/turnnumber/')
+def turn_number(game_id):
+    game = games[game_id]
+    return str(game.get_player_number(game.currentPlayer.id))
 
 @app.route("/selected/<int:game_id>/", methods=['POST'])
 def selected(game_id):

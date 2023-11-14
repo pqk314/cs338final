@@ -3,31 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <title>Treasures and Victories</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='card-format.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='game-page.css') }}">
 </head>
 <body>
-    <p style="text-align:center; background:white">Your Hand:</p>
+    <img id="background" src="{{ url_for('static', filename='images/background-image.png') }}">
+    <h1 id="info-text">Left-click a card to play it.</h1>
+    <h3>Your Hand:</h3>
 
-    
-    <div id="hand" class="card-container">{% for card in hand %}<img src="{{ images[card.name] }}"class="card playable" alt="{{ card.name }}" id="card{{ card.id }}">{% endfor %}</div>
-    <br>
-    <div id="deck-info" style="float:left; background-color: white">
-        <h1>Deck Info:</h1>
-        {% for line in deck_info %}
-        <p>{{ line }}</p>
-        {% endfor %}
+    <div id="interaction-container">
+        <div id="turn-blocker" style="display: none"></div>
+        <h2 id='turn-text' style="color: white; display: none"></h2>
+        <div id="hand">{% for card in hand %}<img src="{{ images[card.name] }}"class="card playable" alt="{{ card.name }}" id="card{{ card.id }}">{% endfor %}</div>
+        <div id="action-buttons">
+            <button onclick="window.location.href=`supply`">View Supply</button>
+            <button onclick="endPhase()" id="phase">{{ end_what }}</button>
+        </div>
     </div>
-    <div id="action-buttons">
-        <button onclick="window.location.href=`${window.location}/supply`">View Supply</button>
-        <button onclick="endPhase()" id="phase">{{ end_what }}</button>
-    </div>
-    <div id="turn-info" style="float: right; background-color: white;">
-        <h1>Current Turn Info:</h1>
+
+    <div id="turn-info">
+        <h2>Current Turn Info:</h2>
         {% for key in turn_info.keys() %}
-            <p id="{{ key.lower() }}">{{ key }}: {{ turn_info[key] }}</p>
+        <p id="{{ key.lower() }}">{{ key }}: {{ turn_info[key] }}</p>
         {% endfor %}
     </div>
 
+    <div id="deck-info">
+        <h2>Deck Info:</h2>
+        {% for line in deck_info %}
+            <p>{{ line }}</p>
+        {% endfor %}
+    </div>
+
+    <div id="in-play">
+        <h2>Played Cards</h2>{% for card in in_play %}<img src="{{ images[card.name] }}"class="card" alt="{{ card.name }}">{% endfor %}</div>
 
     <script src="{{ url_for('static', filename='card-layout.js') }}"></script>
     <script src="{{ url_for('static', filename='autorefresh.js') }}"></script>
@@ -37,6 +45,7 @@
         doSelect()
         {% endif %}
         const playerNum = {{player_num}}
+        isTurn()
     </script>
 </body>
 </html>
