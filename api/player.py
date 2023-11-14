@@ -2,33 +2,17 @@ from flask import Flask, request, redirect, url_for, render_template
 import random
 import requests
 
-from card_scripting import cardPlayer, cards
+from card_scripting import cardPlayer, cards, cardParser
 
 
 class player:
     def __init__(self, game, deck, id):
-        """Initializes a player, for now this just assumes 1 player and a starting deck"""
-        # Dictionary of everything that should update on front-end valid keys:
-        # set_coins - sets coins to the value (integer) associated with key
-        # set_actions - sets actions to the value (integer) associated with key
-        # set_buys - sets buys to the value (integer) associated with key
-        # set_phase - sets end phase button to whatever phase is.
-        # add - tells game to add card (use card object). Add using update_cards('add', card: card, player: player, game: game)
-        # remove - do the same command as above but use remove for first parameter instead
-        # select - boolean value for select screen
-        # new_turn - boolean for if there is a new turn
-
-        # These next four I'm assuming will be implemented at some point
-        # discard_size - sets discard pile size to the value (integer) associated with key
-        # deck_size - sets discard pile size to the value (integer) associated with key
-        # hand_size - sets discard pile size to the value (integer) associated with key
-        # trash_size - sets discard pile size to the value (integer) associated with key
-        self.updates = {}
-
         self.game = game
+        """Initializes a player, for now this just assumes 1 player and a starting deck"""
         self.deck = deck
         self.id = id
-
+        # self.supply = random.sample(sorted(cards.supply_options), 10)
+        
         self.hand = []
         self.discard = []
         self.in_play = []
@@ -39,6 +23,7 @@ class player:
         self.coins = 0
         self.cmd = None
         self.options = None
+        self.cmd_stack = []
         self.shuffle()
         self.hand = self.deck[-5:]
         self.deck = self.deck[0:-5]
@@ -68,6 +53,19 @@ class player:
         self.game.update_all_players(f'{self.game.get_player_number(self.id)}_hand_size', len(self.hand))
         self.game.update_all_players(f'{self.game.get_player_number(self.id)}_deck_size', len(self.deck))
 
+
+    def from_top(self, num):
+        fromTop = []
+        for i in range(num):
+            if len(self.deck) == 0 and len(self.discard) == 0:
+                break
+            if len(self.deck) == 0:
+                self.deck = [card for card in self.discard]
+                self.discard = []
+                self.shuffle()
+            fromTop.append(self.deck.pop())
+        self.game.floatingCards += fromTop
+        return fromTop
 
     def find_card_in_list(self, list, card_id):
         for idx, card in enumerate(list):
@@ -132,3 +130,17 @@ class player:
             if(c['name'] == "gardens"):
                 score += (len(cards)//10)
         return score
+
+    def execute_command(self, cmd):
+        self.cmd = cardParser.multicommand(cmd, self)
+        res =  self.cmd.execute()
+        if res == "yield":
+            self.game.updates['select'] = True
+            return {'yield': True}
+        while self.cmd_stack:
+            self.cmd = self.cmd_stack.pop()
+            res = self.cmd.execute()
+            if res == 'yield':
+                self.game.updates['select'] = True
+                return {'yield': True}
+        return {'yield': False}

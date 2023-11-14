@@ -74,7 +74,7 @@ def card_played(game_id, card_id, player_id):
         removed_card = player.hand.pop(idx)
         player.update_list('remove', removed_card)
         game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand))
-        cmd = cardPlayer.getCardCmd(game_id, card['name'])
+        cmd = cardPlayer.getCardCmd(player, card['name'])
         player.cmd = cmd
         res = cmd.execute()
         if res == "yield":
@@ -105,7 +105,7 @@ def getfrontstate(game_id, playerid):
     currentPlayer = game.currentPlayer
     state = {"hand": player.hand, "discard": player.discard, "in_play": currentPlayer.in_play, "phase": currentPlayer.phase,
              "actions": currentPlayer.actions, "buys": currentPlayer.buys, "coins": currentPlayer.coins, "supply": game.supply,
-             "supplySizes": game.supplySizes}
+             "supplySizes": game.supplySizes, "deckSize": len(currentPlayer.deck)}
     return state
 
 @app.route("/getdeckinfo/<int:game_id>/<int:player_id>")
@@ -257,7 +257,7 @@ def set_options(game_id):
     else:
         player = game.currentPlayer
 
-    if req['n'] > 0 and len(req['options']) > 0:
+    if req['n'] != 0 and len(req['options']) > 0:
         player.options = req
     else:
         player.cmd.setPlayerInput([])
