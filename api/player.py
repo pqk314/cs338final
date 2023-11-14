@@ -2,7 +2,7 @@ from flask import Flask, request, redirect, url_for, render_template
 import random
 import requests
 
-from card_scripting import cardPlayer, cards
+from card_scripting import cardPlayer, cards, cardParser
 
 
 class player:
@@ -39,6 +39,7 @@ class player:
         self.coins = 0
         self.cmd = None
         self.options = None
+        self.cmd_stack = []
         self.shuffle()
         self.draw_cards(5)
 
@@ -56,6 +57,19 @@ class player:
             self.hand.append(self.deck.pop())
 
             update_cards('add', self.hand[-1], self, self.game)
+
+    def from_top(self, num):
+        fromTop = []
+        for i in range(num):
+            if len(self.deck) == 0 and len(self.discard) == 0:
+                break
+            if len(self.deck) == 0:
+                self.deck = [card for card in self.discard]
+                self.discard = []
+                self.shuffle()
+            fromTop.append(self.deck.pop())
+        self.game.floatingCards += fromTop
+        return fromTop
 
     def find_card_in_list(self, list, card_id):
         for idx, card in enumerate(list):
@@ -120,3 +134,17 @@ class player:
             if(c['name'] == "gardens"):
                 score += (len(cards)//10)
         return score
+
+    def execute_command(self, cmd):
+        self.cmd = cardParser.multicommand(cmd, self)
+        res =  self.cmd.execute()
+        if res == "yield":
+            self.game.updates['select'] = True
+            return {'yield': True}
+        while self.cmd_stack:
+            self.cmd = self.cmd_stack.pop()
+            res = self.cmd.execute()
+            if res == 'yield':
+                self.game.updates['select'] = True
+                return {'yield': True}
+        return {'yield': False}

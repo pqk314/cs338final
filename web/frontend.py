@@ -75,7 +75,7 @@ def game_page(game_id):
     select_info = select_cards(game_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}").json()
-    turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
+    turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys'], 'Deck': gamestate['deckSize'], 'Discard': len(gamestate['discard'])}
     pics = get_card_pics()
     cards = gamestate["hand"]
     end_what = f"End {gamestate['phase'].title()}"
@@ -182,7 +182,7 @@ def select_cards(game_id):
     if len(req.keys()) > 0:
         select_info['options'] = req['options']
         select_info['max_num'] = req['n']
-        select_info['can_choose_less'] = 'true' if req['canChooseLess'] else 'false'
+        select_info['can_choose_less'] = req['canChooseLess']
     return select_info
 
 @app.route("/<int:game_id>/selected/", methods=["POST"])

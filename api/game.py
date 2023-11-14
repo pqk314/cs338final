@@ -47,7 +47,7 @@ class Game:
         self.gamestateID = 0
         deck_cards = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
         custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
-                        ['poacher', 'moneylender', 'harbinger', 'remodel', 'mine', 'artisan', 'copper', 'estate', 'estate', 'estate']]
+                        ['poacher', 'moneylender', 'harbinger', 'remodel', 'library', 'artisan', 'copper', 'sentry', 'vassal', 'estate']]
         self.players = []
         for i in range(num_players):
             deck = [self.make_card(c) for c in custom_decks[i]]
@@ -99,3 +99,11 @@ class Game:
     def shuffle(self):
         """shuffles deck"""
         random.shuffle(self.deck)
+
+
+    def update_cards(self, add_or_remove, card):
+        """Adds cards to game.updates, basically facilitates having a dictionary for simplicity's sake."""
+        if add_or_remove in self.updates:
+            self.updates[add_or_remove].append(card)
+        else:
+            self.updates[add_or_remove] = [card]
