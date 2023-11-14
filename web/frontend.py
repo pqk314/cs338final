@@ -182,7 +182,7 @@ def select_cards(game_id):
     if len(req.keys()) > 0:
         select_info['options'] = req['options']
         select_info['max_num'] = req['n']
-        select_info['can_choose_less'] = req['canChooseLess']
+        select_info['can_choose_less'] = "True" if req['canChooseLess'] else "False"
     return select_info
 
 @app.route("/<int:game_id>/selected/", methods=["POST"])
