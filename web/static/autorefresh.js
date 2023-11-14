@@ -49,6 +49,7 @@ function doSelect() {
     xhr.send();
     let selection = JSON.parse(xhr.responseText)
     if(Object.keys(selection).length === 0) return;
+    selection['can_choose_less'] = (selection['can_choose_less'] == 'True') 
     document.body.appendChild(Object.assign(document.createElement('div'), {
         className: 'blocker'
     }));
@@ -73,7 +74,7 @@ function doSelect() {
         onclick: () => sendSelection(selection['max_num'], selection['can_choose_less']),
         innerHTML: 'Submit'
     }));
-    submitButton();
+    submitButton(selection['max_num'], selection['can_choose_less']);
 }
 
 

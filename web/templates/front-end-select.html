@@ -31,7 +31,7 @@
 
     <div id="select" class="select card-container">
         {% for card in selection %}
-            <img src="{{ images[card.name] }}"class="card selectable {{ card.name }}" alt="{{ card.name }} " id="{{ card.id }}" onclick="toggleSelected(this, {{ max_num }})">
+            <img src="{{ images[card.name] }}"class="card selectable {{ card.name }}" alt="{{ card.name }} " id="{{ card.id }}" onclick="toggleSelected(this, {{ max_num }}, {{ can_choose_less }})">
         {% endfor %}
         <br>
         <button onclick="sendSelection({{ max_num }}, {{ can_choose_less }})" style="position: relative; left: 50%; transform: translate(-50%, 0)">Submit</button>

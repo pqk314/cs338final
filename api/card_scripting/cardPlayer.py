@@ -1,7 +1,7 @@
 from card_scripting import cardParser
 from card_scripting import cards
 
-def getCardCmd(gameID, card): 
+def getCardCmd(player, card): 
     text = cards.getCardText(card)
-    cmd = cardParser.multicommand(text, gameID)
+    cmd = cardParser.multicommand(text, player)
     return cmd

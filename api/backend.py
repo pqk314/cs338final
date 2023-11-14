@@ -76,8 +76,8 @@ def card_played(game_id, card_id):
                 return "hi"
         player.in_play.append(card)
         removed_card = player.hand.pop(idx)
-        update_cards('remove', removed_card, player, game)
-        cmd = cardPlayer.getCardCmd(game_id, card['name'])
+        game.update_cards('remove', removed_card)
+        cmd = cardPlayer.getCardCmd(player, card['name'])
         player.cmd = cmd
         res = cmd.execute()
         if res == "yield":
@@ -107,7 +107,7 @@ def getfrontstate(game_id):
     player = game.players[0]
     state = {"hand": player.hand, "discard": player.discard, "in_play": player.in_play, "phase": player.phase,
              "actions": player.actions, "buys": player.buys, "coins": player.coins, "supply": game.supply,
-             "supplySizes": game.supplySizes}
+             "supplySizes": game.supplySizes, "deckSize": len(player.deck)}
     return state
 
 @app.route('/changeVar/', methods=['POST'])
@@ -157,11 +157,11 @@ def change_zone():
         if card_loc[1] != -1:
             removed = card_loc[0].pop(card_loc[1])
             if card_loc[0] == player.hand:
-                update_cards('remove', removed, player, game)
+                game.update_cards('remove', removed)
             # TODO subtract one figure out how this works
             game.updates[f'{zone}_size'] = len(dest) + 1
         if dest == player.hand:
-            update_cards('add', card, player, game)
+            game.update_cards('add', card)
         dest.append(card)
 
     return 'Changed zone'
@@ -236,7 +236,7 @@ def set_options(game_id):
     else:
         player = game.players[0]
 
-    if req['n'] > 0 and len(req['options']) > 0:
+    if req['n'] != 0 and len(req['options']) > 0:
         player.options = req
     else:
         player.cmd.setPlayerInput([])
