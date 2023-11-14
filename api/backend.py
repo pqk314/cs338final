@@ -107,7 +107,7 @@ def getfrontstate(game_id):
     player = game.players[0]
     state = {"hand": player.hand, "discard": player.discard, "in_play": player.in_play, "phase": player.phase,
              "actions": player.actions, "buys": player.buys, "coins": player.coins, "supply": game.supply,
-             "supplySizes": game.supplySizes}
+             "supplySizes": game.supplySizes, "deckSize": len(player.deck)}
     return state
 
 @app.route('/changeVar/', methods=['POST'])
