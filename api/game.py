@@ -6,31 +6,13 @@ class Game:
     def __init__(self, id, num_players):
         """Initializes game, for now this just assumes 1 player and a starting deck
         TODO: support for more than one player"""
-
-        # Dictionary of everything that should update on front-end valid keys:
-        # set_coins - sets coins to the value (integer) associated with key
-        # set_actions - sets actions to the value (integer) associated with key
-        # set_buys - sets buys to the value (integer) associated with key
-        # set_phase - sets end phase button to whatever phase is.
-        # add - tells game to add card (use card object). Add using update_cards('add', card: card, player: player, game: game)
-        # remove - do the same command as above but use remove for first parameter instead
-        # select - boolean value for select screen
-        # new_turn - boolean for if there is a new turn
-
-        # These next four I'm assuming will be implemented at some point
-        # discard_size - sets discard pile size to the value (integer) associated with key
-        # deck_size - sets discard pile size to the value (integer) associated with key
-        # hand_size - sets discard pile size to the value (integer) associated with key
-        # trash_size - sets discard pile size to the value (integer) associated with key
-        self.updates = {}
-
         #to sort the cards by cost the self.supply needs to be sorted
         self.basesupply = ['copper', 'silver', 'gold', 'estate', 'duchy', 'province', 'curse']
         self.supply = ['market', 'workshop', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
         self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
         # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
         # self.supplySizes = [2 for i in range(10)]
-        self.supplySizes = {key: 2 for key in self.supply}
+        self.supplySizes = {key: 10 for key in self.supply}
         self.supplySizes['copper'] = 60 - 7*num_players
         self.supplySizes['silver'] = 40
         self.supplySizes['gold'] = 30
@@ -54,9 +36,24 @@ class Game:
             #deck = [self.make_card(c) for c in deck_cards]
             newPlayer = player(self, deck, i)
             self.players.append(newPlayer)
+        self.currentPlayer = self.players[0]
 
         self.id = id
 
+    def get_player_number(self, player_id):
+        """Takes in player ID and outputs number that is that players location in the players array"""
+        for i in range(len(self.players)):
+            if self.players[i].id == player_id:
+                return i + 1
+        raise ValueError('Player ID not found')
+
+    def update_all_players(self, key, val):
+        for p in self.players:
+            p.updates[key] = val
+
+    def update_list_all_players(self, key, val):
+        for p in self.players:
+            p.update_list(key, val)
 
     def make_card(self, name):
         """returns a card object with the given name"""
