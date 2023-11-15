@@ -189,7 +189,7 @@ def change_zone():
 
 
 @app.route('/endphase/<int:game_id>/<int:player_id>/')
-def end_phase(game_id, player_id):
+def fphase(game_id, player_id):
     game = games[game_id]
     player = game.currentPlayer
     if player_id != player.id:
@@ -393,12 +393,18 @@ def save(game_id):
     for h in range(len(decks)):
         hand.append(decks[h])
     
+
     handlists = "{"
+    
     for x in range(len(hand)):
+        count = 0
         savehand = "{"
         for s in hand[x].keys():
             for y in range(hand[x][s]):
                 savehand += s + ","
+                count += 1
+        for x in range(20-count):
+            savehand+= "fake,"
         savehand = savehand[:len(savehand)-1]
         savehand += "}"
         handlists += savehand + ","
@@ -412,7 +418,7 @@ def save(game_id):
                             host=DB_HOST,
                             port=DB_PORT)
     cur = conn.cursor()
-    cur.execute("INSERT INTO Games (ID,NAME) VALUES ('% s','% s')" % (game_id, handlists))
+    cur.execute("INSERT INTO Games (ID,NAME) VALUES (% s,'% s')" % (game_id, handlists))
     conn.commit()
     return "hi"
 

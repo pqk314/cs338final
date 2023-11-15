@@ -128,10 +128,10 @@ def end_phase(game_id, player_id):
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
-        if supplySizes[x] < 1:
+        if supplySizes[x] < 8: #changed from 1
             count += 1
-    if count >= 2:
-        return redirect(url_for('game_over', game_id=game_id))
+    if count >= 1: #changed from 2
+        return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
     return redirect(f'/{game_id}/{player_id}')
@@ -145,10 +145,10 @@ def end_phase_supply(game_id, player_id):
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
-        if supplySizes[x] < 1:
+        if supplySizes[x] < 8: #changed from 1
             count += 1
-    if count >= 2:
-        return redirect(url_for('game_over', game_id=game_id))
+    if count >= 1: #changed from 2
+        return redirect(url_for('game_over', game_id=game_id,player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
     phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
@@ -159,7 +159,7 @@ def end_phase_supply(game_id, player_id):
 
 @app.route("/<int:game_id>/<int:player_id>/gameover/")
 def game_over(game_id, player_id):
-    requests.get(f"http://api:5000/save/{game_id}")
+    
 
     # TODO: There needs to be an if statement for if the game is, in fact, not over.
     
@@ -170,13 +170,14 @@ def game_over(game_id, player_id):
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
-        if supplySizes[x] < 1:
+        if supplySizes[x] < 8: #changed from 1
             count += 1
-    if count < 2:
+    if count < 1: #changed from 2
         return redirect(f'/{game_id}')
     pics = get_card_pics()
     deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
     vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
+    requests.get(f"http://api:5000/save/{game_id}")
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
 @app.route('/<int:game_id>/<int:player_id>/selectinfo/')
