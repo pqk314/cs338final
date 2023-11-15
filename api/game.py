@@ -6,31 +6,13 @@ class Game:
     def __init__(self, id, num_players):
         """Initializes game, for now this just assumes 1 player and a starting deck
         TODO: support for more than one player"""
-
-        # Dictionary of everything that should update on front-end valid keys:
-        # set_coins - sets coins to the value (integer) associated with key
-        # set_actions - sets actions to the value (integer) associated with key
-        # set_buys - sets buys to the value (integer) associated with key
-        # set_phase - sets end phase button to whatever phase is.
-        # add - tells game to add card (use card object). Add using update_cards('add', card: card, player: player, game: game)
-        # remove - do the same command as above but use remove for first parameter instead
-        # select - boolean value for select screen
-        # new_turn - boolean for if there is a new turn
-
-        # These next four I'm assuming will be implemented at some point
-        # discard_size - sets discard pile size to the value (integer) associated with key
-        # deck_size - sets discard pile size to the value (integer) associated with key
-        # hand_size - sets discard pile size to the value (integer) associated with key
-        # trash_size - sets discard pile size to the value (integer) associated with key
-        self.updates = {}
-
         #to sort the cards by cost the self.supply needs to be sorted
         self.basesupply = ['copper', 'silver', 'gold', 'estate', 'duchy', 'province', 'curse']
         self.supply = ['market', 'workshop', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
         self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
         # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
         # self.supplySizes = [2 for i in range(10)]
-        self.supplySizes = {key: 2 for key in self.supply}
+        self.supplySizes = {key: 10 for key in self.supply}
         self.supplySizes['copper'] = 60 - 7*num_players
         self.supplySizes['silver'] = 40
         self.supplySizes['gold'] = 30
@@ -47,18 +29,31 @@ class Game:
         self.gamestateID = 0
         deck_cards = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
         custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
-                        ['poacher', 'moneylender', 'harbinger', 'remodel', 'mine', 'artisan', 'copper', 'estate', 'estate', 'estate']]
+                        ['poacher', 'moneylender', 'harbinger', 'remodel', 'library', 'artisan', 'copper', 'sentry', 'vassal', 'estate']]
         self.players = []
         for i in range(num_players):
             deck = [self.make_card(c) for c in custom_decks[i]]
             #deck = [self.make_card(c) for c in deck_cards]
             newPlayer = player(self, deck, i)
-            #newPlayer.shuffle()
-            #newPlayer.draw_cards(5)
             self.players.append(newPlayer)
-            
+        self.currentPlayer = self.players[0]
+
         self.id = id
 
+    def get_player_number(self, player_id):
+        """Takes in player ID and outputs number that is that players location in the players array"""
+        for i in range(len(self.players)):
+            if self.players[i].id == player_id:
+                return i + 1
+        raise ValueError('Player ID not found')
+
+    def update_all_players(self, key, val):
+        for p in self.players:
+            p.updates[key] = val
+
+    def update_list_all_players(self, key, val):
+        for p in self.players:
+            p.update_list(key, val)
 
     def make_card(self, name):
         """returns a card object with the given name"""
@@ -67,21 +62,6 @@ class Game:
         card['name'] = name
         self.nextCardID += 1
         return card
-
-    def draw_cards(self, num_to_draw):
-        """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
-        # self.gamestateID += 1
-        from backend import update_cards
-        for i in range(num_to_draw):
-            if len(self.deck) == 0 and len(self.discard) == 0:
-                break
-            if len(self.deck) == 0:
-                self.deck = self.discard
-                self.discard = []
-                self.shuffle()
-            self.hand.append(self.deck.pop())
-
-            update_cards('add', self.hand[-1], player[0], self)
 
     def find_card_in_list(self, list, card_id):
         for idx, card in enumerate(list):
@@ -117,18 +97,10 @@ class Game:
         """shuffles deck"""
         random.shuffle(self.deck)
 
-    def end_turn(self):
-        # self.gamestateID += 1
-        """Discards all cards in hand and in front of player"""
-        from backend import update_cards
-        self.floatingCards = []
-        while len(self.hand) > 0:
-            self.discard.append(self.hand.pop())
-            update_cards('remove', self.discard[-1], player[0], self)
-        while len(self.in_play) > 0:
-            self.discard.append(self.in_play.pop())
-        self.draw_cards(5)
-        self.actions = 1
-        self.buys = 1
-        self.coins = 0
-        self.phase = 'action'
+
+    def update_cards(self, add_or_remove, card):
+        """Adds cards to game.updates, basically facilitates having a dictionary for simplicity's sake."""
+        if add_or_remove in self.updates:
+            self.updates[add_or_remove].append(card)
+        else:
+            self.updates[add_or_remove] = [card]

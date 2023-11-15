@@ -25,7 +25,7 @@ function toggleSelected(element, max, canSelectLess) {
 
 function submitButton(max, canSelectLess) {
     let numSelected = document.querySelectorAll(".selected").length
-    document.querySelector('#submit-selection').disabled = numSelected > max && max !== -1 || numSelected < max && !canSelectLess;
+    document.querySelector('#submit-selection').disabled = (numSelected > max && max !== -1) || (numSelected < max && !canSelectLess);
 }
 
 function sendSelection(max, canSelectLess) {
