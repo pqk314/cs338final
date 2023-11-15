@@ -3,6 +3,10 @@
     position: relative;
 }
 
+img {
+    user-select: none;
+}
+
 #info-text {
     z-index: 4;
 }

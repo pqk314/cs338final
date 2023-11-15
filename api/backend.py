@@ -41,8 +41,8 @@ def card_bought(game_id, player_id, card_name):
         game.update_all_players('set_coins', player.coins)
         player.buys -= 1
         game.update_all_players('set_buys', player.buys)
-        # TODO updates for this
         game.supplySizes[card_name] -= 1
+        game.update_all_players('cardbought', ' '.join(card_name.split('_')).title())
 
         
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
