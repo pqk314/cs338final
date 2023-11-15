@@ -41,6 +41,8 @@ def changeZone(player, cards, zone):
         dest = game.trash
     elif zone == 'in_play':
         dest = player.in_play
+    elif zone == 'set_aside':
+        dest = player.set_aside
     for card in cards:
         card_id = card['id']
         card_loc = player.find_card(card_id)
@@ -64,6 +66,11 @@ def getDiscard(args, player):
     # no args
     # returns list of all cards in discard pile
     return getGameState(player)['discard']
+
+def getSetAside(args, player):
+    # no args
+    # returns list of all cards in discard pile
+    return player.set_aside
 
 def fromTop(args, player):
     # args: number
@@ -136,6 +143,12 @@ def toDeck(args, player):
     cards = args[0]
     return changeZone(player, cards, 'deck')
 
+def setAside(args, player):
+    # args: cards
+    # moves the cards in the list to set aside zone
+    cards = args[0]
+    return changeZone(player, cards, 'set_aside')
+
 def changeCoins(args, player):
     # args: delta
     # changes coins by the amount
@@ -168,17 +181,27 @@ def attack(args, player):
     for p in player.game.players:
         if p is player:
             continue
-        p.execute_command(cmd)
+        p.set_command(cmd)
+        p.execute_command()
     return True
 
 def execute(args, player):
     # args: card
     # executes the command of the card for the current player
-    card = args[0]
+    if type(args[0]) == list:
+        card = args[0][0]
+    else:
+        card = args[0]
     current_command = player.cmd
+    current_command.commands = current_command.commands[1:]
+    #current_command.commands.pop(0)
     player.cmd_stack.append(current_command)
     cmdStr = cards.getCardText(card['name'])
-    res = player.execute_command(cmdStr)
+    player.set_command(cmdStr)
+    #raise ValueError([com.command for com in player.cmd.commands])
+    res = player.execute_command()
+    if 'yield' in res and res['yield'] == True:
+        return 'yield'
     return res
 
 def makeCard(args, player):
@@ -268,8 +291,9 @@ def chooseSubset(args, player):
     o = {'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]}
     if o['n'] != 0 and len(o['options']) > 0:
         player.options = o
+        return 'yield'
     else:
-        player.cmd.setPlayerInput([])
+        return []
     #requests.post(f'http://api:5000/setoptions/{gameID}/', json={'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]})
     return "yield"
     return args[0][:-1]
@@ -327,6 +351,12 @@ def eval(args, player):
         return val1 + val2
     elif operator == '-':
         return val1 - val2
+    elif operator == 'and':
+        return val1 and val2
+    elif operator == 'or':
+        return val1 or val2
+    else:
+        raise ValueError(f"Invalid operator {operator}")
     raise ValueError
     
     
@@ -338,7 +368,7 @@ def countEmptyPiles(args, player):
     raise NotImplementedError
 
 
-funcs = [getHand, getDiscard, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray, attack, execute, makeCard, endEarly]
+funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray, attack, execute, makeCard, endEarly]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
 commands = {}

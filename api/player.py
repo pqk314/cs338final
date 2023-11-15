@@ -32,6 +32,7 @@ class player:
         self.hand = []
         self.discard = []
         self.in_play = []
+        self.set_aside = []
         self.trash = []
         self.phase = "action"
         self.actions = 1
@@ -134,17 +135,26 @@ class player:
             if(c['name'] == "gardens"):
                 score += (len(cards)//10)
         return score
-
-    def execute_command(self, cmd):
+    
+    def set_command(self, cmd):
         self.cmd = cardParser.multicommand(cmd, self)
+
+    def execute_command(self):
         res =  self.cmd.execute()
         if res == "yield":
             self.game.updates['select'] = True
             return {'yield': True}
-        while self.cmd_stack:
-            self.cmd = self.cmd_stack.pop()
-            res = self.cmd.execute()
-            if res == 'yield':
-                self.game.updates['select'] = True
-                return {'yield': True}
+        #return {'yield': False}
+        if self.cmd == None or self.cmd.commands == []:
+            self.cmd = None
+            while self.cmd_stack:
+                if self.cmd_stack[-1] == []:
+                    self.cmd_stack.pop()
+                    continue
+                self.cmd = self.cmd_stack.pop()
+                res = self.cmd.execute()
+                if res == 'yield':
+                    self.game.updates['select'] = True
+                    return {'yield': True}
         return {'yield': False}
+    

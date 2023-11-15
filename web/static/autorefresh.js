@@ -21,11 +21,6 @@ function change(updates) {
     if(updates.hasOwnProperty('set_buys')) document.querySelector('#actions').innerHTML = `Buys: ${updates['set_buys']}`
     if(updates.hasOwnProperty('set_phase')) document.querySelector('#phase').innerHTML = updates['set_phase'] === 'buy' ? 'End Buys' : 'End Action'
     if(updates.hasOwnProperty('select') && updates['select']) doSelect();
-    if(updates.hasOwnProperty('remove')) {
-        for(let i = 0; i < updates['remove'].length; i++) {
-            document.querySelector('#hand').removeChild(document.querySelector(`#card${updates['remove'][i]['id']}`))
-        }
-    }
     if(updates.hasOwnProperty('add')) {
         for(let i = 0; i < updates['add'].length; i++) {
             let new_card = document.createElement('img')
@@ -36,6 +31,11 @@ function change(updates) {
             new_card.id = 'card' + updates['add'][i]['id']
             new_card.addEventListener("click", () => cardPlayed(new_card));
             document.querySelector('#hand').appendChild(new_card)
+        }
+    }
+    if(updates.hasOwnProperty('remove')) {
+        for(let i = 0; i < updates['remove'].length; i++) {
+            document.querySelector('#hand').removeChild(document.querySelector(`#card${updates['remove'][i]['id']}`))
         }
     }
     if(updates.hasOwnProperty('new_turn') && updates['new_turn']) window.location.reload()
