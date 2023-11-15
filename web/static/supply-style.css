@@ -2,6 +2,10 @@ div {
     overflow: auto;
 }
 
+img {
+    user-select: none;
+}
+
 #base-cards {
     display: grid;
     grid-template-columns: auto auto auto auto auto auto auto;

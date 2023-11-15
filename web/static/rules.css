@@ -2,6 +2,10 @@ p {
     font-size: 18px;
 }
 
+img {
+    user-select: none;
+}
+
 #background {
     opacity: 50%;
     position: fixed;

@@ -3,6 +3,10 @@ html {
     min-width: 100vw;
 }
 
+img {
+    user-select: none;
+}
+
 #background {
     position: fixed;
     top: 0;
