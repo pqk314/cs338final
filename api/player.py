@@ -28,7 +28,8 @@ class player:
         self.game = game
         self.deck = deck
         self.id = id
-
+        # self.supply = random.sample(sorted(cards.supply_options), 10)
+        
         self.hand = []
         self.discard = []
         self.in_play = []
@@ -42,12 +43,19 @@ class player:
         self.options = None
         self.cmd_stack = []
         self.shuffle()
-        self.draw_cards(5)
+        self.hand = self.deck[-5:]
+        self.deck = self.deck[0:-5]
 
+    def update_list(self, key, val):
+        """Makes having list in dictionaries simpler, basically facilitates having a dictionary for simplicity's
+        sake."""
+        if key in self.updates:
+            self.updates[key].append(val)
+        else:
+            self.updates[key] = [val]
 
     def draw_cards(self, num_to_draw):
         """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""
-        from backend import update_cards
         for i in range(num_to_draw):
             if len(self.deck) == 0 and len(self.discard) == 0:
                 break
@@ -55,9 +63,14 @@ class player:
                 self.deck = [card for card in self.discard]
                 self.discard = []
                 self.shuffle()
-            self.hand.append(self.deck.pop())
 
-            update_cards('add', self.hand[-1], self, self.game)
+            self.hand.append(self.deck.pop())
+            self.update_list('add', self.hand[-1])
+
+        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_discard_size', len(self.discard))
+        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_hand_size', len(self.hand))
+        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_deck_size', len(self.deck))
+
 
     def from_top(self, num):
         fromTop = []
@@ -99,18 +112,18 @@ class player:
 
     def end_turn(self):
         """Discards all cards in hand and in front of player"""
-        from backend import update_cards
         while len(self.hand) > 0:
             self.discard.append(self.hand.pop())
-            update_cards('remove', self.discard[-1], self, self.game)
+            self.update_list('remove', self.discard[-1])
         while len(self.in_play) > 0:
             self.discard.append(self.in_play.pop())
+        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_discard_size', len(self.discard))
         self.draw_cards(5)
+        # TODO make these changeVar calls
         self.actions = 1
         self.buys = 1
         self.coins = 0
         self.phase = 'action'
-        self.game.updates['new_turn'] = True
 
     def get_deck_composition(self):
         cards = self.deck + self.hand + self.in_play + self.discard
@@ -142,7 +155,7 @@ class player:
     def execute_command(self):
         res =  self.cmd.execute()
         if res == "yield":
-            self.game.updates['select'] = True
+            self.updates['select'] = True
             return {'yield': True}
         #return {'yield': False}
         if self.cmd == None or self.cmd.commands == []:
@@ -154,7 +167,7 @@ class player:
                 self.cmd = self.cmd_stack.pop()
                 res = self.cmd.execute()
                 if res == 'yield':
-                    self.game.updates['select'] = True
+                    self.updates['select'] = True
                     return {'yield': True}
         return {'yield': False}
     

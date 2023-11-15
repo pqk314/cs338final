@@ -46,7 +46,7 @@
         {% endfor %}
     </div>
 </div>
-<button onclick="window.location.href = `/${window.location.toString().split('/')[3]}`" style="float:left;">Back to
+<button onclick="window.location.href = `/${window.location.toString().split('/')[3] + '/' + window.location.toString().split('/')[4]}`" style="float:left;">Back to
     Game
 </button>
 <button onclick="window.location.href=`${window.location}/endphase`">{{ end_what }}</button>

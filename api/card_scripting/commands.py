@@ -13,13 +13,13 @@ def changeVar(player, var, delta):
     delta = int(delta)
     if var == "actions":
         player.actions += delta
-        game.updates['set_actions'] = player.actions
+        game.update_all_players('set_actions', player.actions)
     elif var == "buys":
         player.buys += delta
-        game.updates['set_buys'] = player.buys
+        game.update_all_players('set_buys', player.buys)
     elif var == "coins":
         player.coins += delta
-        game.updates['set_coins'] = player.coins
+        game.update_all_players('set_coins', player.coins)
     else:
         raise ValueError("Invalid variable name")
     return True
@@ -47,13 +47,18 @@ def changeZone(player, cards, zone):
         card_id = card['id']
         card_loc = player.find_card(card_id)
         if card_loc[1] != -1:
-            card_loc[0].pop(card_loc[1])
-            game.updates[f'{zone}_size'] = len(dest) + 1
+            removed = card_loc[0].pop(card_loc[1])
+            if card_loc[0] == player.hand:
+                player.update_list('remove', removed)
+                game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand))
+            if card_loc[0] == player.deck:
+                game.update_all_players(f'{game.get_player_number(player.id)}_deck_size', len(player.hand))
+            if card_loc[0] == player.discard:
+                game.update_all_players(f'{game.get_player_number(player.id)}_discard_size', len(player.hand))
+            player.updates[f'{zone}_size'] = len(dest) + 1
         if dest == player.hand:
-            game.update_cards('add', card)
-            #update_cards('add', card, player, game)
-        if card_loc[0] == player.hand:
-            game.update_cards('remove', card)
+            player.update_list('add', card)
+            game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand) + 1)
         dest.append(card)
     return True
 
