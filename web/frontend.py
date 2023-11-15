@@ -218,10 +218,10 @@ def tutorial(step):
 
 @app.route("/data/")
 def data():
-    res = requests.get(f"http://api:5000/getstats/")
-    most_common_card = get_most_common_card(res)
+    res = requests.get(f"http://api:5000/getstats/").json()
+    most_common_card = get_most_common_card(res["deck"])
     pics = get_card_pics()
-    return render_template("data.html", card = most_common_card, card_pics=pics)
+    return render_template("data.html", card = most_common_card, images=pics)
     # return render_template("data.html", card = "copper")
 
 '''gets the most common card in the final hands of all players given a list of games'''
@@ -241,11 +241,12 @@ def create_card_occurrence_dict(games):
         for hand in game:
             print("hand: ", hand)
             for card in hand:
-                print("card: ", game)
-                if card not in card_occurrence_dict:
-                    card_occurrence_dict[card] = 1
-                else:
-                    card_occurrence_dict[card] += 1
+                print("card: ", card)
+                if card != "fake":
+                    if card not in card_occurrence_dict:
+                        card_occurrence_dict[card] = 1
+                    else:
+                        card_occurrence_dict[card] += 1
     return card_occurrence_dict
 
 @app.route("/savegame/")
