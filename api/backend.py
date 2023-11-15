@@ -75,9 +75,8 @@ def card_played(game_id, card_id, player_id):
         player.update_list('remove', removed_card)
         game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand))
         game.update_list_all_players('play', card['name'])
-        cmd = cardPlayer.getCardCmd(player, card['name'])
-        player.cmd = cmd
-        res = cmd.execute()
+        player.set_command(cards.getCardText(card['name']))
+        res = player.execute_command()
         if res == "yield":
             player.updates['select'] = True
             return {'yield': True}
@@ -248,8 +247,8 @@ def selected(game_id):
     cards = game.find_card_objs(ids)
     #raise ValueError(str(game.floatingCards))
     player.cmd.setPlayerInput(cards)
-    res = player.cmd.execute()
-
+    #res = player.cmd.execute()
+    res = player.execute_command()
     if res == "yield":
         return "yield"
 
@@ -334,9 +333,10 @@ def attack():
     game = games[game_id]
     multicommand = req['multicommand']
     for player in game.players[1:]:
-        player.cmd = cardParser.multicommand(multicommand, game_id)
+        player.set_command(multicommand)
+        #player.cmd = cardParser.multicommand(multicommand, game_id)
         #res = player.cmd.execute()
-        player.cmd.execute()
+        player.execute_command()
     return "yield"
         
 
@@ -474,6 +474,13 @@ def getstats():
     conn.close()
     rtn = {'deck': ans}
     return rtn
+
+
+@app.route("/debug/<int:game_id>/")
+def debug(game_id):
+    player = games[game_id].players[0]
+    cmd = player.cmd
+    return {'cmds': [com.command for com in cmd.commands], 'cmdStack': [[com.command for com in cmd.commands] for cmd in player.cmd_stack]}
 
 
 if __name__ == "__main__":

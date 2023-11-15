@@ -266,6 +266,10 @@ def save(game_id):
     cardlist = info['deck'][1][0]
     return render_template("db-connection.html", cardlist = cardlist)
 
+@app.route("/<int:game_id>/debug/")
+def debug(game_id):
+    return requests.get(f"http://api:5000/debug/{game_id}").json()
+
 if __name__ == "__main__":
     app.static_folder = "./static"
     app.template_folder = "./templates"

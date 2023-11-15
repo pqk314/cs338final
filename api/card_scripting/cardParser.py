@@ -45,11 +45,14 @@ class multicommand:
         self.playerInput = None
 
     def executeSubcommand(self):
+        if len(self.commands) == 0:
+            return None
         self.commands[0].setVals(self.vals)
         res = self.commands[0].execute()
         if res == "yield":
             return "yield"
-        self.vals = self.commands[0].getVals()
+        if len(self.commands) > 0:
+            self.vals = self.commands[0].getVals()
         self.commands = self.commands[1:]
         return res
 
@@ -147,17 +150,17 @@ class command:
 
     def executeInternalFunc(self):
         if self.func == "set":
-                try:
-                    self.args[1].vals = self.vals
-                
-                except:
-                    raise ValueError(self.command, self.args)
-                res = self.args[1].execute()
-                if res == "yield":
-                    return "yield"
-                self.vals = self.args[1].vals
-                self.vals[self.args[0]] = res
-                return True
+            try:
+                self.args[1].vals = self.vals
+            
+            except:
+                raise ValueError(self.command, self.args)
+            res = self.args[1].execute()
+            if res == "yield":
+                return "yield"
+            self.vals = self.args[1].vals
+            self.vals[self.args[0]] = res
+            return True
         elif self.func == "get":
             return self.vals[self.args[0]]
         elif self.func == "cond":

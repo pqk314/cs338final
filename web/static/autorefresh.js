@@ -32,6 +32,11 @@ function change(updates) {
             document.querySelector('#hand').appendChild(new_card)
         }
     }
+    if(updates.hasOwnProperty('remove')) {
+        for(let i = 0; i < updates['remove'].length; i++) {
+            document.querySelector('#hand').removeChild(document.querySelector(`#card${updates['remove'][i]['id']}`))
+        }
+    }
     if(updates.hasOwnProperty('play')) {
         for(let i = 0; i < updates['play'].length; i++) {
             document.querySelector('#in-play').appendChild(Object.assign(document.createElement('img'), {
@@ -40,11 +45,6 @@ function change(updates) {
                 className: 'card'
                 }
             ));
-        }
-    }
-    if(updates.hasOwnProperty('remove')) {
-        for(let i = 0; i < updates['remove'].length; i++) {
-            document.querySelector('#hand').removeChild(document.querySelector(`#card${updates['remove'][i]['id']}`))
         }
     }
 
