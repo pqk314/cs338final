@@ -8,6 +8,9 @@ document.querySelectorAll(".buyable").forEach(element => {
     element.addEventListener("click", () => window.location.href = `cardbought/${element.id}`);
 })
 
+// makes images not draggable.
+document.querySelectorAll('img').forEach(element => element.draggable = false)
+
 /**
  * Tells backend that a card was played, then updates page
  * @param card the card that was clicked
