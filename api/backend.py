@@ -188,7 +188,7 @@ def change_zone():
 
 
 @app.route('/endphase/<int:game_id>/<int:player_id>/')
-def fphase(game_id, player_id):
+def endphase(game_id, player_id):
     game = games[game_id]
     player = game.currentPlayer
     if player_id != player.id:
