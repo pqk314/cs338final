@@ -79,7 +79,7 @@ def game_page(game_id, player_id):
     cards = gamestate["hand"]
     in_play = gamestate['in_play']
     end_what = f"End {gamestate['phase'].title()}"
-    return render_template("front-end.html", hand=cards, in_play=in_play, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id, deck_info=deck_info, select_info=select_info, player_num=player_num)
+    return render_template("game.html", hand=cards, in_play=in_play, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id, deck_info=deck_info, select_info=select_info, player_num=player_num)
 
 @app.route('/<int:game_id>/<int:player_id>/turnnumber/')
 def turn_number(game_id, player_id):

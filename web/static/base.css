@@ -1,0 +1,25 @@
+* {
+    text-align: center;
+    position: relative;
+}
+
+#background {
+    z-index: -1;
+    min-height: 100vh;
+    min-width: 100vw;
+    height: auto;
+    width: auto;
+    position: fixed;
+    left: 0;
+    top: 0;
+    opacity: 50%;
+    pointer-events: none;
+}
+
+img {
+    user-select: none;
+}
+
+.card {
+    height: 350px;
+}

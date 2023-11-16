@@ -2,39 +2,25 @@ div {
     overflow: auto;
 }
 
-img {
-    user-select: none;
-}
-
 #base-cards {
     display: grid;
-    grid-template-columns: auto auto auto auto auto auto auto;
-    gap: 5px;
-    justify-items: center;
-    margin-bottom: 30px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    margin-bottom: 5px;
+    overflow: auto;
 }
 
 #game-cards {
     display: grid;
-    grid-template-columns: auto auto auto auto auto;
-    gap: 30px 5px;
-    justify-items: center;
-    margin-bottom: 30px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    margin-bottom: 20px;
+    overflow: auto;
 }
 
 .buyable {
     cursor: pointer;
 }
 
-article {
-    height: calc(23.66vh - 20px)
-}
-
 p {
-    margin: 0
-}
-
-img {
-    width: auto;
-    height: calc(calc(23.66vh - 20px) - 18px);
+    height: 20px;
+    margin: 5px;
 }
