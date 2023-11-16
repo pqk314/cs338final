@@ -21,22 +21,22 @@
 <body>
     <h1 style="text-align: center">The game is over.</h1>
     {% for i in range(victory_points|length) %}
-        <p>Player {{ i + 1 }} got {{ victory_points[i|string] }} victory points!</p> 
-        <br>
-        <p>Their deck composition was:</p>
-        <table>
-            <tr>
-                {% for key in deck_compositions[i|string] %}
-                <td>
-                    <article>
-                        <img src="{{ card_pics[key] }}">
-                        <p>{{ deck_compositions[i|string][key] }} in deck</p>
-                    </article>
-                </td>
-                
-                {% endfor %}
-            </tr>
-                </table>
+    <p>Player {{ i + 1 }} got {{ victory_points[i|string] }} victory points!</p>
+    <br>
+    <p>Their deck composition was:</p>
+    <table>
+        <tr>
+            {% for key in deck_compositions[i|string] %}
+            <td>
+                <article>
+                    <img src="{{ card_pics[key] }}">
+                    <p>{{ deck_compositions[i|string][key] }} in deck</p>
+                </article>
+            </td>
+
+            {% endfor %}
+        </tr>
+    </table>
     <br><br><br>
     {% endfor %}
 </body>
