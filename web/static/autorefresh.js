@@ -21,6 +21,8 @@ function checkForUpdates(makeChanges) {
  * @param updates JSON containing info for updating front end page
  */
 function change(updates) {
+    console.log(updates)
+    // prompts player to invite friend
     if(updates.hasOwnProperty('new_game_prompt')) {
         document.querySelector('#info-text').innerHTML = `To invite friend, send them this link: http://${window.location.host}/joingame/${game_id}\nIf you finish your first turn before they join. They will no longer be able to join and you will play against an AI player.\nPress OK to copy the link.`
         return;
@@ -28,6 +30,8 @@ function change(updates) {
 
     // This is only for if the game_id doesn't exist like if a docker container restarted
     if(updates.hasOwnProperty('home_page')) window.location.href = "/"
+
+    if(updates.hasOwnProperty('game_over')) window.location.href = 'gameover'
 
     // these simply set the game variables to the values associated with their respective keys
     if(updates.hasOwnProperty('set_coins')) document.querySelector('#money').innerHTML = `Money: ${updates['set_coins']}`

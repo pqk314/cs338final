@@ -40,6 +40,8 @@ class Game:
 
         self.is_computer_game = True
         self.first_turn_ended = False
+        self.is_over = False
+        self.added_to_db = False
 
         self.id = id
 
