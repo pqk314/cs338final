@@ -16,7 +16,15 @@ services:
     build: ./api
     expose:
       - "5000"
+    depends_on:
+      - db
+    restart:
+      on-failure
   db:
     build: ./db
     ports:
       - "5432:5432"
+    volumes:
+      - "game-data:/var/lib/postgresql/data"
+volumes:
+  game-data:

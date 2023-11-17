@@ -8,7 +8,9 @@ from player import player
 import aiplayer
 
 app = Flask(__name__)
+
 num_games = 0
+starting_num = 0
 games = []
 
 
@@ -29,7 +31,7 @@ def find_card_in_list(list, card_id):
 def card_bought(game_id, player_id, card_name):
     if game_over(game_id)['game_over']:
         return 'game_ended'
-    game = games[game_id]
+    game = games[game_id - starting_num]
     # game.gamestateID += 1
     player = game.currentPlayer
     if player_id != player.id:
@@ -54,7 +56,7 @@ def card_bought(game_id, player_id, card_name):
 def card_played(game_id, card_id, player_id):
     if game_over(game_id)['game_over']:
         return 'game_ended'
-    game = games[game_id]
+    game = games[game_id - starting_num]
     # game.gamestateID += 1
     player = game.currentPlayer
     if player_id != player.id:
@@ -91,11 +93,11 @@ def card_played(game_id, card_id, player_id):
 # TODO is this used?
 @app.route("/gethand/<int:game_id>/")
 def get_hand(game_id):
-    return str(games[game_id].currentPlayer.hand)
+    return str(games[game_id - starting_num].currentPlayer.hand)
 
 @app.route("/getgamestate/<int:game_id>/")
 def getgamestate(game_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     player = game.currentPlayer
     state = {"hand": player.hand, "discard": player.discard, "in_play": player.in_play, "deck": player.deck,
              "phase": player.phase, "actions": player.actions, "buys": player.buys, "coins": player.coins,
@@ -105,7 +107,7 @@ def getgamestate(game_id):
 
 @app.route("/getfrontstate/<int:game_id>/<int:playerid>/")
 def getfrontstate(game_id, playerid):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     player = game.players[game.get_player_number(playerid) - 1]
     currentPlayer = game.currentPlayer
     state = {"hand": player.hand, "discard": player.discard, "in_play": currentPlayer.in_play, "phase": currentPlayer.phase,
@@ -115,7 +117,7 @@ def getfrontstate(game_id, playerid):
 
 @app.route("/getdeckinfo/<int:game_id>/<int:player_id>")
 def get_deck_info(game_id, player_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     player_num = game.get_player_number(player_id) - 1
     deck_info = [
         f'Your Deck: {str(len(game.players[player_num].deck))} cards',
@@ -194,9 +196,9 @@ def change_zone():
 
 @app.route('/endphase/<int:game_id>/<int:player_id>/')
 def endphase(game_id, player_id):
-    if game_id >= len(games):
+    if not game_exists(game_id)['exists']:
         return "hi"
-    game = games[game_id]
+    game = games[game_id - starting_num]
     player = game.currentPlayer
     if player_id != player.id:
         return "Nice try"
@@ -234,7 +236,7 @@ def check_game_over(game):
 
 @app.route("/getsupply/<int:game_id>/")
 def get_supply(game_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     #return {'store': [game.make_card('curse')]}
     cards = [game.make_card(name) for name, val in game.supplySizes.items() if val > 0]
     game.floatingCards += cards
@@ -242,7 +244,7 @@ def get_supply(game_id):
 
 @app.route("/draw/<int:game_id>/<int:num_cards>/")
 def draw(game_id, num_cards):
-    games[game_id].currentPlayer.draw_cards(num_cards)
+    games[game_id - starting_num].currentPlayer.draw_cards(num_cards)
     return 'hello world' # nothing actually needs to be returned, flask crashes without this.
 
 @app.route("/newgame/")
@@ -261,7 +263,7 @@ def new_game():
 
 @app.route('/joingame/<int:game_id>/')
 def join_game(game_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     if game.first_turn_ended or not game.is_computer_game:
         return 'no lol'
     game.is_computer_game = False
@@ -269,14 +271,14 @@ def join_game(game_id):
 
 @app.route('/<int:game_id>/turnnumber/')
 def turn_number(game_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     return str(game.get_player_number(game.currentPlayer.id))
 
 @app.route("/selected/<int:game_id>/", methods=['POST'])
 def selected(game_id):
     req = request.get_json()
     ids = req['ids']
-    game = games[game_id]
+    game = games[game_id - starting_num]
     if 'player' in req:
         player = game.players[req['player']]
     else:
@@ -295,7 +297,7 @@ def selected(game_id):
 @app.route("/setoptions/<int:game_id>/", methods=['POST'])
 def set_options(game_id):
     # TODO what does this do?
-    game = games[game_id]
+    game = games[game_id - starting_num]
     # game.gamestateID += 1
     req = request.get_json()
     if 'player' in req:
@@ -313,25 +315,25 @@ def set_options(game_id):
 # TODO fix
 # @app.route("/ischoice/<int:game_id>/<int:player_id>")
 # def ischoice(game_id, player_id):
-#     return {'is_choice': games[game_id].players[games[game_id].get_player_number(player_id) - 1].options is not None}
+#     return {'is_choice': games[game_id - starting_num].players[games[game_id - starting_num].get_player_number(player_id) - 1].options is not None}
     
 @app.route("/getoptions/<int:game_id>/<int:player_id>/")
 def get_options(game_id, player_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     player_options = game.players[game.get_player_number(player_id) - 1].options
     return player_options if player_options is not None else {}
 
 @app.route("/findcards/<int:game_id>/")
 def find_cards(game_id):
 
-    return {'res': games[game_id].find_card_objs([1, 2, 3, 4])}
+    return {'res': games[game_id - starting_num].find_card_objs([1, 2, 3, 4])}
 
 
 @app.route("/updates/<int:game_id>/<int:player_id>")
 def updates(game_id, player_id):
     if not game_exists(game_id)['exists']:
         return {'home_page': True}
-    game = games[game_id]
+    game = games[game_id - starting_num]
     if game.is_over:
         return {'game_over': True}
     update_list = game.players[game.get_player_number(player_id) - 1].updates
@@ -341,7 +343,7 @@ def updates(game_id, player_id):
 # Does not always work for some reason, I will look at it
 @app.route("/calculatescore/<int:game_id>/")
 def calculate_score(game_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     scores = {}
     for i in range(len(game.players)):
         player = game.players[i]
@@ -350,14 +352,14 @@ def calculate_score(game_id):
 
 @app.route("/deckcomposition/<int:game_id>/")
 def deck_composition(game_id, player=0):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     player = game.players[player]
     return player.get_deck_composition()
 
 # used
 @app.route("/deckcompositions/<int:game_id>/")
 def deck_compositions(game_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     decks = {}
     for i in range(len(game.players)):
         player = game.players[i]
@@ -366,18 +368,18 @@ def deck_compositions(game_id):
 
 @app.route("/gameexists/<int:game_id>/")
 def game_exists(game_id):
-    return {'exists': game_id < num_games}
+    return {'exists': num_games > game_id >= starting_num}
 
 @app.route('/gameisover/<int:game_id>/')
 def game_over(game_id):
     """different from check_game_over because this can't end the game."""
-    return {'game_over': games[game_id].is_over}
+    return {'game_over': games[game_id - starting_num].is_over}
 
 @app.route("/attack/", methods=['POST'])
 def attack():
     req = request.get_json()
     game_id = req['gameID']
-    game = games[game_id]
+    game = games[game_id - starting_num]
     multicommand = req['multicommand']
     for player in game.players[1:]:
         player.set_command(multicommand)
@@ -389,7 +391,7 @@ def attack():
 
 @app.route("/makecard/<int:game_id>/<card_name>/")
 def make_card(game_id, card_name):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     if game.supplySizes[card_name] == 0:
         return {'empty': True}
     game.supplySizes[card_name] -= 1
@@ -432,7 +434,7 @@ def createtable():
 
 @app.route("/save/<int:game_id>/")
 def save(game_id):
-    game = games[game_id]
+    game = games[game_id - starting_num]
     if game.added_to_db:
         return 'already added to database'
     game.added_to_db = True
@@ -518,14 +520,27 @@ def getstats():
     rtn = {'deck': ans}
     return rtn
 
+def get_num_games():
+    conn = psycopg2.connect(database=DB_NAME,
+                            user=DB_USER,
+                            password=DB_PASS,
+                            host=DB_HOST,
+                            port=DB_PORT)
+    cur = conn.cursor()
+    cur.execute("SELECT count(ID) FROM Games")
+    return cur.fetchone()[0]
+
 
 @app.route("/debug/<int:game_id>/")
 def debug(game_id):
-    player = games[game_id].players[0]
+    player = games[game_id - starting_num].players[0]
     cmd = player.cmd
     return {'cmds': [com.command for com in cmd.commands], 'cmdStack': [[com.command for com in cmd.commands] for cmd in player.cmd_stack]}
 
 
 if __name__ == "__main__":
+    createtable()
+    starting_num = get_num_games()
+    num_games = starting_num
+    
     app.run(host="0.0.0.0", port=5000)
-    Game()

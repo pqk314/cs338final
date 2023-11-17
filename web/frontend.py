@@ -62,7 +62,7 @@ def home_page():
 def new_game():
     """makes a new game and redirects user to their new game"""
     game_info = requests.request("get", "http://api:5000/newgame").json()
-    requests.get(f"http://api:5000/createtable/")
+    # requests.get(f"http://api:5000/createtable/")
     return redirect(f'/{game_info["game_id"]}/{game_info["player_id"]}/')
 
 @app.route('/joingame/<int:game_id>')
@@ -78,7 +78,8 @@ def join_game(game_id):
 @app.route("/<int:game_id>/<int:player_id>/")
 def game_page(game_id, player_id):
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
-    if not exists:
+    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
+    if not exists or is_over:
         return redirect(url_for("home_page"))
     select_info = select_cards(game_id, player_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
