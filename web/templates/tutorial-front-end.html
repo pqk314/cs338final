@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Treasures and Victories</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='card-format.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='game-page.css') }}">
 </head>
 <body>
+    <img id="background" src="{{ url_for('static', filename='images/background-image.png') }}">
+
     <h1 style="text-align: center">{{ tutorial_step['message'] }}</h1>
 
     <p style="text-align:center; background:white">Your Hand:</p>
