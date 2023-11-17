@@ -403,7 +403,7 @@ def save(game_id):
             for y in range(hand[x][s]):
                 savehand += s + ","
                 count += 1
-        for x in range(20-count):
+        for x in range(500-count):
             savehand+= "fake,"
         savehand = savehand[:len(savehand)-1]
         savehand += "}"

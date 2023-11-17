@@ -128,9 +128,9 @@ def end_phase(game_id, player_id):
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
-        if supplySizes[x] < 8: #changed from 1
+        if supplySizes[x] < 1: #chang to 8 to make game easy to win
             count += 1
-    if count >= 1: #changed from 2
+    if count >= 2: #change to 1 to make game easy to win
         return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
@@ -145,9 +145,9 @@ def end_phase_supply(game_id, player_id):
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
-        if supplySizes[x] < 8: #changed from 1
+        if supplySizes[x] < 1: #change to 8 to make easy to win
             count += 1
-    if count >= 1: #changed from 2
+    if count >= 2: #change to 1 to make easy to win
         return redirect(url_for('game_over', game_id=game_id,player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
@@ -170,9 +170,9 @@ def game_over(game_id, player_id):
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
-        if supplySizes[x] < 8: #changed from 1
+        if supplySizes[x] < 1: #change to 8 to make easy to win
             count += 1
-    if count < 1: #changed from 2
+    if count < 2: #change to 1 to make easy to win
         return redirect(f'/{game_id}')
     pics = get_card_pics()
     deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
