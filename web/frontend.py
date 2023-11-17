@@ -9,6 +9,8 @@ card_pics = None
 
 
 def get_card_pics():
+    """Returns card_pics so that it can be used in multiple functions. Flask doesn't let this be statically declared, so
+    this is the way we chose to do it."""
     global card_pics
     if card_pics is None:
         card_pics = {
@@ -51,17 +53,26 @@ def get_card_pics():
 
 @app.route("/")
 def home_page():
-    """prompts user to make a new game"""
+    """Displays home page to users."""
     pics = get_card_pics()
     return render_template("home-page.html", card_pics=pics)
 
 
 @app.route("/newgame/")
 def new_game():
-    """makes a new game and allows user to navigate to it"""
-    game_id = requests.request("get", "http://api:5000/newgame").text
+    """makes a new game and redirects user to their new game"""
+    game_info = requests.request("get", "http://api:5000/newgame").json()
     requests.get(f"http://api:5000/createtable/")
-    return redirect(f'/{game_id}/0')
+    return redirect(f'/{game_info["game_id"]}/{game_info["player_id"]}/')
+
+@app.route('/joingame/<int:game_id>')
+def join_game(game_id):
+    player_id = 0
+    try:
+        player_id = int(requests.request("get", f"http://api:5000/joingame/{game_id}").text)
+    except ValueError:
+        return redirect('/')
+    return redirect(f'/{game_id}/{player_id}/')
 
 
 @app.route("/<int:game_id>/<int:player_id>/")
@@ -113,7 +124,7 @@ def card_bought(game_id, player_id, card_id):
 
 
 @app.route("/<int:game_id>/<int:player_id>/cardplayed/<card_id>/")
-def card_played(game_id, card_id, player_id):
+def card_played(game_id, player_id, card_id):
     """process for playing cards"""
     requests.request("get", f"http://api:5000/cardplayed/{game_id}/{player_id}/{card_id}")
     return redirect(f'/{game_id}/{player_id}')
@@ -121,16 +132,7 @@ def card_played(game_id, card_id, player_id):
 @app.route("/<int:game_id>/<int:player_id>/endphase/")
 def end_phase(game_id, player_id):
     """ends current phase"""
-
-    # I don't know exactly how we are trying to orginize the endgame stuff but this works
-    
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
-    supplySizes = gamestate['supplySizes']
-    count = 0
-    for x in supplySizes.keys():
-        if supplySizes[x] < 1: #chang to 8 to make game easy to win
-            count += 1
-    if count >= 2: #change to 1 to make game easy to win
+    if requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']:
         return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
@@ -139,16 +141,8 @@ def end_phase(game_id, player_id):
 @app.route("/<int:game_id>/<int:player_id>/supply/endphase/")
 def end_phase_supply(game_id, player_id):
     """ends current phase and redirects to supply if the turn hasn't changed"""
-
-    # I don't know exactly how we are trying to orginize the endgame stuff but this works
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
-    supplySizes = gamestate['supplySizes']
-    count = 0
-    for x in supplySizes.keys():
-        if supplySizes[x] < 1: #change to 8 to make easy to win
-            count += 1
-    if count >= 2: #change to 1 to make easy to win
-        return redirect(url_for('game_over', game_id=game_id,player_id=player_id))
+    if requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']:
+        return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
     phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
@@ -159,21 +153,11 @@ def end_phase_supply(game_id, player_id):
 
 @app.route("/<int:game_id>/<int:player_id>/gameover/")
 def game_over(game_id, player_id):
-    
-
-    # TODO: There needs to be an if statement for if the game is, in fact, not over.
-    
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
-    gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
-    supplySizes = gamestate['supplySizes']
-    count = 0
-    for x in supplySizes.keys():
-        if supplySizes[x] < 1: #change to 8 to make easy to win
-            count += 1
-    if count < 2: #change to 1 to make easy to win
-        return redirect(f'/{game_id}')
+    if not requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']:
+        return redirect(url_for('game_page', game_id=game_id, player_id=player_id))
     pics = get_card_pics()
     deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
     vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
@@ -198,9 +182,6 @@ def selected(game_id):
 
 @app.route("/<int:game_id>/<int:player_id>/updates/")
 def updates(game_id, player_id):
-    exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
-    if not exists:
-        return {'home_page': True}
     return requests.get(f"http://api:5000/updates/{game_id}/{player_id}").json()
 
 @app.route("/selected/<int:game_id>/", methods=["POST"])
@@ -229,7 +210,7 @@ def data():
 def get_most_common_card(games):
     card_occurrence_dict = create_card_occurrence_dict(games)
     print(card_occurrence_dict)
-    most_common_card = max(card_occurrence_dict, key=card_occurrence_dict.get)           
+    most_common_card = max(card_occurrence_dict, key=card_occurrence_dict.get)
     return most_common_card
 
 '''creates a dictionary that counts the occurrence of each card in the final hands of all players given a list of games'''
@@ -249,12 +230,10 @@ def create_card_occurrence_dict(games):
                         card_occurrence_dict[card] += 1
     return card_occurrence_dict
 
-@app.route("/savegame/")
-def save_game():
-
-    # requests.get(f"http://api:5000/dbadd/")
-    info = requests.get(f"http://api:5000/dbget/").json()
-    result = info['works']
+@app.route("/savegame/<int:game_id>")
+def save_game(game_id):
+    info = requests.get(f"http://api:5000/dbget/{game_id}/").json()
+    result = info['deck']
     return render_template("db-connection.html", result = result)
 
 

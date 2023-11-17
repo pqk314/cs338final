@@ -5,6 +5,7 @@ import requests
 import psycopg2
 from card_scripting import cardPlayer, cards, commands, cardParser
 from player import player
+import aiplayer
 
 app = Flask(__name__)
 num_games = 0
@@ -26,6 +27,8 @@ def find_card_in_list(list, card_id):
 
 @app.route("/cardbought/<int:game_id>/<int:player_id>/<card_name>/")
 def card_bought(game_id, player_id, card_name):
+    if game_over(game_id)['game_over']:
+        return 'game_ended'
     game = games[game_id]
     # game.gamestateID += 1
     player = game.currentPlayer
@@ -34,7 +37,7 @@ def card_bought(game_id, player_id, card_name):
     player_number = game.get_player_number(player_id)
     game.update_all_players(f'{player_number}_discard_size', len(player.discard) + 1)
     cost = cards.getCard(card_name)['cost']
-    if player.coins >= cost and player.buys >= 1 and player.phase == 'buy':
+    if player.coins >= cost and player.buys >= 1 and player.phase == 'buy' and game.supplySizes[card_name] > 0:
         card = game.make_card(card_name)
         player.discard.append(card)
         player.coins -= cost
@@ -49,6 +52,8 @@ def card_bought(game_id, player_id, card_name):
 
 @app.route("/cardplayed/<int:game_id>/<int:player_id>/<int:card_id>/")
 def card_played(game_id, card_id, player_id):
+    if game_over(game_id)['game_over']:
+        return 'game_ended'
     game = games[game_id]
     # game.gamestateID += 1
     player = game.currentPlayer
@@ -189,6 +194,8 @@ def change_zone():
 
 @app.route('/endphase/<int:game_id>/<int:player_id>/')
 def endphase(game_id, player_id):
+    if game_id >= len(games):
+        return "hi"
     game = games[game_id]
     player = game.currentPlayer
     if player_id != player.id:
@@ -198,6 +205,8 @@ def endphase(game_id, player_id):
         player.phase = "buy"
         game.update_all_players('set_phase', 'buy')
     elif player.phase == "buy":
+        if check_game_over(game):
+            return 'game over'
         player.end_turn()
         game.currentPlayer = game.players[game.get_player_number(player.id) % len(game.players)]
         game.update_all_players('set_phase', 'action')
@@ -205,7 +214,23 @@ def endphase(game_id, player_id):
         game.update_all_players('set_buys', 1)
         game.update_all_players('set_coins', 0)
         game.update_all_players('new_turn', True)
+        game.first_turn_ended = True
+        if game.is_computer_game and game.currentPlayer == game.players[1]:
+            aiplayer.take_turn(game.currentPlayer)
     return "ended phase"
+
+def check_game_over(game):
+    '''only called at end of turn and can end game'''
+    if game.is_over:
+        return True
+    empty_piles = 0
+    for val in game.supplySizes.values():
+        if val == 0:
+            empty_piles += 1
+    if empty_piles >= 3 or game.supplySizes['province'] == 0:
+        game.is_over = True
+        return True
+    return False
 
 @app.route("/getsupply/<int:game_id>/")
 def get_supply(game_id):
@@ -227,7 +252,20 @@ def new_game():
     global games
     games.append(Game(num_games, 2))
     num_games += 1
-    return str(num_games - 1)
+    game = games[-1]
+    game.players[0].updates['new_game_prompt'] = True
+    return {
+        'game_id': str(game.id),
+        'player_id': game.players[0].id
+            }
+
+@app.route('/joingame/<int:game_id>/')
+def join_game(game_id):
+    game = games[game_id]
+    if game.first_turn_ended or not game.is_computer_game:
+        return 'no lol'
+    game.is_computer_game = False
+    return str(game.players[1].id)
 
 @app.route('/<int:game_id>/turnnumber/')
 def turn_number(game_id):
@@ -291,7 +329,11 @@ def find_cards(game_id):
 
 @app.route("/updates/<int:game_id>/<int:player_id>")
 def updates(game_id, player_id):
+    if not game_exists(game_id)['exists']:
+        return {'home_page': True}
     game = games[game_id]
+    if game.is_over:
+        return {'game_over': True}
     update_list = game.players[game.get_player_number(player_id) - 1].updates
     game.players[game.get_player_number(player_id) - 1].updates = {}
     return update_list
@@ -325,6 +367,11 @@ def deck_compositions(game_id):
 @app.route("/gameexists/<int:game_id>/")
 def game_exists(game_id):
     return {'exists': game_id < num_games}
+
+@app.route('/gameisover/<int:game_id>/')
+def game_over(game_id):
+    """different from check_game_over because this can't end the game."""
+    return {'game_over': games[game_id].is_over}
 
 @app.route("/attack/", methods=['POST'])
 def attack():
@@ -386,30 +433,31 @@ def createtable():
 @app.route("/save/<int:game_id>/")
 def save(game_id):
     game = games[game_id]
+    if game.added_to_db:
+        return 'already added to database'
+    game.added_to_db = True
     decks = deck_compositions(game_id)
 
-    hand = []
+    deck_list = []
     # change for multiple players
     for h in range(len(decks)):
-        hand.append(decks[h])
-    
+        deck_list.append([])
+        for key, val in decks[h].items():
+            deck_list[h] += [key for _ in range(val)]
 
-    handlists = "{"
-    
-    for x in range(len(hand)):
-        count = 0
+    hand_lists = "{"
+    for x in range(len(deck_list)):
         savehand = "{"
-        for s in hand[x].keys():
-            for y in range(hand[x][s]):
-                savehand += s + ","
-                count += 1
-        for x in range(500-count):
-            savehand+= "fake,"
-        savehand = savehand[:len(savehand)-1]
+        for i in range(len(max(deck_list, key=len))):
+            if i < len(deck_list[x]):
+                savehand += f'{deck_list[x][i]},'
+            else:
+                savehand += 'fake,'
+        savehand = savehand[:-1]
         savehand += "}"
-        handlists += savehand + ","
-    handlists = handlists[:len(handlists)-1]
-    handlists += "}"
+        hand_lists += savehand + ","
+    hand_lists = hand_lists[:-1]
+    hand_lists += "}"
 
 
     conn = psycopg2.connect(database=DB_NAME,
@@ -418,12 +466,12 @@ def save(game_id):
                             host=DB_HOST,
                             port=DB_PORT)
     cur = conn.cursor()
-    cur.execute("INSERT INTO Games (ID,NAME) VALUES (% s,'% s')" % (game_id, handlists))
+    cur.execute("INSERT INTO Games (ID,NAME) VALUES (% s,'% s')" % (game_id, hand_lists))
     conn.commit()
     return "hi"
 
 # returns a list that conatins all of the cards in the first player's hand
-@app.route("/dbget/<int:game_id>")
+@app.route("/dbget/<int:game_id>/")
 def dbget(game_id):
     returnjson = {'deck':""}
     # getting the people back
@@ -464,12 +512,7 @@ def getstats():
 
     # like a list of game = rows[game_id]
     for r in rows:
-        ans.append(r[1]) 
-
-    # game = rows[game_id]
-    # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
-    # handlist = game[1]
-    # handlist is a list
+        ans.append(r[1])
 
     conn.close()
     rtn = {'deck': ans}

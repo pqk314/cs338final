@@ -27,18 +27,37 @@ class Game:
         self.supplySizes['curse'] = 10*num_players - 10
         self.nextCardID = 0
         self.gamestateID = 0
-        deck_cards = ['village', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper']
+        deck_cards = ['copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']
         custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
                         ['poacher', 'moneylender', 'harbinger', 'remodel', 'library', 'throne_room', 'copper', 'sentry', 'vassal', 'estate']]
         self.players = []
         for i in range(num_players):
-            deck = [self.make_card(c) for c in custom_decks[i]]
-            #deck = [self.make_card(c) for c in deck_cards]
-            newPlayer = player(self, deck, i)
+            # deck = [self.make_card(c) for c in custom_decks[i]]
+            deck = [self.make_card(c) for c in deck_cards]
+            newPlayer = player(self, deck, self.make_player_id())
             self.players.append(newPlayer)
         self.currentPlayer = self.players[0]
 
+        self.is_computer_game = True
+        self.first_turn_ended = False
+        self.is_over = False
+        self.added_to_db = False
+
         self.id = id
+
+    def make_player_id(self):
+        id = random.randint(0, 1000000000)
+        new_id = id
+        while True:
+            for player in self.players:
+                if player.id == id:
+                    id = random.randint(0, 1000000000)
+            if id == new_id:
+                break
+            else:
+                new_id = id
+        return id
+
 
     def get_player_number(self, player_id):
         """Takes in player ID and outputs number that is that players location in the players array"""
