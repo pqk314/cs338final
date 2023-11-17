@@ -20,4 +20,8 @@ def take_turn(player: player):
         requests.get(f"http://localhost:5000/cardbought/{player.game.id}/{player.id}/silver/")
     elif player.coins >= 2 and player.game.supplySizes['province'] <= 4 and player.game.supplySizes['estate'] > 0:
         requests.get(f"http://localhost:5000/cardbought/{player.game.id}/{player.id}/estate/")
+    if player.coins >= 6 and player.buys == 1:
+        requests.get(f"http://localhost:5000/cardbought/{player.game.id}/{player.id}/gold/")
+    elif player.coins >= 3 and player.buys == 1:
+        requests.get(f"http://localhost:5000/cardbought/{player.game.id}/{player.id}/silver/")
     requests.get(f"http://localhost:5000/endphase/{player.game.id}/{player.id}/")
