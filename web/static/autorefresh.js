@@ -13,7 +13,7 @@ function checkForUpdates(makeChanges) {
     xhr.open("GET", url, false);
     xhr.send();
     let updates = JSON.parse(xhr.responseText)
-    if(Object.keys(updates).length > 0 && makeChanges) change(updates)
+    if((Object.keys(updates).length > 0 && makeChanges) || updates.hasOwnProperty('new_game_prompt')) change(updates)
 }
 
 /**
@@ -21,6 +21,11 @@ function checkForUpdates(makeChanges) {
  * @param updates JSON containing info for updating front end page
  */
 function change(updates) {
+    if(updates.hasOwnProperty('new_game_prompt')) {
+        document.querySelector('#info-text').innerHTML = `To invite friend, send them this link: http://${window.location.host}/joingame/${game_id}\nIf you finish your first turn before they join. They will no longer be able to join and you will play against an AI player.\nPress OK to copy the link.`
+        return;
+    }
+
     // This is only for if the game_id doesn't exist like if a docker container restarted
     if(updates.hasOwnProperty('home_page')) window.location.href = "/"
 
@@ -89,7 +94,7 @@ function change(updates) {
 
     // updates info-text with what the last purchase in the game was.
     if(updates.hasOwnProperty('cardbought')) {
-        document.querySelector('#info-text').innerHTML = `Player ${turnNum()} bought ${updates['cardbought']}.`
+        document.querySelector('#info-text').innerHTML = `Player ${playerNum === 1 ? 2 : 1} bought ${updates['cardbought']}.`
     }
 }
 

@@ -5,6 +5,7 @@ import requests
 import psycopg2
 from card_scripting import cardPlayer, cards, commands, cardParser
 from player import player
+import aiplayer
 
 app = Flask(__name__)
 num_games = 0
@@ -189,6 +190,8 @@ def change_zone():
 
 @app.route('/endphase/<int:game_id>/<int:player_id>/')
 def endphase(game_id, player_id):
+    if game_id >= len(games):
+        return "hi"
     game = games[game_id]
     player = game.currentPlayer
     if player_id != player.id:
@@ -205,6 +208,9 @@ def endphase(game_id, player_id):
         game.update_all_players('set_buys', 1)
         game.update_all_players('set_coins', 0)
         game.update_all_players('new_turn', True)
+        game.first_turn_ended = True
+        if game.is_computer_game and game.currentPlayer == game.players[1]:
+            aiplayer.take_turn(game.currentPlayer)
     return "ended phase"
 
 @app.route("/getsupply/<int:game_id>/")
@@ -227,7 +233,20 @@ def new_game():
     global games
     games.append(Game(num_games, 2))
     num_games += 1
-    return str(num_games - 1)
+    game = games[-1]
+    game.players[0].updates['new_game_prompt'] = True
+    return {
+        'game_id': str(game.id),
+        'player_id': game.players[0].id
+            }
+
+@app.route('/joingame/<int:game_id>/')
+def join_game(game_id):
+    game = games[game_id]
+    if game.first_turn_ended or not game.is_computer_game:
+        return 'no lol'
+    game.is_computer_game = False
+    return str(game.players[1].id)
 
 @app.route('/<int:game_id>/turnnumber/')
 def turn_number(game_id):

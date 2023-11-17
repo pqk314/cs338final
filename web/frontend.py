@@ -59,9 +59,18 @@ def home_page():
 @app.route("/newgame/")
 def new_game():
     """makes a new game and allows user to navigate to it"""
-    game_id = requests.request("get", "http://api:5000/newgame").text
+    game_info = requests.request("get", "http://api:5000/newgame").json()
     requests.get(f"http://api:5000/createtable/")
-    return redirect(f'/{game_id}/0')
+    return redirect(f'/{game_info["game_id"]}/{game_info["player_id"]}/')
+
+@app.route('/joingame/<int:game_id>')
+def join_game(game_id):
+    player_id = 0
+    try:
+        player_id = int(requests.request("get", f"http://api:5000/joingame/{game_id}").text)
+    except ValueError:
+        return redirect('/')
+    return redirect(f'/{game_id}/{player_id}/')
 
 
 @app.route("/<int:game_id>/<int:player_id>/")
@@ -113,7 +122,7 @@ def card_bought(game_id, player_id, card_id):
 
 
 @app.route("/<int:game_id>/<int:player_id>/cardplayed/<card_id>/")
-def card_played(game_id, card_id, player_id):
+def card_played(game_id, player_id, card_id):
     """process for playing cards"""
     requests.request("get", f"http://api:5000/cardplayed/{game_id}/{player_id}/{card_id}")
     return redirect(f'/{game_id}/{player_id}')
