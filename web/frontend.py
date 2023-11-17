@@ -9,6 +9,8 @@ card_pics = None
 
 
 def get_card_pics():
+    """Returns card_pics so that it can be used in multiple functions. Flask doesn't let this be statically declared, so
+    this is the way we chose to do it."""
     global card_pics
     if card_pics is None:
         card_pics = {
@@ -51,14 +53,14 @@ def get_card_pics():
 
 @app.route("/")
 def home_page():
-    """prompts user to make a new game"""
+    """Displays home page to users."""
     pics = get_card_pics()
     return render_template("home-page.html", card_pics=pics)
 
 
 @app.route("/newgame/")
 def new_game():
-    """makes a new game and allows user to navigate to it"""
+    """makes a new game and redirects user to their new game"""
     game_info = requests.request("get", "http://api:5000/newgame").json()
     requests.get(f"http://api:5000/createtable/")
     return redirect(f'/{game_info["game_id"]}/{game_info["player_id"]}/')
@@ -132,14 +134,14 @@ def end_phase(game_id, player_id):
     """ends current phase"""
 
     # I don't know exactly how we are trying to orginize the endgame stuff but this works
-    
+
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
-        if supplySizes[x] < 8: #changed from 1
+        if supplySizes[x] < 1: #changed from 1
             count += 1
-    if count >= 1: #changed from 2
+    if count >= 3: #changed from 2
         return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
@@ -154,9 +156,9 @@ def end_phase_supply(game_id, player_id):
     supplySizes = gamestate['supplySizes']
     count = 0
     for x in supplySizes.keys():
-        if supplySizes[x] < 8: #changed from 1
+        if supplySizes[x] < 1:  # changed from 1
             count += 1
-    if count >= 1: #changed from 2
+    if count >= 3 or supplySizes['province'] == 0:  # changed from 2
         return redirect(url_for('game_over', game_id=game_id,player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
@@ -168,10 +170,10 @@ def end_phase_supply(game_id, player_id):
 
 @app.route("/<int:game_id>/<int:player_id>/gameover/")
 def game_over(game_id, player_id):
-    
+
 
     # TODO: There needs to be an if statement for if the game is, in fact, not over.
-    
+
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
@@ -238,7 +240,7 @@ def data():
 def get_most_common_card(games):
     card_occurrence_dict = create_card_occurrence_dict(games)
     print(card_occurrence_dict)
-    most_common_card = max(card_occurrence_dict, key=card_occurrence_dict.get)           
+    most_common_card = max(card_occurrence_dict, key=card_occurrence_dict.get)
     return most_common_card
 
 '''creates a dictionary that counts the occurrence of each card in the final hands of all players given a list of games'''
