@@ -418,8 +418,8 @@ def createtable():
         cur.execute("""
         CREATE TABLE IF NOT EXISTS Games
         (
-            ID INT   PRIMARY KEY NOT NULL,
-            NAME TEXT[][]
+            ID BIGINT   PRIMARY KEY NOT NULL,
+            DECK TEXT[][]
         )
         """)
         
@@ -468,7 +468,7 @@ def save(game_id):
                             host=DB_HOST,
                             port=DB_PORT)
     cur = conn.cursor()
-    cur.execute("INSERT INTO Games (ID,NAME) VALUES (% s,'% s')" % (game_id, hand_lists))
+    cur.execute("INSERT INTO Games (ID,DECK) VALUES (% s,'% s')" % (game_id, hand_lists))
     conn.commit()
     return "hi"
 
@@ -483,17 +483,16 @@ def dbget(game_id):
                         host=DB_HOST,
                         port=DB_PORT)
     cur = conn.cursor()
-    cur.execute("SELECT * FROM Games")
+    cur.execute("SELECT DECK FROM Games WHERE ID=%s", (game_id,))
     rows = cur.fetchall()
-    game = rows[game_id]
+    game = rows[0]
     # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
-    handlist = game[1]
     # handlist is a list
     
     
     conn.close()
     # due to multihands
-    returnjson['deck'] = handlist[0]
+    returnjson['deck'] = game
     return returnjson
 
 
