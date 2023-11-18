@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import render_template, url_for, redirect, request
-import json
 import requests
 import tutorial_executer
 
@@ -67,7 +66,7 @@ def new_game():
 
 @app.route('/joingame/<int:game_id>')
 def join_game(game_id):
-    player_id = 0
+    """Allows player to join game with the requested ID. Autofills the user ID to allow for a harder to guess user ID"""
     try:
         player_id = int(requests.request("get", f"http://api:5000/joingame/{game_id}").text)
     except ValueError:
@@ -77,43 +76,51 @@ def join_game(game_id):
 
 @app.route("/<int:game_id>/<int:player_id>/")
 def game_page(game_id, player_id):
+    """Checks that game exists and is still going. If a selection is occuring, it tells the front end to prepare for it.
+    It gets the info needed for the front end"""
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
     if not exists or is_over:
         return redirect(url_for("home_page"))
     select_info = select_cards(game_id, player_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
+
+    # Gets info like cards in hand or cards in play.
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
+
+    # Gets player's deck/hand/discard size to display along with the number associated with a player's id
     deck_info = requests.request("get", f"http://api:5000/getdeckinfo/{game_id}/{player_id}").json()
     player_num = deck_info.pop()
+
+    # This takes gamestate info and puts it in a more convenient package
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
-    pics = get_card_pics()
     cards = gamestate["hand"]
     in_play = gamestate['in_play']
     end_what = f"End {gamestate['phase'].title()}"
+
+    pics = get_card_pics()
     return render_template("game.html", hand=cards, in_play=in_play, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id, deck_info=deck_info, select_info=select_info, player_num=player_num)
 
-@app.route('/<int:game_id>/<int:player_id>/turnnumber/')
-def turn_number(game_id, player_id):
+@app.route('/<int:game_id>/turnnumber/')
+def turn_number(game_id):
+    """Returns the number associated with the player who is currently taking a turn"""
     return requests.request("get", f"http://api:5000/{game_id}/turnnumber/").text
 
 @app.route("/<int:game_id>/<int:player_id>/supply")
 def supply(game_id, player_id):
+    """Loads the supply page with the appropriate cards for whatever game_id is passed"""
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
-    if not exists:
+    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
+    if not exists or is_over:
         return redirect(url_for("home_page"))
     pics = get_card_pics()
+
+    # gamestate is used for what cards are in supply and how many of them there are.
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
     cards = gamestate['supply']
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
     end_what = f"End {gamestate['phase'].title()}"
-    # TODO: call to backend, should be formatted as {card_name (str): num_left (int)}
-    # make sure to pass into render template when done.
-    remaining_cards = {}
     remaining_cards = gamestate['supplySizes']
-    cards_left = gamestate['supplySizes']
-    #for c in cards:
-    #    remaining_cards[c] = cards_left[cards.index(c)]print(remaining_cards)
     return render_template("supply.html", cards=cards, card_pics=pics, turn_info=turn_info, end_what=end_what, remaining_cards = remaining_cards)
 
 
@@ -154,6 +161,9 @@ def end_phase_supply(game_id, player_id):
 
 @app.route("/<int:game_id>/<int:player_id>/gameover/")
 def game_over(game_id, player_id):
+    """This checks to make sure the game is actually over. If it is, it displays the pertinent information for that
+    game. This means it calculates deck compositions and victory points"""
+    # TODO get rid of player_id?
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
@@ -167,6 +177,8 @@ def game_over(game_id, player_id):
 
 @app.route('/<int:game_id>/<int:player_id>/selectinfo/')
 def select_cards(game_id, player_id):
+    """Gets the info the frontend needs to let a player select cards. This means it gets options, the maximum
+    number of cards to select, and whether a player can choose less."""
     select_info = {}
     req = requests.get(f"http://api:5000/getoptions/{game_id}/{player_id}").json()
     if len(req.keys()) > 0:
@@ -177,53 +189,46 @@ def select_cards(game_id, player_id):
 
 @app.route("/<int:game_id>/selected/", methods=["POST"])
 def selected(game_id):
+    """Tells backend which cards were chosen by a player"""
     req = request.get_json()
     requests.post(f"http://api:5000/selected/{game_id}", json=req)
-    redirect(f'/{game_id}')
+    return redirect(f'/{game_id}')
 
 @app.route("/<int:game_id>/<int:player_id>/updates/")
 def updates(game_id, player_id):
+    """Gets the updates that a player needs for the front end to be properly up-to-date."""
     return requests.get(f"http://api:5000/updates/{game_id}/{player_id}").json()
-
-@app.route("/selected/<int:game_id>/", methods=["POST"])
-def selected2(game_id):
-    app.logger.info("relaying")
-    req = request.get_json()
-    res = requests.post(f"http://api:5000/selected/{game_id}", json=req).text
-    return res
-    redirect(f'/{game_id}')
 
 @app.route("/tutorial/<int:step>")
 def tutorial(step):
+    """This code renders the tutorial which is stored in a separate file because the code is very 'bulky.'"""
     pics = get_card_pics()
     return tutorial_executer.do_step(step, pics)
 
 @app.route("/data/")
 def data():
+    """Programmed by the backgammon group, this code returns the most common card found in games stored in the SQL
+    database."""
     res = requests.get(f"http://api:5000/getstats/").json()
     most_common_card = get_most_common_card(res["deck"])
     pics = get_card_pics()
     return render_template("data.html", card = most_common_card, images=pics)
     # return render_template("data.html", card = "copper")
 
-'''gets the most common card in the final hands of all players given a list of games'''
 # move to backend?
 def get_most_common_card(games):
+    """gets the most common card in the final hands of all players given a list of games. Helper function to data()"""
     card_occurrence_dict = create_card_occurrence_dict(games)
-    print(card_occurrence_dict)
     most_common_card = max(card_occurrence_dict, key=card_occurrence_dict.get)
     return most_common_card
 
-'''creates a dictionary that counts the occurrence of each card in the final hands of all players given a list of games'''
 def create_card_occurrence_dict(games):
+    """creates a dictionary that counts the occurrence of each card in the final hands of all players given a list of
+    games"""
     card_occurrence_dict = {}
-    print("games: ", games)
     for game in games:
-        print("game: ", game)
         for hand in game:
-            print("hand: ", hand)
             for card in hand:
-                print("card: ", card)
                 if card != "fake":
                     if card not in card_occurrence_dict:
                         card_occurrence_dict[card] = 1
@@ -233,6 +238,8 @@ def create_card_occurrence_dict(games):
 
 @app.route("/savegame/<int:game_id>")
 def save_game(game_id):
+    """This is somewhat of a 'developer view' of what is stored in the SQL Database"""
+    # TODO delete this?
     info = requests.get(f"http://api:5000/dbget/{game_id}/").json()
     result = info['deck']
     return render_template("db-connection.html", result = result)
@@ -240,6 +247,7 @@ def save_game(game_id):
 
 @app.route("/<int:game_id>/save/")
 def save(game_id):
+    # TODO does nothing?
     # requests.get(f"http://api:5000/createtable/")
     # requests.get(f"http://api:5000/save/{game_id}")
     info = requests.get(f"http://api:5000/getstats/").json()
