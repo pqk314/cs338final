@@ -79,11 +79,13 @@ def game_page(game_id, player_id):
     """Checks that game exists and is still going. If a selection is occuring, it tells the front end to prepare for it.
     It gets the info needed for the front end"""
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
-    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
     if not exists:
         return redirect(url_for("home_page"))
+    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
     if is_over:
         return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
+
+    # checks if selection is happening
     select_info = select_cards(game_id, player_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
 
@@ -91,8 +93,8 @@ def game_page(game_id, player_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
 
     # Gets player's deck/hand/discard size to display along with the number associated with a player's id
-    deck_info = requests.request("get", f"http://api:5000/getdeckinfo/{game_id}/{player_id}").json()
-    player_num = deck_info.pop()
+    deck_info = gamestate['deck_info']
+    player_num = gamestate['player_num']
 
     # This takes gamestate info and puts it in a more convenient package
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
@@ -116,9 +118,11 @@ def turn_number(game_id):
 def supply(game_id, player_id):
     """Loads the supply page with the appropriate cards for whatever game_id is passed"""
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
-    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
-    if not exists or is_over:
+    if not exists:
         return redirect(url_for("home_page"))
+    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
+    if is_over:
+        return redirect(url_for('game_page', game_id=game_id, player_id=player_id))
     pics = get_card_pics()
 
     # gamestate is used for what cards are in supply and how many of them there are.

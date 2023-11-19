@@ -48,16 +48,11 @@ def changeZone(player, cards, zone):
             removed = card_loc[0].pop(card_loc[1])
             if card_loc[0] == player.hand:
                 player.update_list('remove', removed)
-                game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand))
-            if card_loc[0] == player.deck:
-                game.update_all_players(f'{game.get_player_number(player.id)}_deck_size', len(player.hand))
-            if card_loc[0] == player.discard:
-                game.update_all_players(f'{game.get_player_number(player.id)}_discard_size', len(player.hand))
-            player.updates[f'{zone}_size'] = len(dest) + 1
         if dest == player.hand:
             player.update_list('add', card)
-            game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand) + 1)
         dest.append(card)
+        for p in game.players:
+            p.updates['size_update'] = p.deck_info()
     return True
 
 def getHand(args, player):
@@ -190,7 +185,7 @@ def attack(args, player):
         if ('yield' in res and res['yield'] == True) or res == 'yield':
             shouldYield = True
     if shouldYield:
-        player.set_barrier("Waiting for other players")
+        player.set_barrier("Waiting for other players.")
         player.cmd.commands = player.cmd.commands[1:]
         return 'yield'
     #raise ValueError([p.cmd for p in player.game.players])

@@ -53,17 +53,7 @@ function change(updates) {
     if(updates.hasOwnProperty('play')) playCards(updates['play'])
 
     // these are responsible for regulating the deck/discard/hand size texts.
-    if (updates.hasOwnProperty(`${playerNum}_deck_size`)) document.querySelector('#deck-info p:nth-child(2)').innerHTML = `Your Deck: ${updates[`${playerNum}_deck_size`]} cards`
-    if (updates.hasOwnProperty(`${playerNum}_discard_size`)) document.querySelector('#deck-info p:nth-child(3)').innerHTML = `Your Discard: ${updates[`${playerNum}_discard_size`]} cards`
-    if(playerNum !== 1) {
-        if (updates.hasOwnProperty('1_deck_size')) document.querySelector('#deck-info p:nth-child(4)').innerHTML = `Player 1's deck: ${updates['1_deck_size']} cards`
-        if (updates.hasOwnProperty('1_hand_size')) document.querySelector('#deck-info p:nth-child(5)').innerHTML = `Player 1's hand: ${updates['1_hand_size']} cards`
-        if (updates.hasOwnProperty('1_discard_size')) document.querySelector('#deck-info p:nth-child(6)').innerHTML = `Player 1's deck: ${updates['1_discard_size']} cards`
-    } else {
-        if (updates.hasOwnProperty('2_deck_size')) document.querySelector('#deck-info p:nth-child(4)').innerHTML = `Player 2's deck: ${updates['2_deck_size']} cards`
-        if (updates.hasOwnProperty('2_hand_size')) document.querySelector('#deck-info p:nth-child(5)').innerHTML = `Player 2's hand: ${updates['2_hand_size']} cards`
-        if (updates.hasOwnProperty('2_discard_size')) document.querySelector('#deck-info p:nth-child(6)').innerHTML = `Player 2's deck: ${updates['2_discard_size']} cards`
-    }
+    if (updates.hasOwnProperty('size_update')) updateSizes(updates['size_update'])
 
     // this only removes in play cards and then checks whether the barrier should be removed, put up, or neither
     if(updates.hasOwnProperty('new_turn')) {
@@ -174,6 +164,21 @@ function doSelect() {
     }));
     submitButton(selection['max_num'], selection['can_choose_less']);
     document.querySelector('#info-text').style.color = 'white'
+}
+
+/**
+ * Sets all the deck-info menu to have the right sized decks
+ * @param updates contains new deck info
+ */
+function updateSizes(updates) {
+    console.log(updates)
+    const deckInfo = document.querySelector('#deck-info');
+    deckInfo.querySelectorAll('p').forEach(element => deckInfo.removeChild(element));
+    for(let i = 0; i < updates.length; i++) {
+        deckInfo.appendChild(Object.assign(document.createElement('p'), {
+            innerHTML: updates[i]
+        }))
+    }
 }
 
 // makes the document start checking backend for updates
