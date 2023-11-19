@@ -19,11 +19,6 @@ class player:
         # select - boolean value for select screen
         # new_turn - boolean for if there is a new turn
 
-        # These next four I'm assuming will be implemented at some point
-        # discard_size - sets discard pile size to the value (integer) associated with key
-        # deck_size - sets discard pile size to the value (integer) associated with key
-        # hand_size - sets discard pile size to the value (integer) associated with key
-        # trash_size - sets discard pile size to the value (integer) associated with key
         self.updates = {}
 
         self.game = game
@@ -80,10 +75,21 @@ class player:
             self.hand.append(self.deck.pop())
             self.update_list('add', self.hand[-1])
 
-        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_discard_size', len(self.discard))
-        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_hand_size', len(self.hand))
-        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_deck_size', len(self.deck))
+        for p in self.game.players:
+            p.updates['size_update'] = p.deck_info()
 
+    def deck_info(self):
+        deck_info = [
+            f'Your Deck: {str(len(self.deck))} cards',
+            f'Your Discard: {str(len(self.discard))} cards'
+        ]
+        for i in range(len(self.game.players)):
+            if self.game.players[i] == self:
+                continue
+            deck_info.append(f"Player {i + 1}'s deck: {str(len(self.game.players[i].deck))} cards")
+            deck_info.append(f"Player {i + 1}'s hand: {str(len(self.game.players[i].hand))} cards")
+            deck_info.append(f"Player {i + 1}'s discard: {str(len(self.game.players[i].discard))} cards")
+        return deck_info
 
     def from_top(self, num):
         fromTop = []
@@ -122,7 +128,6 @@ class player:
             self.update_list('remove', self.discard[-1])
         while len(self.in_play) > 0:
             self.discard.append(self.in_play.pop())
-        self.game.update_all_players(f'{self.game.get_player_number(self.id)}_discard_size', len(self.discard))
         self.draw_cards(5)
         # TODO make these changeVar calls
         self.actions = 1
@@ -150,7 +155,7 @@ class player:
         self.cmd = cardParser.multicommand(cmd, self)
 
     def execute_command(self):
-        res =  self.cmd.execute()
+        res = self.cmd.execute()
         if res == "yield":
             self.updates['select'] = True
             return {'yield': True}

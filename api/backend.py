@@ -34,11 +34,12 @@ def card_bought(game_id, player_id, card_name):
     if player_id != player.id:
         return "Nice try"
     player_number = game.get_player_number(player_id)
-    game.update_all_players(f'{player_number}_discard_size', len(player.discard) + 1)
     cost = cards.getCard(card_name)['cost']
     if player.coins >= cost and player.buys >= 1 and player.phase == 'buy' and game.supplySizes[card_name] > 0:
         card = game.make_card(card_name)
         player.discard.append(card)
+        for p in game.players:
+            p.updates['size_update'] = p.deck_info()
         player.coins -= cost
         game.update_all_players('set_coins', player.coins)
         player.buys -= 1
@@ -81,7 +82,8 @@ def card_played(game_id, card_id, player_id):
         player.in_play.append(card)
         removed_card = player.hand.pop(idx)
         player.update_list('remove', removed_card)
-        game.update_all_players(f'{game.get_player_number(player.id)}_hand_size', len(player.hand))
+        for p in game.players:
+            p.updates['size_update'] = p.deck_info()
         game.update_list_all_players('play', card['name'])
         player.set_command(cards.getCardText(card['name']))
         res = player.execute_command()
@@ -99,24 +101,9 @@ def getfrontstate(game_id, playerid):
     state = {"hand": player.hand, "in_play": currentPlayer.in_play, "phase": currentPlayer.phase,
              "actions": currentPlayer.actions, "buys": currentPlayer.buys, "coins": currentPlayer.coins,
              "supply": game.supply, "supplySizes": game.supplySizes, "deckSize": len(currentPlayer.deck),
-             "barrier": player.barrier, "text": player.text}
+             "barrier": player.barrier, "text": player.text, 'deck_info': player.deck_info(),
+             'player_num': game.get_player_number(playerid)}
     return state
-
-@app.route("/getdeckinfo/<int:game_id>/<int:player_id>")
-def get_deck_info(game_id, player_id):
-    game = games[game_id - starting_num]
-    player_num = game.get_player_number(player_id) - 1
-    deck_info = [
-        f'Your Deck: {str(len(game.players[player_num].deck))} cards',
-        f'Your Discard: {str(len(game.players[player_num].discard))} cards'
-    ]
-    for i in range(len(game.players)):
-        if i != player_num:
-            deck_info.append(f"Player {i + 1}'s deck: {str(len(game.players[i].deck))} cards")
-            deck_info.append(f"Player {i + 1}'s hand: {str(len(game.players[i].hand))} cards")
-            deck_info.append(f"Player {i + 1}'s discard: {str(len(game.players[i].discard))} cards")
-    deck_info.append(player_num + 1)
-    return deck_info
 
 @app.route('/endphase/<int:game_id>/<int:player_id>/')
 def endphase(game_id, player_id):
