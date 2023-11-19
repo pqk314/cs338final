@@ -21,8 +21,8 @@ function checkForUpdates(makeChanges) {
  * @param updates JSON containing info for updating front end page
  */
 function change(updates) {
-    console.log(updates)
     // prompts player to invite friend
+    console.log(updates);
     if(updates.hasOwnProperty('new_game_prompt')) {
         document.querySelector('#info-text').innerHTML = `To invite friend, send them this link: http://${window.location.host}/joingame/${game_id}\nIf you finish your first turn before they join. They will no longer be able to join and you will play against an AI player.\nPress OK to copy the link.`
         return;
@@ -31,6 +31,7 @@ function change(updates) {
     // This is only for if the game_id doesn't exist like if a docker container restarted
     if(updates.hasOwnProperty('home_page')) window.location.href = "/"
 
+    // Redirects to game over page if the game has ended
     if(updates.hasOwnProperty('game_over')) window.location.href = 'gameover'
 
     // these simply set the game variables to the values associated with their respective keys
@@ -43,39 +44,13 @@ function change(updates) {
     if(updates.hasOwnProperty('select') && updates['select']) doSelect();
 
     // adds cards for list under add key.
-    if(updates.hasOwnProperty('add')) {
-        for(let i = 0; i < updates['add'].length; i++) {
-            let new_card = document.createElement('img')
-            new_card.src = card_pics[updates['add'][i]['name']]
-            new_card.classList.add('card')
-            new_card.classList.add('playable')
-            new_card.alt = updates['add'][i]['name']
-            new_card.id = 'card' + updates['add'][i]['id']
-            new_card.draggable = false
-            new_card.addEventListener("click", () => cardPlayed(new_card));
-            document.querySelector('#hand').appendChild(new_card)
-        }
-    }
+    if(updates.hasOwnProperty('add')) addCards(updates['add'])
 
     // removes specified cards
-    if(updates.hasOwnProperty('remove')) {
-        for(let i = 0; i < updates['remove'].length; i++) {
-            document.querySelector('#hand').removeChild(document.querySelector(`#card${updates['remove'][i]['id']}`))
-        }
-    }
+    if(updates.hasOwnProperty('remove')) removeCards(updates['remove'])
 
     // adds card to in-play zone
-    if(updates.hasOwnProperty('play')) {
-        for(let i = 0; i < updates['play'].length; i++) {
-            document.querySelector('#in-play').appendChild(Object.assign(document.createElement('img'), {
-                src: card_pics[updates['play'][i]],
-                alt: updates['play'][i],
-                className: 'card',
-                draggable: false
-                }
-            ));
-        }
-    }
+    if(updates.hasOwnProperty('play')) playCards(updates['play'])
 
     // these are responsible for regulating the deck/discard/hand size texts.
     if (updates.hasOwnProperty(`${playerNum}_deck_size`)) document.querySelector('#deck-info p:nth-child(2)').innerHTML = `Your Deck: ${updates[`${playerNum}_deck_size`]} cards`
@@ -93,39 +68,71 @@ function change(updates) {
     // this only removes in play cards and then checks whether the barrier should be removed, put up, or neither
     if(updates.hasOwnProperty('new_turn')) {
         document.querySelectorAll('#in-play img').forEach(element => document.querySelector('#in-play').removeChild(element));
-        isTurn()
     }
 
-    // updates info-text with what the last purchase in the game was.
-    if(updates.hasOwnProperty('cardbought')) {
-        document.querySelector('#info-text').innerHTML = `Player ${playerNum === 1 ? 2 : 1} bought ${updates['cardbought']}.`
-    }
+    // puts up or removes barrier with instructions given by backend.
+    if(updates.hasOwnProperty('barrier')) setBarrier(updates['barrier'])
+
+    // updates info-text with appropriate text from backend.
+    if(updates.hasOwnProperty('text')) document.querySelector('#info-text').innerHTML = updates['text']
 }
 
 /**
- * Gives current turn number for {@link isTurn()} as well as cardbought update
-  * @returns return the number of the current players turn.
+ * Puts up or removes barrier and sets it to say what was specified in updates.
  */
-function turnNum() {
-    xhr = new XMLHttpRequest();
-    let url = window.location.href + '/turnnumber/'
-    xhr.open('GET', url, false);
-    xhr.send();
-    return parseInt(xhr.responseText);
-}
-
-/**
- * Puts up or removes barrier if it is the player's turn
- */
-function isTurn() {
-    let current = turnNum()
-    if(current !== playerNum) {
+function setBarrier(barrier) {
+    if(barrier.length !== 0) {
         document.querySelector('#turn-blocker').style.display = 'block';
         document.querySelector('#turn-text').style.display = 'inline';
-        document.querySelector('#turn-text').innerHTML = `It is Player ${current}'s turn.`;
+        document.querySelector('#turn-text').innerHTML = barrier;
     } else {
         document.querySelector('#turn-blocker').style.display = 'none';
         document.querySelector('#turn-text').style.display = 'none';
+    }
+}
+
+/**
+ * Adds cards to hand by creating elements and their properties.
+ * @param cards cards to add
+ */
+function addCards(cards) {
+    for(let i = 0; i < cards.length; i++) {
+        let element = document.querySelector('#hand').appendChild(
+            Object.assign(
+                document.createElement('img'), {
+                    src: card_pics[cards[i]['name']],
+                    className: 'card playable',
+                    alt: cards[i]['name'],
+                    id: 'card' + cards[i]['id'],
+                    draggable: false
+            }))
+            element.addEventListener("click", () => cardPlayed(element));
+    }
+}
+
+/**
+ * Removes cards from hand by deleting elements.
+ * @param cards cards to remove
+ */
+function removeCards(cards) {
+    for(let i = 0; i < cards.length; i++) {
+        document.querySelector('#hand').removeChild(document.querySelector(`#card${cards[i]['id']}`))
+    }
+}
+
+/**
+ * Adds cards to play zone.
+ * @param cards cards to remove
+ */
+function playCards(cards) {
+    for(let i = 0; i < cards.length; i++) {
+        document.querySelector('#in-play').appendChild(Object.assign(document.createElement('img'), {
+                src: card_pics[cards[i]],
+                alt: cards[i],
+                className: 'card',
+                draggable: false
+            }
+        ));
     }
 }
 
@@ -168,5 +175,5 @@ function doSelect() {
     submitButton(selection['max_num'], selection['can_choose_less']);
 }
 
-
+// makes the document start checking backend for updates
 setInterval(() => checkForUpdates(true), 500);

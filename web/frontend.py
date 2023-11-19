@@ -97,9 +97,13 @@ def game_page(game_id, player_id):
     cards = gamestate["hand"]
     in_play = gamestate['in_play']
     end_what = f"End {gamestate['phase'].title()}"
+    text = gamestate['text']
+    barrier = gamestate['barrier']
 
     pics = get_card_pics()
-    return render_template("game.html", hand=cards, in_play=in_play, images=pics, turn_info=turn_info, end_what=end_what, game_id=game_id, deck_info=deck_info, select_info=select_info, player_num=player_num)
+    return render_template("game.html", hand=cards, in_play=in_play, images=pics,
+                           turn_info=turn_info, end_what=end_what, game_id=game_id, deck_info=deck_info,
+                           select_info=select_info, player_num=player_num, barrier=barrier, text=text)
 
 @app.route('/<int:game_id>/turnnumber/')
 def turn_number(game_id):
