@@ -165,6 +165,12 @@ def game_over(game_id, player_id):
     requests.get(f"http://api:5000/save/{game_id}")
     return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
 
+@app.route("/<int:game_id>/getoldgame")
+def getoldgame(game_id):
+    pics = get_card_pics()
+    data = requests.get(f"http://api:5000/getoldgame/{game_id}").json()
+    return render_template("game-over.html", victory_points = data['score'], deck_compositions = data['deck_comps'], card_pics = pics)
+
 @app.route('/<int:game_id>/<int:player_id>/selectinfo/')
 def select_cards(game_id, player_id):
     select_info = {}

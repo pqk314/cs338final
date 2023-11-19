@@ -529,6 +529,61 @@ def get_num_games():
     cur.execute("SELECT count(ID) FROM Games")
     return cur.fetchone()[0]
 
+# return decks = {i:{estate:1}} where i is player num and {} is their deck comp
+@app.route("/getoldgame/<int:game_id>")
+def getoldgame(game_id):
+    ans = {}
+    deck_comp1 = {}
+    deck_comp2 = {}
+    table = getstats()['deck']
+    game = table[game_id]
+    hands = game
+    player1vp = 0
+    player2vp = 0
+
+    for card in hands[0]:
+        if card == "fake":
+            continue
+        # calculate score for p1
+        if(card == 'estate'):
+                player1vp += 1
+        if(card == 'duchy'):
+            player1vp += 3
+        if(card == 'province'):
+            player1vp += 6
+        if(card == "gardens"):
+            player1vp += (len(hands[0])//10)
+        # calculate hand comp for p1
+        if card in deck_comp1:
+            deck_comp1[card] += 1
+        else:
+            deck_comp1[card] = 1
+
+    for card in hands[1]:
+        if card == "fake":
+            continue
+        # calculate score for p2
+        if(card == 'estate'):
+                player2vp += 1
+        if(card == 'duchy'):
+            player2vp += 3
+        if(card == 'province'):
+            player2vp += 6
+        if(card == "gardens"):
+            player2vp += (len(hands[1])//10)
+        # calculate hand comp for p2
+
+
+        if card in deck_comp2:
+            deck_comp2[card] += 1
+        else:
+            deck_comp2[card] = 1
+
+        ans['deck_comps'] = {0:deck_comp1, 1:deck_comp2}
+        ans['score'] = {0:player1vp,1:player2vp}
+        
+    return ans
+
 
 @app.route("/debug/<int:game_id>/")
 def debug(game_id):
