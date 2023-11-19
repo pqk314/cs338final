@@ -279,8 +279,8 @@ def selected(game_id):
     req = request.get_json()
     ids = req['ids']
     game = games[game_id - starting_num]
-    if 'player' in req:
-        player = game.players[req['player']]
+    if 'playerNum' in req:
+        player = game.players[req['playerNum'] - 1]
     else:
         player = game.currentPlayer
     player.options = None

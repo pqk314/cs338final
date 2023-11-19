@@ -32,9 +32,21 @@ class multicommand:
         return res
     
     def setupCommands(self):
-        subcommands = self.getSubcommands(self.replaceMacros(self.multicommand))
+        raw = self.replaceMacros(self.multicommand)
+        cleaned = self.replaceRawStrings(raw)
+        subcommands = self.getSubcommands(cleaned)
         reformattedSubcommands = self.seperateYields(subcommands)
-        self.commands = [command(cmd, self.player) for cmd in reformattedSubcommands]
+        self.commands = [command(cmd, self.player, self.vals) for cmd in reformattedSubcommands]
+
+    def replaceRawStrings(self, raw):
+        while '`' in raw:
+            i = raw.index("`")
+            end = raw.index("`", i+1)
+            varName = f"_internalYieldVar{self.nextVar}"
+            self.nextVar += 1
+            self.vals[varName] = raw[i+1:end]
+            raw = f"{raw[:i]}${varName}{raw[end+1:]}"
+        return raw
 
     def shouldReplaceYield(self) -> bool:
         return self.playerInput != None and self.commands[0].func == "set"
@@ -45,15 +57,13 @@ class multicommand:
         self.playerInput = None
 
     def executeSubcommand(self):
-        if len(self.commands) == 0:
-            return None
         self.commands[0].setVals(self.vals)
         res = self.commands[0].execute()
         if res == "yield":
             return "yield"
         if len(self.commands) > 0:
             self.vals = self.commands[0].getVals()
-        self.commands = self.commands[1:]
+            self.commands = self.commands[1:]
         return res
 
 
@@ -142,35 +152,28 @@ class command:
     internalFuncs = ["set", "get", "cond"]
 
     def createArgCommands(self) -> None:
-        if self.func == 'attack':
-            return
+        '''if self.func == 'attack':
+            return'''
         for i, arg in enumerate(self.args):
             if arg[0] == "#":
                 self.args[i] = command(arg, self.player, self.vals)
 
     def executeInternalFunc(self):
         if self.func == "set":
-            try:
-                self.args[1].vals = self.vals
-            
-            except:
-                raise ValueError(self.command, self.args)
+            self.args[1].vals = self.vals
             res = self.args[1].execute()
             if res == "yield":
                 return "yield"
-            self.vals = self.args[1].vals
             self.vals[self.args[0]] = res
             return True
         elif self.func == "get":
             return self.vals[self.args[0]]
         elif self.func == "cond":
-            self.args[0].vals = self.vals
+            self.args[0].setVals(self.vals)
             res = self.args[0].execute()
             self.vals = self.args[0].getVals()
-            
-            #raise ValueError(self.args)
             if res:
-                self.args[1].vals = self.vals
+                self.args[1].setVals(self.vals)
                 self.args[1].execute()
                 self.vals = self.args[1].getVals()
                 return True
@@ -202,22 +205,9 @@ class command:
     @staticmethod
     def replaceSetter(cmd) -> str:
         equal_idx = cmd.find('=')
-        if equal_idx > -1 and cmd[equal_idx-1] not in ' <>!':
-            i = cmd.find('(', equal_idx)
-            if (i == -1 or equal_idx < i):
-                s = equal_idx
-                while s > 0 and cmd[s]!= ' ':
-                    s -= 1
-                if s > 0: s += 1
-                e = i
-                layer = 1
-                while layer > 0:
-                    e += 1
-                    if cmd[e] == '(':
-                        layer += 1
-                    elif cmd[e] == ')':
-                        layer -= 1
-                cmd = f"{cmd[:s]}#set({cmd[s:equal_idx].strip()}, {cmd[equal_idx+1:e+1].strip()}){cmd[e+1:]}"
+        i = cmd.find('(')
+        if equal_idx > -1 and (i == -1 or equal_idx < i):
+            cmd = f"#set({cmd[:equal_idx].strip()}, {cmd[equal_idx+1:].strip()})"
         return cmd
     
     @staticmethod

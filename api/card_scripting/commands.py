@@ -205,7 +205,7 @@ def execute(args, player):
     player.set_command(cmdStr)
     #raise ValueError([com.command for com in player.cmd.commands])
     res = player.execute_command()
-    if 'yield' in res and res['yield'] == True:
+    if 'yield' in res and res['yield'] == True or res == 'yield':
         return 'yield'
     return res
 
@@ -267,6 +267,10 @@ def getSubset(args, player):
             operator = cond[1]
             if operator == '=':
                 if val != target:
+                    isLegal = False
+                    break
+            elif operator == '!=':
+                if val == target:
                     isLegal = False
                     break
             elif operator == '>':

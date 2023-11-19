@@ -62,7 +62,7 @@ function submitButton(max, canSelectLess) {
  */
 function sendSelection(max, canSelectLess) {
     let selection = document.querySelectorAll(".selected");
-    let numSelected = selection.length
+    let numSelected = selection.length;
     if ((!canSelectLess && numSelected < max) || (numSelected > max && max !== -1)) {
         return;
     }
@@ -73,9 +73,11 @@ function sendSelection(max, canSelectLess) {
     //url.port = 5000
     xhr.open("POST", url.href, false);
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.send(JSON.stringify({
-        ids: ids
-    }));
+    message = { ids: ids, playerNum: playerNum}
+    if (playerNum!== null) {
+        message.playerNum = playerNum;
+    }
+    xhr.send(JSON.stringify(message));
 
     checkForUpdates(true)
 
