@@ -3,10 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Treasures and Victories</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='game-page.css') }}">
 </head>
 <body>
     <img id="background" src="{{ url_for('static', filename='images/background-image.png') }}">
+
+    <h1 id='title' style="text-align: center; font-family: 'Comic Sans MS',serif">Welcome to Dominion</h1>
+    <nav>
+        <ul>
+            <li><a href="/">Quit Tutorial</a></li>
+        </ul>
+    </nav>
 
     <h1 style="text-align: center">{{ tutorial_step['message'] }}</h1>
 

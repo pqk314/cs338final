@@ -80,8 +80,10 @@ def game_page(game_id, player_id):
     It gets the info needed for the front end"""
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
-    if not exists or is_over:
+    if not exists:
         return redirect(url_for("home_page"))
+    if is_over:
+        return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
     select_info = select_cards(game_id, player_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
 
@@ -260,6 +262,18 @@ def save(game_id):
     info = requests.get(f"http://api:5000/getstats/").json()
     cardlist = info['deck'][1][0]
     return render_template("db-connection.html", cardlist = cardlist)
+
+@app.route('/gamebrowser/')
+def game_browser():
+    games = sorted(requests.get(f"http://api:5000/getgames/").json().values(),
+                   key=lambda game: game['id'], reverse=True)
+    for game in games:
+        format_score = ''
+        for score in game['vp']:
+            format_score += str(score) + '-'
+        game['vp'] = format_score[:-1]
+    return render_template('finished-games.html', games=games)
+
 
 @app.route("/<int:game_id>/debug/")
 def debug(game_id):

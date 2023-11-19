@@ -8,6 +8,13 @@
 </head>
 <body>
     <img id="background" src="{{ url_for('static', filename='images/background-image.png') }}">
+    <h1 id='title' style="text-align: center; font-family: 'Comic Sans MS',serif">Welcome to Dominion</h1>
+    <nav>
+        <ul>
+            <li><a style="cursor: pointer">Quit Game</a></li>
+        </ul>
+    </nav>
+
     <h1 id="info-text">{{ text }}</h1>
     <h3>Your Hand:</h3>
 
@@ -41,6 +48,9 @@
     <script src="{{ url_for('static', filename='game.js') }}"></script>
     <script src="{{ url_for('static', filename='autorefresh.js') }}"></script>
     <script>
+        document.querySelector('nav ul li a').addEventListener('click', () => {
+            if(confirm("If you have not saved the link and proceed, you will not be able to come back!")) window.location.href = "/"
+        })
         const card_pics = {{ images | tojson }}
         {% if select_info is not none %}
         doSelect()

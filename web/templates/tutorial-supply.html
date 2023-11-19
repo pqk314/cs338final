@@ -3,38 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <title>Supply</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='supply-style.css') }}">
 </head>
 <body>
+<img id="background" src="{{ url_for('static', filename='images/supply-background.png') }}" alt="">
+
+<h1 id='title' style="text-align: center; font-family: 'Comic Sans MS',serif">Welcome to Dominion</h1>
+<nav>
+    <ul>
+        <li><a href="/">Quit Tutorial</a></li>
+    </ul>
+</nav>
+
 <h1 style="text-align: center">{{ tutorial_step['message'] }}</h1>
 <div id="parent-div">
     <div id="base-cards">
         <article>
-            <img src="{{ card_pics['copper'] }}" class="buyable copper">
+            <img src="{{ card_pics['copper'] }}" class="buyable copper card">
         </article>
         <article>
-            <img src="{{ card_pics['silver'] }}" class="buyable silver">
+            <img src="{{ card_pics['silver'] }}" class="buyable silver card">
         </article>
         <article>
-            <img src="{{ card_pics['gold'] }}" class="buyable gold">
+            <img src="{{ card_pics['gold'] }}" class="buyable gold card">
         </article>
         <article>
-            <img src="{{ card_pics['estate'] }}" class="buyable estate">
+            <img src="{{ card_pics['estate'] }}" class="buyable estate card">
         </article>
         <article>
-            <img src="{{ card_pics['duchy'] }}" class="buyable duchy">
+            <img src="{{ card_pics['duchy'] }}" class="buyable duchy card">
         </article>
         <article>
-            <img src="{{ card_pics['province'] }}" class="buyable province">
+            <img src="{{ card_pics['province'] }}" class="buyable province card">
         </article>
         <article>
-            <img src="{{ card_pics['curse'] }}" class="buyable curse">
+            <img src="{{ card_pics['curse'] }}" class="buyable curse card">
         </article>
     </div>
     <div id="game-cards">
         {% for card in cards %}
         <article>
-            <img src="{{ card_pics[card] }}" class="buyable {{ card }}">
+            <img src="{{ card_pics[card] }}" class="buyable {{ card }} card">
         </article>
         {% endfor %}
     </div>

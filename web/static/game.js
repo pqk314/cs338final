@@ -76,11 +76,9 @@ function sendSelection(max, canSelectLess) {
         ids: ids
     }));
 
-    checkForUpdates(true)
-
     document.querySelector('body').removeChild(document.querySelector('.blocker'));
     document.querySelector('body').removeChild(document.querySelector('#select'));
-    if (xhr.responseText === 'yield') {
-        doSelect()
-    }
+    document.querySelector('#info-text').style.color = 'black'
+    checkForUpdates(true)
+
 }
