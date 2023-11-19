@@ -6,7 +6,8 @@ from card_scripting import cardPlayer, cards, cardParser
 
 
 class player:
-    def __init__(self, game, deck, id):
+    def __init__(self, game
+                 , deck, id):
         """Initializes a player, for now this just assumes 1 player and a starting deck"""
         # Dictionary of everything that should update on front-end valid keys:
         # set_coins - sets coins to the value (integer) associated with key
@@ -34,7 +35,6 @@ class player:
         self.discard = []
         self.in_play = []
         self.set_aside = []
-        self.trash = []
         self.phase = "action"
         self.actions = 1
         self.buys = 1
@@ -105,19 +105,11 @@ class player:
         return -1
 
     def find_card(self, card_id):
-        for l in [self.hand, self.deck, self.discard, self.in_play, self.trash]:
+        for l in [self.hand, self.deck, self.discard, self.in_play]:
             idx = self.find_card_in_list(l, card_id)
             if idx != -1:
                 return l, idx
         return [], -1
-    
-    def find_card_objs(self, card_ids):
-        objs = []
-        for card_id in card_ids:
-            l, idx = self.find_card(card_id)
-            if idx!= -1:
-                objs.append(l[idx])
-        return objs
 
     def shuffle(self):
         """shuffles deck"""
@@ -137,16 +129,6 @@ class player:
         self.buys = 1
         self.coins = 0
         self.phase = 'action'
-
-    def get_deck_composition(self):
-        cards = self.deck + self.hand + self.in_play + self.discard
-        deck_comp = {}
-        for card in cards:
-            if card['name'] in deck_comp:
-                deck_comp[card['name']] += 1
-            else:
-                deck_comp[card['name']] = 1
-        return deck_comp
     
     def calculate_score(self):
         score = 0
@@ -160,6 +142,8 @@ class player:
                 score += 6
             if(c['name'] == "gardens"):
                 score += (len(cards)//10)
+            if(c['name'] == 'curse'):
+                score -= 1
         return score
     
     def set_command(self, cmd):

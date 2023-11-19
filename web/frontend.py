@@ -157,7 +157,7 @@ def end_phase_supply(game_id, player_id):
         return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
-    phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
+    phase = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}/").json()['phase']
     if phase == 'buy':
         return redirect(f'/{game_id}/{player_id}/supply')
     return redirect(f'/{game_id}/{player_id}')
@@ -194,12 +194,12 @@ def select_cards(game_id, player_id):
         select_info['can_choose_less'] = 'true' if req['canChooseLess'] else 'false'
     return select_info
 
-@app.route("/<int:game_id>/selected/", methods=["POST"])
-def selected(game_id):
+@app.route("/<int:game_id>/<int:player_id>/selected/", methods=["POST"])
+def selected(game_id, player_id):
     """Tells backend which cards were chosen by a player"""
     req = request.get_json()
     requests.post(f"http://api:5000/selected/{game_id}", json=req)
-    return redirect(f'/{game_id}')
+    return redirect(f'/{game_id}/{player_id}/')
 
 @app.route("/<int:game_id>/<int:player_id>/updates/")
 def updates(game_id, player_id):

@@ -8,10 +8,9 @@ class Game:
         TODO: support for more than one player"""
         #to sort the cards by cost the self.supply needs to be sorted
         self.basesupply = ['copper', 'silver', 'gold', 'estate', 'duchy', 'province', 'curse']
-        self.supply = ['market', 'workshop', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
+        # self.supply = ['market', 'workshop', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
+        self.supply = random.sample(cards.supply_options, 10)
         self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
-        # change to [10 for i in range(10)] to make it take the right number of cards to finish the game=
-        # self.supplySizes = [2 for i in range(10)]
         self.supplySizes = {key: 10 for key in self.supply}
         self.supplySizes['copper'] = 60 - 7*num_players
         self.supplySizes['silver'] = 40
@@ -100,12 +99,6 @@ class Game:
                 return l, idx
         return [], -1
     
-    def find_card_in_trash(self, card_id):
-        idx = self.find_card_in_list(self.trash, card_id)
-        if idx != -1:
-            return self.trash, idx
-        return [], -1
-    
     def find_card_objs(self, card_ids):
         objs = []
         for card_id in card_ids:
@@ -113,15 +106,3 @@ class Game:
             if idx!= -1:
                 objs.append(l[idx])
         return objs
-
-    def shuffle(self):
-        """shuffles deck"""
-        random.shuffle(self.deck)
-
-
-    def update_cards(self, add_or_remove, card):
-        """Adds cards to game.updates, basically facilitates having a dictionary for simplicity's sake."""
-        if add_or_remove in self.updates:
-            self.updates[add_or_remove].append(card)
-        else:
-            self.updates[add_or_remove] = [card]
