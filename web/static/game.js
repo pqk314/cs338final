@@ -67,11 +67,10 @@ function sendSelection(max, canSelectLess) {
         return;
     }
     let ids = Object.values(selection).map(card => parseInt(card.id));
-    var xhr = new XMLHttpRequest();
-    let url = new URL(window.location.href);
-    url.pathname = `/selected/${url.pathname.split('/')[1]}/`;
+    let xhr = new XMLHttpRequest();
+    let url = `${window.location}/selected/`
     //url.port = 5000
-    xhr.open("POST", url.href, false);
+    xhr.open("POST", url, false);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify({
         ids: ids

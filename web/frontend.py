@@ -157,7 +157,7 @@ def end_phase_supply(game_id, player_id):
         return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
 
     requests.request("get", f"http://api:5000/endphase/{game_id}/{player_id}/")
-    phase = requests.request("get", f"http://api:5000/getgamestate/{game_id}").json()['phase']
+    phase = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}/").json()['phase']
     if phase == 'buy':
         return redirect(f'/{game_id}/{player_id}/supply')
     return redirect(f'/{game_id}/{player_id}')
@@ -173,16 +173,13 @@ def game_over(game_id, player_id):
         return redirect(url_for("home_page"))
     if not requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']:
         return redirect(url_for('game_page', game_id=game_id, player_id=player_id))
-    pics = get_card_pics()
-    deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
-    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
-    requests.get(f"http://api:5000/save/{game_id}")
-    return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
+    db_id = int(requests.get(f"http://api:5000/save/{game_id}").text)
+    return redirect(url_for('get_game', game_id=db_id))
 
-@app.route("/<int:game_id>/getoldgame")
-def getoldgame(game_id):
+@app.route("/getgame/<int:game_id>/")
+def get_game(game_id):
     pics = get_card_pics()
-    data = requests.get(f"http://api:5000/getoldgame/{game_id}").json()
+    data = requests.get(f"http://api:5000/getgame/{game_id}").json()
     return render_template("game-over.html", victory_points = data['score'], deck_compositions = data['deck_comps'], card_pics = pics)
 
 @app.route('/<int:game_id>/<int:player_id>/selectinfo/')
@@ -197,12 +194,12 @@ def select_cards(game_id, player_id):
         select_info['can_choose_less'] = 'true' if req['canChooseLess'] else 'false'
     return select_info
 
-@app.route("/<int:game_id>/selected/", methods=["POST"])
-def selected(game_id):
+@app.route("/<int:game_id>/<int:player_id>/selected/", methods=["POST"])
+def selected(game_id, player_id):
     """Tells backend which cards were chosen by a player"""
     req = request.get_json()
     requests.post(f"http://api:5000/selected/{game_id}", json=req)
-    return redirect(f'/{game_id}')
+    return redirect(f'/{game_id}/{player_id}/')
 
 @app.route("/<int:game_id>/<int:player_id>/updates/")
 def updates(game_id, player_id):

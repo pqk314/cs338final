@@ -1,4 +1,4 @@
-var xhr = new XMLHttpRequest();
+let xhr = new XMLHttpRequest();
 let url = new URL(window.location.href);
 game_id = url.pathname.split('/')[1]
 checkForUpdates(false)
