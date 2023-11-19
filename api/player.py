@@ -171,5 +171,13 @@ class player:
                 if res == 'yield':
                     self.updates['select'] = True
                     return {'yield': True}
+        if self != self.game.currentPlayer:
+            shouldContinue = True
+            for p in self.game.players:
+                if p != self and p != self.game.currentPlayer and p.cmd != None:
+                    shouldContinue = False
+            if shouldContinue and not self.game.currentPlayer.barrier == '':
+                self.game.currentPlayer.set_barrier('')
+                self.game.currentPlayer.execute_command()
         return {'yield': False}
     
