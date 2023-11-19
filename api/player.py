@@ -46,6 +46,9 @@ class player:
         self.hand = self.deck[-5:]
         self.deck = self.deck[0:-5]
 
+        self.text = 'Left click a card to play it.'
+        self.barrier = ''
+
     def update_list(self, key, val):
         """Makes having list in dictionaries simpler, basically facilitates having a dictionary for simplicity's
         sake."""
@@ -53,6 +56,16 @@ class player:
             self.updates[key].append(val)
         else:
             self.updates[key] = [val]
+
+    def set_text(self, text: str):
+        """Sets heading text at top of page"""
+        self.text = text
+        self.updates['text'] = text
+
+    def set_barrier(self, text: str):
+        """Sets barrier with the message indicated in the text variable. if text = '', it will remove the barrier"""
+        self.barrier = text
+        self.updates['barrier'] = text
 
     def draw_cards(self, num_to_draw):
         """draws cards while attempting to catch edge cases. I may have forgotten one, but this may be final."""

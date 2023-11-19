@@ -47,7 +47,11 @@ def card_bought(game_id, player_id, card_name):
         player.buys -= 1
         game.update_all_players('set_buys', player.buys)
         game.supplySizes[card_name] -= 1
-        game.update_all_players('cardbought', ' '.join(card_name.split('_')).title())
+        for player in game.players:
+            if player != game.currentPlayer:
+                player.set_text(f"Player {game.get_player_number(player_id)} bought a {(' '.join(card_name.split('_')).title())}.")
+            else:
+                player.set_text("Left click a card to play it.")
 
         
     return "hi"  # nothing actually needs to be returned, flask crashes without this.
@@ -112,7 +116,8 @@ def getfrontstate(game_id, playerid):
     currentPlayer = game.currentPlayer
     state = {"hand": player.hand, "discard": player.discard, "in_play": currentPlayer.in_play, "phase": currentPlayer.phase,
              "actions": currentPlayer.actions, "buys": currentPlayer.buys, "coins": currentPlayer.coins, "supply": game.supply,
-             "supplySizes": game.supplySizes, "deckSize": len(currentPlayer.deck)}
+             "supplySizes": game.supplySizes, "deckSize": len(currentPlayer.deck), "barrier": player.barrier,
+             "text": player.text}
     return state
 
 @app.route("/getdeckinfo/<int:game_id>/<int:player_id>")
@@ -215,6 +220,9 @@ def endphase(game_id, player_id):
         game.update_all_players('set_actions', 1)
         game.update_all_players('set_buys', 1)
         game.update_all_players('set_coins', 0)
+        for player in game.players:
+            player.set_barrier(f'It is Player {game.get_player_number(game.currentPlayer.id)}\'s turn.')
+        game.currentPlayer.set_barrier('')
         game.update_all_players('new_turn', True)
         game.first_turn_ended = True
         if game.is_computer_game and game.currentPlayer == game.players[1]:
@@ -468,7 +476,8 @@ def save(game_id):
                             host=DB_HOST,
                             port=DB_PORT)
     cur = conn.cursor()
-    cur.execute("INSERT INTO Games (ID,DECK) VALUES (% s,'% s')" % (game_id, hand_lists))
+    id = get_num_games()
+    cur.execute("INSERT INTO Games (ID,DECK) VALUES (% s,'% s')" % (id, hand_lists))
     conn.commit()
     return "hi"
 

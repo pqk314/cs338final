@@ -35,6 +35,8 @@ class Game:
             # deck = [self.make_card(c) for c in custom_decks[i]]
             deck = [self.make_card(c) for c in deck_cards]
             newPlayer = player(self, deck, self.make_player_id())
+            if i > 0:
+                newPlayer.set_barrier("It is Player 1's turn.")
             self.players.append(newPlayer)
         self.currentPlayer = self.players[0]
 
