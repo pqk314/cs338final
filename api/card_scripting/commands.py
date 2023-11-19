@@ -1,5 +1,3 @@
-import requests
-import json
 from card_scripting import cards
 
 def getGameState(player):
@@ -299,7 +297,6 @@ def chooseSubset(args, player):
         return 'yield'
     else:
         return []
-    #requests.post(f'http://api:5000/setoptions/{gameID}/', json={'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]})
     return "yield"
     return args[0][:-1]
     raise NotImplementedError

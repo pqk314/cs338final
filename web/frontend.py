@@ -173,16 +173,13 @@ def game_over(game_id, player_id):
         return redirect(url_for("home_page"))
     if not requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']:
         return redirect(url_for('game_page', game_id=game_id, player_id=player_id))
-    pics = get_card_pics()
-    deck_comps = requests.get(f"http://api:5000/deckcompositions/{game_id}/").json()
-    vp = requests.get(f'http://api:5000/calculatescore/{game_id}/').json()
-    requests.get(f"http://api:5000/save/{game_id}")
-    return render_template("game-over.html", victory_points=vp, deck_compositions=deck_comps, card_pics=pics)
+    db_id = int(requests.get(f"http://api:5000/save/{game_id}").text)
+    return redirect(url_for('get_game', game_id=db_id))
 
-@app.route("/<int:game_id>/getoldgame")
-def getoldgame(game_id):
+@app.route("/getgame/<int:game_id>/")
+def get_game(game_id):
     pics = get_card_pics()
-    data = requests.get(f"http://api:5000/getoldgame/{game_id}").json()
+    data = requests.get(f"http://api:5000/getgame/{game_id}").json()
     return render_template("game-over.html", victory_points = data['score'], deck_compositions = data['deck_comps'], card_pics = pics)
 
 @app.route('/<int:game_id>/<int:player_id>/selectinfo/')

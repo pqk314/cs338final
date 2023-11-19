@@ -19,18 +19,18 @@
     </style>
 </head>
 <body>
-    <h1 style="text-align: center">The game is over.</h1>
+    <h1 style="text-align: center">Results of Game</h1>
     {% for i in range(victory_points|length) %}
-    <p>Player {{ i + 1 }} got {{ victory_points[i|string] }} victory points!</p>
+    <p>Player {{ i + 1 }} got {{ victory_points[i] }} victory points!</p>
     <br>
     <p>Their deck composition was:</p>
     <table>
         <tr>
-            {% for key in deck_compositions[i|string] %}
+            {% for key in deck_compositions[i] %}
             <td>
                 <article>
                     <img src="{{ card_pics[key] }}">
-                    <p>{{ deck_compositions[i|string][key] }} in deck</p>
+                    <p>{{ deck_compositions[i][key] }} in deck</p>
                 </article>
             </td>
 

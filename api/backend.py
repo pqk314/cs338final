@@ -1,10 +1,7 @@
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, request
 from game import Game
-import random, json
-import requests
 import psycopg2
-from card_scripting import cardPlayer, cards, commands, cardParser
-from player import player
+from card_scripting import cards
 import aiplayer
 
 app = Flask(__name__)
@@ -212,9 +209,9 @@ def endphase(game_id, player_id):
         player.phase = "buy"
         game.update_all_players('set_phase', 'buy')
     elif player.phase == "buy":
+        player.end_turn()
         if check_game_over(game):
             return 'game over'
-        player.end_turn()
         game.currentPlayer = game.players[game.get_player_number(player.id) % len(game.players)]
         game.update_all_players('set_phase', 'action')
         game.update_all_players('set_actions', 1)
@@ -348,31 +345,24 @@ def updates(game_id, player_id):
     game.players[game.get_player_number(player_id) - 1].updates = {}
     return update_list
 
-# Does not always work for some reason, I will look at it
-@app.route("/calculatescore/<int:game_id>/")
 def calculate_score(game_id):
     game = games[game_id - starting_num]
-    scores = {}
+    scores = []
     for i in range(len(game.players)):
         player = game.players[i]
-        scores[i] = player.calculate_score()
+        scores.append(player.calculate_score())
     return scores
 
-@app.route("/deckcomposition/<int:game_id>/")
-def deck_composition(game_id, player=0):
-    game = games[game_id - starting_num]
-    player = game.players[player]
-    return player.get_deck_composition()
-
-# used
-@app.route("/deckcompositions/<int:game_id>/")
-def deck_compositions(game_id):
-    game = games[game_id - starting_num]
-    decks = {}
-    for i in range(len(game.players)):
-        player = game.players[i]
-        decks[i] = player.get_deck_composition()
-    return decks
+def deck_composition(deck):
+    deck_comp = {}
+    for card in deck:
+        if card == 'fake':
+            continue
+        if card in deck_comp:
+            deck_comp[card] += 1
+        else:
+            deck_comp[card] = 1
+    return deck_comp
 
 @app.route("/gameexists/<int:game_id>/")
 def game_exists(game_id):
@@ -427,7 +417,8 @@ def createtable():
         CREATE TABLE IF NOT EXISTS Games
         (
             ID BIGINT   PRIMARY KEY NOT NULL,
-            DECK TEXT[][]
+            DECK TEXT[][],
+            VP BIGINT[]
         )
         """)
         
@@ -443,24 +434,18 @@ def createtable():
 @app.route("/save/<int:game_id>/")
 def save(game_id):
     game = games[game_id - starting_num]
-    if game.added_to_db:
-        return 'already added to database'
-    game.added_to_db = True
-    decks = deck_compositions(game_id)
-
-    deck_list = []
-    # change for multiple players
-    for h in range(len(decks)):
-        deck_list.append([])
-        for key, val in decks[h].items():
-            deck_list[h] += [key for _ in range(val)]
+    if game.db_id != -1:
+        return str(game.db_id)
+    decks = []
+    for player in game.players:
+        decks.append(sorted(player.deck + player.discard + player.hand + player.in_play, key=lambda card: card['name']))
 
     hand_lists = "{"
-    for x in range(len(deck_list)):
+    for deck in decks:
         savehand = "{"
-        for i in range(len(max(deck_list, key=len))):
-            if i < len(deck_list[x]):
-                savehand += f'{deck_list[x][i]},'
+        for i in range(len(max(decks, key=len))):
+            if i < len(deck):
+                savehand += f"{deck[i]['name']},"
             else:
                 savehand += 'fake,'
         savehand = savehand[:-1]
@@ -477,9 +462,12 @@ def save(game_id):
                             port=DB_PORT)
     cur = conn.cursor()
     id = get_num_games()
-    cur.execute("INSERT INTO Games (ID,DECK) VALUES (% s,'% s')" % (id, hand_lists))
+    vps = f'{{{str(calculate_score(game_id))[1:-1]}}}'
+    cur.execute("INSERT INTO Games (ID,DECK,VP) VALUES (% s,'% s', '%s')" % (id, hand_lists, vps))
     conn.commit()
-    return "hi"
+    conn.close()
+    game.db_id = id
+    return str(id)
 
 # returns a list that conatins all of the cards in the first player's hand
 @app.route("/dbget/<int:game_id>/")
@@ -492,13 +480,12 @@ def dbget(game_id):
                         host=DB_HOST,
                         port=DB_PORT)
     cur = conn.cursor()
-    cur.execute("SELECT DECK FROM Games WHERE ID=%s", (game_id,))
+    cur.execute("SELECT DECK, VP FROM Games WHERE ID=%s", (game_id,))
     rows = cur.fetchall()
     game = rows[0]
     # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
     # handlist is a list
-    
-    
+
     conn.close()
     # due to multihands
     returnjson['deck'] = game
@@ -539,57 +526,20 @@ def get_num_games():
     return cur.fetchone()[0]
 
 # return decks = {i:{estate:1}} where i is player num and {} is their deck comp
-@app.route("/getoldgame/<int:game_id>")
-def getoldgame(game_id):
+@app.route("/getgame/<int:game_id>")
+def getgame(game_id):
     ans = {}
-    deck_comp1 = {}
-    deck_comp2 = {}
-    table = getstats()['deck']
-    game = table[game_id]
-    hands = game
-    player1vp = 0
-    player2vp = 0
+    deck_comps = []
+    table = dbget(game_id)['deck']
+    hands = table[0]
+    print(hands)
+    vps = table[1]
 
-    for card in hands[0]:
-        if card == "fake":
-            continue
-        # calculate score for p1
-        if(card == 'estate'):
-                player1vp += 1
-        if(card == 'duchy'):
-            player1vp += 3
-        if(card == 'province'):
-            player1vp += 6
-        if(card == "gardens"):
-            player1vp += (len(hands[0])//10)
-        # calculate hand comp for p1
-        if card in deck_comp1:
-            deck_comp1[card] += 1
-        else:
-            deck_comp1[card] = 1
+    for deck in hands:
+        deck_comps.append(deck_composition(deck))
 
-    for card in hands[1]:
-        if card == "fake":
-            continue
-        # calculate score for p2
-        if(card == 'estate'):
-                player2vp += 1
-        if(card == 'duchy'):
-            player2vp += 3
-        if(card == 'province'):
-            player2vp += 6
-        if(card == "gardens"):
-            player2vp += (len(hands[1])//10)
-        # calculate hand comp for p2
-
-
-        if card in deck_comp2:
-            deck_comp2[card] += 1
-        else:
-            deck_comp2[card] = 1
-
-        ans['deck_comps'] = {0:deck_comp1, 1:deck_comp2}
-        ans['score'] = {0:player1vp,1:player2vp}
+        ans['deck_comps'] = deck_comps
+        ans['score'] = vps
         
     return ans
 
