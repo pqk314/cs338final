@@ -185,7 +185,7 @@ def attack(args, player):
         if ('yield' in res and res['yield'] == True) or res == 'yield':
             shouldYield = True
     if shouldYield:
-        player.set_barrier("Waiting for other players")
+        player.set_barrier("Waiting for other players.")
         player.cmd.commands = player.cmd.commands[1:]
         return 'yield'
     #raise ValueError([p.cmd for p in player.game.players])
