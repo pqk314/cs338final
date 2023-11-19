@@ -2,23 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Game Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
     <style>
-        article {
-            height: calc(23.66vh - 20px)
-        }
-
         p {
-            margin: 0
-        }
-
-        img {
-            width: auto;
-            height: calc(calc(23.66vh - 20px) - 18px);
+            margin: 0;
+            text-align: left;
         }
     </style>
 </head>
 <body>
+    <img id="background" src="{{ url_for('static', filename='images/rules-background.jpg') }}" alt="">
+
+    <h1 id='title' style="text-align: center; font-family: 'Comic Sans MS',serif">Welcome to Dominion</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('new_game') }}">New Game</a></li><li><a href="{{ url_for('tutorial', step=0) }}">Tutorial</a></li><li><a href="/gamebrowser">Finished Games</a></li><li><a href="/data/">Most Common Card</a></li>
+        </ul>
+    </nav>
     <h1 style="text-align: center">Results of Game</h1>
     {% for i in range(victory_points|length) %}
     <p>Player {{ i + 1 }} got {{ victory_points[i] }} victory points!</p>
@@ -29,7 +30,7 @@
             {% for key in deck_compositions[i] %}
             <td>
                 <article>
-                    <img src="{{ card_pics[key] }}">
+                    <img src="{{ card_pics[key] }}" class="card">
                     <p>{{ deck_compositions[i][key] }} in deck</p>
                 </article>
             </td>

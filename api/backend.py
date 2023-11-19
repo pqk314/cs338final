@@ -291,6 +291,7 @@ def createtable():
         
         # commit the changes
         conn.commit()
+        conn.close()
         print("Table Created successfully")
 
     except:
@@ -390,7 +391,9 @@ def get_num_games():
                             port=DB_PORT)
     cur = conn.cursor()
     cur.execute("SELECT count(ID) FROM Games")
-    return cur.fetchone()[0]
+    ret = cur.fetchone()[0]
+    conn.close()
+    return ret
 
 # return decks = {i:{estate:1}} where i is player num and {} is their deck comp
 @app.route("/getgame/<int:game_id>")
@@ -410,6 +413,21 @@ def getgame(game_id):
         
     return ans
 
+@app.route('/getgames/')
+def get_games():
+    """Returns a dictionary containing all games stored in the database to support the game browser"""
+    ret = {}
+    conn = psycopg2.connect(database=DB_NAME,
+                            user=DB_USER,
+                            password=DB_PASS,
+                            host=DB_HOST,
+                            port=DB_PORT)
+    cur = conn.cursor()
+    cur.execute("SELECT ID,VP FROM Games")
+    for game in cur:
+        ret[len(ret)] = {'id': game[0], 'vp': game[1]}
+    conn.close()
+    return ret
 
 @app.route("/debug/<int:game_id>/")
 def debug(game_id):

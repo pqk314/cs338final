@@ -3,9 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Congratulations!</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
 </head>
 <body>
+    <img id="background" src="{{ url_for('static', filename='images/rules-background.jpg') }}" alt="">
+
+    <h1 id='title' style="text-align: center; font-family: 'Comic Sans MS',serif">Welcome to Dominion</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('new_game') }}">New Game</a></li><li><a href="{{ url_for('tutorial', step=0) }}">Tutorial</a></li><li><a href="/gamebrowser">Finished Games</a></li><li><a href="/data/">Most Common Card</a></li>
+        </ul>
+    </nav>
     <h1>You completed the tutorial!</h1>
     <p>Dominion continues just like this until either the province pile is empty or three other piles are empty. Happy playing!</p>
+    <button onclick="window.location.href = '/'">Back to Home</button>
 </body>
 </html>

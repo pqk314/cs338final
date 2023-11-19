@@ -173,6 +173,7 @@ function doSelect() {
         innerHTML: 'Submit'
     }));
     submitButton(selection['max_num'], selection['can_choose_less']);
+    document.querySelector('#info-text').style.color = 'white'
 }
 
 // makes the document start checking backend for updates

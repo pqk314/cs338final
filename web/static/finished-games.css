@@ -1,0 +1,17 @@
+#games-container {
+    display: grid;
+    grid-template-columns: 20vw 20vw 20vw 20vw;
+    justify-content: space-around;
+}
+#games-container div {
+    background: #4fc7fa;
+    border: 2px blue solid;
+    border-radius: 5px;
+    height: 100%;
+    color: black;
+    padding: 5px;
+}
+
+a {
+    margin-bottom: 20px;
+}
