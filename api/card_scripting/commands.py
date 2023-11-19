@@ -181,11 +181,19 @@ def attack(args, player):
     # args: multicommand string
     # executes the multicommand for each player besides the current player
     cmd = args[0]
+    shouldYield = False
     for p in player.game.players:
         if p is player:
             continue
         p.set_command(cmd)
-        p.execute_command()
+        res = p.execute_command()
+        if ('yield' in res and res['yield'] == True) or res == 'yield':
+            shouldYield = True
+    if shouldYield:
+        player.set_barrier("Waiting for other players")
+        player.cmd.commands = player.cmd.commands[1:]
+        return 'yield'
+    #raise ValueError([p.cmd for p in player.game.players])
     return True
 
 def execute(args, player):
@@ -203,7 +211,7 @@ def execute(args, player):
     player.set_command(cmdStr)
     #raise ValueError([com.command for com in player.cmd.commands])
     res = player.execute_command()
-    if 'yield' in res and res['yield'] == True or res == 'yield':
+    if ('yield' in res and res['yield'] == True) or res == 'yield':
         return 'yield'
     return res
 
