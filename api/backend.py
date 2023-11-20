@@ -185,9 +185,7 @@ def selected(game_id):
         player = game.currentPlayer
     player.options = None
     cards = game.find_card_objs(ids)
-    #raise ValueError(str(game.floatingCards))
     player.cmd.setPlayerInput(cards)
-    #res = player.cmd.execute()
     res = player.execute_command()
     if res == "yield":
         return "yield"
