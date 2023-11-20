@@ -19,3 +19,6 @@ db
     - In db all we do is create the datase docker container.
 web
     - In web he have our main frontend.py file that runs all our frontend. We also have tutorial_executer.py which executes the tutorial. Then we have our static resources such as images and css in the static directory. Finally, we have our html templates in the templates directory.
+
+Code from other Team
+- The code from the other Team is in web/frontend.py and is indicated in the comments.
