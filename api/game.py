@@ -4,11 +4,8 @@ import random
 
 class Game:
     def __init__(self, id, num_players):
-        """Initializes game, for now this just assumes 1 player and a starting deck
-        TODO: support for more than one player"""
-        #to sort the cards by cost the self.supply needs to be sorted
+        # Initializes game
         self.basesupply = ['copper', 'silver', 'gold', 'estate', 'duchy', 'province', 'curse']
-        # self.supply = ['market', 'workshop', 'council_room', 'moat', 'militia', 'village', 'smithy', 'laboratory', 'witch', 'gardens']
         self.supply = random.sample(cards.supply_options, 10)
         self.supply.sort(key=lambda card: cards.getCard(card)['cost'])
         self.supplySizes = {key: 10 for key in self.supply}
@@ -26,13 +23,9 @@ class Game:
         self.supplySizes['curse'] = 10*num_players - 10
         self.nextCardID = 0
         self.gamestateID = 0
-        # deck_cards = ['copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']
-        deck_cards = ['militia', 'bandit', 'bureaucrat', 'moat', 'throne_room', 'cellar', 'harbinger', 'library', 'sentry', 'vassal']
-        custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
-                        ['poacher', 'moneylender', 'harbinger', 'remodel', 'library', 'throne_room', 'copper', 'sentry', 'vassal', 'estate']]
+        deck_cards = ['copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']
         self.players = []
         for i in range(num_players):
-            # deck = [self.make_card(c) for c in custom_decks[i]]
             deck = [self.make_card(c) for c in deck_cards]
             newPlayer = player(self, deck, self.make_player_id())
             if i > 0:

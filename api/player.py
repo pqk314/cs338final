@@ -26,7 +26,6 @@ class player:
         self.game = game
         self.deck = deck
         self.id = id
-        # self.supply = random.sample(sorted(cards.supply_options), 10)
         
         self.hand = []
         self.discard = []
@@ -132,7 +131,6 @@ class player:
         while len(self.in_play) > 0:
             self.discard.append(self.in_play.pop())
         self.draw_cards(5)
-        # TODO make these changeVar calls
         self.actions = 1
         self.buys = 1
         self.coins = 0
@@ -163,7 +161,6 @@ class player:
         if res == "yield":
             self.updates['select'] = True
             return {'yield': True}
-        #return {'yield': False}
         if self.cmd == None or self.cmd.commands == []:
             self.cmd = None
             while self.cmd_stack:
