@@ -24,7 +24,7 @@ function change(updates) {
     // prompts player to invite friend
     console.log(updates);
     if(updates.hasOwnProperty('new_game_prompt')) {
-        document.querySelector('#info-text').innerHTML = `To invite friend, send them this link: http://${window.location.host}/joingame/${game_id}\nIf you finish your first turn before they join. They will no longer be able to join and you will play against an AI player.\nPress OK to copy the link.`
+        document.querySelector('#info-text').innerHTML = `To invite friend, send them this link: http://${window.location.host}/joingame/${game_id}\nIf you finish your first turn before they join. They will no longer be able to join and you will play against an AI player.`
         return;
     }
 
@@ -145,7 +145,7 @@ function doSelect() {
     }));
 
     console.log(document.querySelector('#info-text').getBoundingClientRect().bottom);
-    selectContainer.style.top = `${document.querySelector('#info-text').getBoundingClientRect().bottom}px`
+    selectContainer.style.top = `${document.querySelector('#info-text').getBoundingClientRect().bottom + window.scrollY}px`
 
     for(let i = 0; i < selection['options'].length; i++) {
         let newCard = selectContainer.appendChild(Object.assign(document.createElement('img'), {

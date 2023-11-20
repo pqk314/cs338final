@@ -14,10 +14,12 @@ class player:
         # set_actions - sets actions to the value (integer) associated with key
         # set_buys - sets buys to the value (integer) associated with key
         # set_phase - sets end phase button to whatever phase is.
-        # add - tells game to add card (use card object). Add using update_cards('add', card: card, player: player, game: game)
-        # remove - do the same command as above but use remove for first parameter instead
+        # add - tells game to add card to hand
+        # remove - removes card from hand
+        # play - adds cards to the in-play zone
         # select - boolean value for select screen
         # new_turn - boolean for if there is a new turn
+        # size_update -
 
         self.updates = {}
 
