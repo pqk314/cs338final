@@ -301,6 +301,18 @@ def getSubset(args, player):
             newSet.append(card)
     return newSet
 
+def setText(args, player):
+    # args[0]: text to be displayed to the player
+    # args[1]: value(s) to replace {} with in the text
+    # sets the text to be displayed to the player
+
+    if len(args) < 2:
+        player.set_text(args[0])
+    else:
+        values = args[1:]
+
+        player.set_text(args[0].format(*values))
+
 def chooseSubset(args, player):
     # args: set, n, canChooseLess
     # Asks the player to choose a subset of the set (list of cards), of size n, with the possible option to choose less than n
@@ -314,12 +326,6 @@ def chooseSubset(args, player):
         return aiplayer.make_selection(o['options'], o['n'], o['canChooseLess'])
     player.options = o
     return 'yield'
-
-def reorder(args, player):
-    # args: set
-    # allows the player to reorder the cards, then returns the new order
-    return args[0][::-1]
-    raise NotADirectoryError
 
 def removeFromSet(args, player):
     # args: set, toRemove
@@ -379,9 +385,9 @@ def eval(args, player):
     
 
 
-funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, decreaseSupply, merchant, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
+funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, decreaseSupply, merchant, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
 
-yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
+yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset']
 commands = {}
 for func in funcs:
     commands[func.__name__] = func

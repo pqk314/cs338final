@@ -1,6 +1,7 @@
 macros = {
     'cantrip': '#draw(1); #changeActions(1);',
-    'chapel': 'x=#fromHand(4, T); #trash($x);'
+    'chapel': 'x=#fromHand(4, T); #trash($x);',
+    'resetText': '#setText(Left click a card to play it.); '
 }
 # use '&macroname' in a card to call the macro
 supply_options = [
@@ -73,21 +74,21 @@ cards = {
 
 
 cardTexts = {
-    'cellar': '#changeActions(1); x=#chooseSubset(#getHand(), -1, #true()); #discard($x); #draw(#count($x))',
-    'chapel': '#trash(#chooseSubset(#getHand(), 4, #true()))',
+    'cellar': '#changeActions(1); #setText(Choose any number of cards to discard); x=#chooseSubset(#getHand(), -1, #true()); #discard($x); #draw(#count($x)); &resetText',
+    'chapel': '#setText(Choose up to 4 cards to trash); #trash(#chooseSubset(#getHand(), 4, #true())); &resetText',
     'moat': '#draw(2)',
-    'harbinger': '#draw(1); #changeActions(1); #toDeck(#chooseSubset(#getDiscard(), 1, #true()))',
-    'merchant': '#draw(1); #changeActions(1); #merchant()', #not implemented
-    'vassal': '#changeCoins(2); x=#getFirst(#fromTop(1)); #discard($x); actions=#getSubset($x, #makeArray(type, =, action)); toPlay=#chooseSubset($actions, 1, #true()); #cond(#eval(#count($toPlay), >, 0), #play($toPlay)); #cond(#eval(#count($toPlay), >, 0), #execute(#getFirst($toPlay)))',
+    'harbinger': '#draw(1); #changeActions(1); #setText(Choose up to 1 card to put on top of your deck); #toDeck(#chooseSubset(#getDiscard(), 1, #true()))',
+    'merchant': '#draw(1); #changeActions(1); #merchant()',
+    'vassal': '#changeCoins(2); #setText(Choose up to 1 action to play); x=#getFirst(#fromTop(1)); #discard($x); actions=#getSubset($x, #makeArray(type, =, action)); toPlay=#chooseSubset($actions, 1, #true()); #cond(#eval(#count($toPlay), >, 0), #play($toPlay)); #cond(#eval(#count($toPlay), >, 0), #execute(#getFirst($toPlay))); &resetText',
     'village': '#draw(1); #changeActions(2)',
-    'workshop': 'card=#chooseSubset(#getSubset(#getStore(), #makeArray(cost, <, 5)), 1, #false()); #gain($card); #decreaseSupply($card)',
-    'bureaucrat': '#gain(#fromStore(silver), deck); #attack(`#toDeck(#chooseSubset(#getSubset(#getHand(), #makeArray(type, =, victory)), 1, #false()))`)',
+    'workshop': '#setText(Choose a card to gain); card=#chooseSubset(#getSubset(#getStore(), #makeArray(cost, <, 5)), 1, #false()); #gain($card); #decreaseSupply($card); &resetText',
+    'bureaucrat': '#gain(#fromStore(silver), deck); #attack(`#setText(Choose a victory card to put on top of your deck); #toDeck(#chooseSubset(#getSubset(#getHand(), #makeArray(type, =, victory)), 1, #false()))`)',
     'militia': '#changeCoins(2); #attack(`x=#eval(#count(#getHand()), -, 3); #cond(#eval($x, >, 0), #set(toDiscard, #chooseSubset(#getHand(), $x, #false()))); #cond(#eval($x, >, 0), #discard($toDiscard))`)',
     'moneylender': 'x=#getSubset(#getHand(), #makeArray(name, =, copper)); toTrash=#chooseSubset($x, 1, #true()); willTrash=#false(); #cond(#eval(#count($toTrash), >, 0), willTrash=#true()); #cond($willTrash, #trash($toTrash)); #cond($willTrash, #changeCoins(3))',
     'poacher': '#draw(1); #changeActions(1); #changeCoins(1); #discard(#chooseSubset(#getHand(), #eval(17, -, #count(#getStore())), #false()))',
     'remodel': 'x=#chooseSubset(#getHand(), 1, #false()); cost=#getCost(#getFirst($x)); #trash($x); options=#getSubset(#getStore(), #makeArray(cost, <=, #eval($cost, +, 2))); card=#chooseSubset($options, 1, #false()); #gain($card); #decreaseSupply($card)',
     'smithy': '#draw(3)',
-    'throne_room': 'c=#chooseSubset(#getSubset(#getHand(), #makeArray(type, =, action)), 1, #false()); #play($c); #execute($c); #execute($c)',
+    'throne_room': 'c=#chooseSubset(#getSubset(#getHand(), #makeArray(type, =, action)), 1, #true()); #play($c); #execute($c); #execute($c)',
     'bandit': '#gain(#fromStore(gold)); #attack(`top=#fromTop(2); toTrash=#chooseSubset(#getSubset(#getSubset($top, #makeArray(type, =, treasure)), #makeArray(name, !=, copper)), 1, #false()); #discard($top); #trash($toTrash)`)',
     'council_room': '#draw(4); #changeBuys(1); #attack(`#draw(1)`)',
     'festival': '#changeActions(2); #changeBuys(1); #changeCoins(2)',
@@ -96,7 +97,7 @@ cardTexts = {
     'market': '#draw(1); #changeActions(1); #changeBuys(1); #changeCoins(1)',
     
     'mine':'x=#chooseSubset(#getSubset(#getHand(), #makeArray(type, =, treasure)), 1, #false()); cost=#getCost(#getFirst($x)); #trash($x); options=#getSubset(#getStore(), #makeArray(cost, <=, #eval($cost, +, 3)), #makeArray(type, =, treasure)); card=#chooseSubset($options, 1, #false()); #gain($card, hand); #decreaseSupply($card);',
-    'sentry': '#draw(1); #changeActions(1); x=#fromTop(2); toTrash=#chooseSubset($x, 2, #true()); #trash($toTrash); x=#removeFromSet($x, $toTrash); toDiscard=#chooseSubset($x, 2, #true()); #discard($toDiscard); x=#removeFromSet($x, $toDiscard); x=#reorder($x); #toDeck($x)',
+    'sentry': '#draw(1); #changeActions(1); x=#fromTop(2); toTrash=#chooseSubset($x, 2, #true()); #trash($toTrash); x=#removeFromSet($x, $toTrash); toDiscard=#chooseSubset($x, 2, #true()); #discard($toDiscard); x=#removeFromSet($x, $toDiscard); #toDeck($x); x=#chooseSubset($x, 1, #false()); #toDeck($x)',
     'witch': '#draw(2); #attack(`curse=#fromStore(curse); #gain($curse)`)',
     'artisan': 'card=#chooseSubset(#getSubset(#getStore(), #makeArray(cost, <, 6)), 1, #false()); #gain($card, hand); #decreaseSupply($card); #toDeck(#chooseSubset(#getHand(), 1, #false()))',
 
