@@ -29,7 +29,7 @@ def card_bought(game_id, player_id, card_name):
         return 'game_ended'
     game = games[game_id]
     player = game.currentPlayer
-    if player_id != player.id:
+    if player_id != player.id or player.barrier != '' or player.options is not None:
         return "Nice try"
     cost = cards.getCard(card_name)['cost']
     if player.coins >= cost and player.buys >= 1 and player.phase == 'buy' and game.supplySizes[card_name] > 0:
@@ -57,8 +57,8 @@ def card_played(game_id, card_id, player_id):
         return 'game_ended'
     game = games[game_id]
     player = game.currentPlayer
-    if player_id != player.id:
-        return "not current player"
+    if player_id != player.id or player.barrier != '' or player.options is not None:
+        return "can't play cards right now"
     hand = player.hand
 
     idx = find_card_in_list(hand, card_id)
@@ -110,7 +110,7 @@ def endphase(game_id, player_id):
         return "hi"
     game = games[game_id]
     player = game.currentPlayer
-    if player_id != player.id:
+    if player_id != player.id or player.barrier != '' or player.options is not None:
         return "Nice try"
 
     if player.phase == "action":
