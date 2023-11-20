@@ -41,6 +41,7 @@ class Game:
         self.id = id
 
     def make_player_id(self):
+        """Gets a new unique player ID"""
         id = random.randint(0, 1000000000)
         new_id = id
         while True:
@@ -62,10 +63,12 @@ class Game:
         raise ValueError('Player ID not found')
 
     def update_all_players(self, key, val):
+        """Gives all players update at (key,val)"""
         for p in self.players:
             p.updates[key] = val
 
     def update_list_all_players(self, key, val):
+        """Gives all players update at (key,val) in list format"""
         for p in self.players:
             p.update_list(key, val)
 
@@ -78,12 +81,14 @@ class Game:
         return card
 
     def find_card_in_list(self, list, card_id):
+        """Finds card index in the list"""
         for idx, card in enumerate(list):
             if card['id'] == card_id:
                 return idx
         return -1
 
     def find_card(self, card_id):
+        """Searches everywhere for cards"""
         idx = self.find_card_in_list(self.floatingCards, card_id)
         if idx != -1:
             return self.floatingCards, idx
@@ -94,6 +99,7 @@ class Game:
         return [], -1
     
     def find_card_objs(self, card_ids):
+        """Calls find_card on each card_id in card_ids"""
         objs = []
         for card_id in card_ids:
             l, idx = self.find_card(card_id)

@@ -18,6 +18,7 @@ DB_HOST = "db"
 DB_PORT = "5432"
 
 def find_card_in_list(list, card_id):
+    """This is used to figure out if a card is in a list, like if a card is in your hand."""
     for idx, card in enumerate(list):
         if card['id'] == card_id:
             return idx
@@ -25,6 +26,8 @@ def find_card_in_list(list, card_id):
 
 @app.route("/cardbought/<int:game_id>/<int:player_id>/<card_name>/")
 def card_bought(game_id, player_id, card_name):
+    """Makes sure it is your turn and the game is still happening. Also checks whether you have the money to buy
+    what the backend was told."""
     if game_over(game_id)['game_over']:
         return 'game_ended'
     game = games[game_id]
@@ -53,6 +56,7 @@ def card_bought(game_id, player_id, card_name):
 
 @app.route("/cardplayed/<int:game_id>/<int:player_id>/<int:card_id>/")
 def card_played(game_id, card_id, player_id):
+    """Lets player play cards if it is their turn and the game is still going"""
     if game_over(game_id)['game_over']:
         return 'game_ended'
     game = games[game_id]
@@ -94,6 +98,7 @@ def card_played(game_id, card_id, player_id):
 
 @app.route("/getfrontstate/<int:game_id>/<int:playerid>/")
 def getfrontstate(game_id, playerid):
+    """Contains all information the front-end needs at a given time"""
     game = games[game_id]
     player = game.players[game.get_player_number(playerid) - 1]
     currentPlayer = game.currentPlayer
@@ -106,6 +111,7 @@ def getfrontstate(game_id, playerid):
 
 @app.route('/endphase/<int:game_id>/<int:player_id>/')
 def endphase(game_id, player_id):
+    """Sequence for ending a phase whether it is the action or buy phase."""
     if not game_exists(game_id)['exists']:
         return "hi"
     game = games[game_id]
@@ -135,7 +141,7 @@ def endphase(game_id, player_id):
     return "ended phase"
 
 def check_game_over(game):
-    '''only called at end of turn and can end game'''
+    """only called at end of turn and can end game"""
     if game.is_over:
         return True
     empty_piles = 0
@@ -149,7 +155,7 @@ def check_game_over(game):
 
 @app.route("/newgame/")
 def new_game():
-    
+    """makes a nenw game object"""
     global num_games
     global games
     games.append(Game(num_games, 2))
@@ -163,19 +169,16 @@ def new_game():
 
 @app.route('/joingame/<int:game_id>/')
 def join_game(game_id):
+    """Returns player id so a second player can join."""
     game = games[game_id]
     if game.first_turn_ended or not game.is_computer_game:
         return 'no lol'
     game.is_computer_game = False
     return str(game.players[1].id)
 
-@app.route('/<int:game_id>/turnnumber/')
-def turn_number(game_id):
-    game = games[game_id]
-    return str(game.get_player_number(game.currentPlayer.id))
-
 @app.route("/selected/<int:game_id>/", methods=['POST'])
 def selected(game_id):
+    """Checks whether player selection is legal."""
     req = request.get_json()
     ids = req['ids']
     game = games[game_id]
@@ -194,11 +197,13 @@ def selected(game_id):
 
 @app.route("/<int:game_id>/<int:player_id>/okclicked/")
 def reset_text(game_id, player_id):
+    """Resets text if player clicks the OK button."""
     games[game_id].players[games[game_id].get_player_number(player_id) - 1].set_text('Left click a card to play it.')
     return 'text reset'
     
 @app.route("/getoptions/<int:game_id>/<int:player_id>/")
 def get_options(game_id, player_id):
+    """Gets the options for the select menu"""
     game = games[game_id]
     player_options = game.players[game.get_player_number(player_id) - 1].options
     return player_options if player_options is not None else {}
@@ -206,6 +211,7 @@ def get_options(game_id, player_id):
 
 @app.route("/updates/<int:game_id>/<int:player_id>")
 def updates(game_id, player_id):
+    """Gets player's updates for the front end"""
     if not game_exists(game_id)['exists']:
         return {'home_page': True}
     game = games[game_id]
@@ -224,6 +230,7 @@ def calculate_score(game_id):
     return scores
 
 def deck_composition(deck):
+    """Returns a dictionary of how frequent each card (f.e. {'silver': 10}"""
     deck_comp = {}
     for card in deck:
         if card == 'fake':
@@ -245,6 +252,7 @@ def game_over(game_id):
 
 @app.route("/createtable/")
 def createtable():
+    """Creates SQL table. Restarts docker container if SQL hasn't initialized yet."""
     try:
         conn = psycopg2.connect(database=DB_NAME,
                             user=DB_USER,
@@ -276,6 +284,7 @@ def createtable():
 
 @app.route("/save/<int:game_id>/")
 def save(game_id):
+    """Saves a game's info in DB"""
     game = games[game_id]
     if game.db_id != -1:
         return str(game.db_id)
@@ -315,6 +324,7 @@ def save(game_id):
 # returns a list that conatins all of the cards in the first player's hand
 @app.route("/dbget/<int:game_id>/")
 def dbget(game_id):
+    """Fetches DB info for game_id"""
     returnjson = {'deck':""}
     # getting the people back
     conn = psycopg2.connect(database=DB_NAME,
@@ -339,6 +349,7 @@ def dbget(game_id):
 # This returns a [game1, game2, game3] where gamex = [play1hand, player2hand, player3hand] where playerxhand = ['copper', 'cellar']
 @app.route("/getstats/")
 def getstats():
+    """Gets info form all games for method made by Backgammon team."""
     ans = []
 
     conn = psycopg2.connect(database=DB_NAME,
@@ -359,6 +370,7 @@ def getstats():
     return rtn
 
 def get_num_games():
+    """Returns number of games stored in DB"""
     conn = psycopg2.connect(database=DB_NAME,
                             user=DB_USER,
                             password=DB_PASS,
@@ -373,6 +385,7 @@ def get_num_games():
 # return decks = {i:{estate:1}} where i is player num and {} is their deck comp
 @app.route("/getgame/<int:game_id>")
 def getgame(game_id):
+    """Gets game info on specified ID"""
     ans = {}
     deck_comps = []
     table = dbget(game_id)['deck']

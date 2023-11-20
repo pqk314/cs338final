@@ -81,6 +81,7 @@ class player:
             p.updates['size_update'] = p.deck_info()
 
     def deck_info(self):
+        """Gets deck_info for the player"""
         deck_info = [
             f'Your Deck: {str(len(self.deck))} cards',
             f'Your Discard: {str(len(self.discard))} cards'
@@ -94,6 +95,7 @@ class player:
         return deck_info
 
     def from_top(self, num):
+        """Gets top num cards from teh deck"""
         fromTop = []
         for i in range(num):
             if len(self.deck) == 0 and len(self.discard) == 0:
@@ -107,12 +109,14 @@ class player:
         return fromTop
 
     def find_card_in_list(self, list, card_id):
+        """Finds card if it is in the list"""
         for idx, card in enumerate(list):
             if card['id'] == card_id:
                 return idx
         return -1
 
     def find_card(self, card_id):
+        """Finds card by searching all lists"""
         for l in [self.hand, self.deck, self.discard, self.in_play]:
             idx = self.find_card_in_list(l, card_id)
             if idx != -1:
@@ -138,6 +142,7 @@ class player:
         self.played_merchants = 0
     
     def calculate_score(self):
+        """Calculates score based on deck"""
         score = 0
         cards = self.deck + self.hand + self.in_play + self.discard
         for c in cards:
@@ -157,6 +162,7 @@ class player:
         self.cmd = cardParser.multicommand(cmd, self)
 
     def execute_command(self):
+        """Executes command with cardParser"""
         res = self.cmd.execute()
         if res == "yield":
             self.updates['select'] = True

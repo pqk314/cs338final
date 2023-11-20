@@ -109,11 +109,6 @@ def game_page(game_id, player_id):
                            turn_info=turn_info, end_what=end_what, game_id=game_id, deck_info=deck_info,
                            select_info=select_info, player_num=player_num, barrier=barrier, text=text)
 
-@app.route('/<int:game_id>/turnnumber/')
-def turn_number(game_id):
-    """Returns the number associated with the player who is currently taking a turn"""
-    return requests.request("get", f"http://api:5000/{game_id}/turnnumber/").text
-
 @app.route("/<int:game_id>/<int:player_id>/supply")
 def supply(game_id, player_id):
     """Loads the supply page with the appropriate cards for whatever game_id is passed"""
@@ -208,6 +203,7 @@ def selected(game_id, player_id):
 
 @app.route("/<int:game_id>/<int:player_id>/okclicked/")
 def reset_text(game_id, player_id):
+    """Resets text after player presses OK in reveal menu"""
     requests.get(f"http://api:5000/{game_id}/{player_id}/okclicked")
     return 'hi js'
 
