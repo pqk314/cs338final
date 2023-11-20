@@ -63,6 +63,9 @@ function change(updates) {
 
     // updates info-text with appropriate text from backend.
     if(updates.hasOwnProperty('text')) document.querySelector('#info-text').innerHTML = updates['text']
+
+    // reveals cards until OK is pressed
+    if(updates.hasOwnProperty('reveal')) doReveal(updates['reveal']);
 }
 
 /**
@@ -180,6 +183,46 @@ function updateSizes(updates) {
             innerHTML: updates[i]
         }))
     }
+}
+
+/**
+ * Lets player see revealed cards. Then takes it away.
+ * @param toReveal cards to reveal at the end.
+ */
+function doReveal(toReveal) {
+    if(toReveal.length === 0) return;
+    document.body.appendChild(Object.assign(document.createElement('div'), {
+        className: 'blocker'
+    }));
+
+    let revealContainer = document.body.appendChild(Object.assign(document.createElement('div'), {
+        id: 'reveal',
+        className: 'select card-container'
+    }));
+
+    console.log(document.querySelector('#info-text').getBoundingClientRect().bottom);
+    revealContainer.style.top = `${document.querySelector('#info-text').getBoundingClientRect().bottom + window.scrollY}px`
+
+    for(let i = 0; i < toReveal.length; i++) {
+        let newCard = revealContainer.appendChild(Object.assign(document.createElement('img'), {
+            src: card_pics[toReveal[i]],
+            className: 'card',
+            alt: toReveal[i],
+            id: toReveal[i],
+            draggable: false
+        }))
+    }
+    revealContainer.appendChild(document.createElement('br'));
+    revealContainer.appendChild(Object.assign(document.createElement('button'), {
+        id: 'close-reveal',
+        onclick: () => {
+            document.querySelector('body').removeChild(document.querySelector('.blocker'));
+            document.querySelector('body').removeChild(document.querySelector('#reveal'));
+            document.querySelector('#info-text').style.color = 'black'
+        },
+        innerHTML: 'OK'
+    }));
+    document.querySelector('#info-text').style.color = 'white'
 }
 
 // makes the document start checking backend for updates
