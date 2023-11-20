@@ -7,7 +7,6 @@ import aiplayer
 app = Flask(__name__)
 
 num_games = 0
-starting_num = 0
 games = []
 
 
@@ -28,12 +27,10 @@ def find_card_in_list(list, card_id):
 def card_bought(game_id, player_id, card_name):
     if game_over(game_id)['game_over']:
         return 'game_ended'
-    game = games[game_id - starting_num]
-    # game.gamestateID += 1
+    game = games[game_id]
     player = game.currentPlayer
     if player_id != player.id:
         return "Nice try"
-    player_number = game.get_player_number(player_id)
     cost = cards.getCard(card_name)['cost']
     if player.coins >= cost and player.buys >= 1 and player.phase == 'buy' and game.supplySizes[card_name] > 0:
         card = game.make_card(card_name)
@@ -58,8 +55,7 @@ def card_bought(game_id, player_id, card_name):
 def card_played(game_id, card_id, player_id):
     if game_over(game_id)['game_over']:
         return 'game_ended'
-    game = games[game_id - starting_num]
-    # game.gamestateID += 1
+    game = games[game_id]
     player = game.currentPlayer
     if player_id != player.id:
         return "not current player"
@@ -95,7 +91,7 @@ def card_played(game_id, card_id, player_id):
 
 @app.route("/getfrontstate/<int:game_id>/<int:playerid>/")
 def getfrontstate(game_id, playerid):
-    game = games[game_id - starting_num]
+    game = games[game_id]
     player = game.players[game.get_player_number(playerid) - 1]
     currentPlayer = game.currentPlayer
     state = {"hand": player.hand, "in_play": currentPlayer.in_play, "phase": currentPlayer.phase,
@@ -109,7 +105,7 @@ def getfrontstate(game_id, playerid):
 def endphase(game_id, player_id):
     if not game_exists(game_id)['exists']:
         return "hi"
-    game = games[game_id - starting_num]
+    game = games[game_id]
     player = game.currentPlayer
     if player_id != player.id:
         return "Nice try"
@@ -164,7 +160,7 @@ def new_game():
 
 @app.route('/joingame/<int:game_id>/')
 def join_game(game_id):
-    game = games[game_id - starting_num]
+    game = games[game_id]
     if game.first_turn_ended or not game.is_computer_game:
         return 'no lol'
     game.is_computer_game = False
@@ -172,14 +168,14 @@ def join_game(game_id):
 
 @app.route('/<int:game_id>/turnnumber/')
 def turn_number(game_id):
-    game = games[game_id - starting_num]
+    game = games[game_id]
     return str(game.get_player_number(game.currentPlayer.id))
 
 @app.route("/selected/<int:game_id>/", methods=['POST'])
 def selected(game_id):
     req = request.get_json()
     ids = req['ids']
-    game = games[game_id - starting_num]
+    game = games[game_id]
     if 'playerNum' in req:
         player = game.players[req['playerNum'] - 1]
     else:
@@ -197,7 +193,7 @@ def selected(game_id):
     
 @app.route("/getoptions/<int:game_id>/<int:player_id>/")
 def get_options(game_id, player_id):
-    game = games[game_id - starting_num]
+    game = games[game_id]
     player_options = game.players[game.get_player_number(player_id) - 1].options
     return player_options if player_options is not None else {}
 
@@ -206,7 +202,7 @@ def get_options(game_id, player_id):
 def updates(game_id, player_id):
     if not game_exists(game_id)['exists']:
         return {'home_page': True}
-    game = games[game_id - starting_num]
+    game = games[game_id]
     if game.is_over:
         return {'game_over': True}
     update_list = game.players[game.get_player_number(player_id) - 1].updates
@@ -214,7 +210,7 @@ def updates(game_id, player_id):
     return update_list
 
 def calculate_score(game_id):
-    game = games[game_id - starting_num]
+    game = games[game_id]
     scores = []
     for i in range(len(game.players)):
         player = game.players[i]
@@ -234,19 +230,19 @@ def deck_composition(deck):
 
 @app.route("/gameexists/<int:game_id>/")
 def game_exists(game_id):
-    return {'exists': num_games > game_id >= starting_num}
+    return {'exists': num_games > game_id}
 
 @app.route('/gameisover/<int:game_id>/')
 def game_over(game_id):
     """different from check_game_over because this can't end the game."""
-    return {'game_over': games[game_id - starting_num].is_over}
+    return {'game_over': games[game_id].is_over}
 
 # TODO possibly delete
 @app.route("/attack/", methods=['POST'])
 def attack():
     req = request.get_json()
     game_id = req['gameID']
-    game = games[game_id - starting_num]
+    game = games[game_id]
     multicommand = req['multicommand']
     for player in game.players[1:]:
         player.set_command(multicommand)
@@ -288,7 +284,7 @@ def createtable():
 
 @app.route("/save/<int:game_id>/")
 def save(game_id):
-    game = games[game_id - starting_num]
+    game = games[game_id]
     if game.db_id != -1:
         return str(game.db_id)
     decks = []
@@ -418,14 +414,12 @@ def get_games():
 
 @app.route("/debug/<int:game_id>/")
 def debug(game_id):
-    player = games[game_id - starting_num].players[0]
+    player = games[game_id].players[0]
     cmd = player.cmd
     return {'cmds': [com.command for com in cmd.commands], 'cmdStack': [[com.command for com in cmd.commands] for cmd in player.cmd_stack]}
 
 
 if __name__ == "__main__":
     createtable()
-    starting_num = get_num_games()
-    num_games = starting_num
     
     app.run(host="0.0.0.0", port=5000)
