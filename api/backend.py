@@ -313,7 +313,6 @@ def save(game_id):
 @app.route("/dbget/<int:game_id>/")
 def dbget(game_id):
     returnjson = {'deck':""}
-    # getting the people back
     conn = psycopg2.connect(database=DB_NAME,
                         user=DB_USER,
                         password=DB_PASS,
@@ -323,16 +322,11 @@ def dbget(game_id):
     cur.execute("SELECT DECK, VP FROM Games WHERE ID=%s", (game_id,))
     rows = cur.fetchall()
     game = rows[0]
-    # game should be of the form (0, ['copper', 'cellar', 'copper', 'copper', 'copper']) 
-    # handlist is a list
 
     conn.close()
-    # due to multihands
     returnjson['deck'] = game
     return returnjson
 
-
-# This is the endpoint we need completed
 # This returns a [game1, game2, game3] where gamex = [play1hand, player2hand, player3hand] where playerxhand = ['copper', 'cellar']
 @app.route("/getstats/")
 def getstats():
