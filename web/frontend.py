@@ -173,7 +173,6 @@ def end_phase_supply(game_id, player_id):
 def game_over(game_id, player_id):
     """This checks to make sure the game is actually over. If it is, it displays the pertinent information for that
     game. This means it calculates deck compositions and victory points"""
-    # TODO get rid of player_id?
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
@@ -249,26 +248,9 @@ def create_card_occurrence_dict(games):
                         card_occurrence_dict[card] += 1
     return card_occurrence_dict
 
-@app.route("/savegame/<int:game_id>")
-def save_game(game_id):
-    """This is somewhat of a 'developer view' of what is stored in the SQL Database"""
-    # TODO delete this?
-    info = requests.get(f"http://api:5000/dbget/{game_id}/").json()
-    result = info['deck']
-    return render_template("db-connection.html", result = result)
-
-
-@app.route("/<int:game_id>/save/")
-def save(game_id):
-    # TODO does nothing?
-    # requests.get(f"http://api:5000/createtable/")
-    # requests.get(f"http://api:5000/save/{game_id}")
-    info = requests.get(f"http://api:5000/getstats/").json()
-    cardlist = info['deck'][1][0]
-    return render_template("db-connection.html", cardlist = cardlist)
-
 @app.route('/gamebrowser/')
 def game_browser():
+    """Opens a browser to view finished games and their deck compositions"""
     games = sorted(requests.get(f"http://api:5000/getgames/").json().values(),
                    key=lambda game: game['id'], reverse=True)
     for game in games:
@@ -277,7 +259,6 @@ def game_browser():
             format_score += str(score) + '-'
         game['vp'] = format_score[:-1]
     return render_template('finished-games.html', games=games)
-
 
 @app.route("/<int:game_id>/debug/")
 def debug(game_id):

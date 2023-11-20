@@ -237,20 +237,6 @@ def game_over(game_id):
     """different from check_game_over because this can't end the game."""
     return {'game_over': games[game_id].is_over}
 
-# TODO possibly delete
-@app.route("/attack/", methods=['POST'])
-def attack():
-    req = request.get_json()
-    game_id = req['gameID']
-    game = games[game_id]
-    multicommand = req['multicommand']
-    for player in game.players[1:]:
-        player.set_command(multicommand)
-        #player.cmd = cardParser.multicommand(multicommand, game_id)
-        #res = player.cmd.execute()
-        player.execute_command()
-    return "yield"
-
 @app.route("/createtable/")
 def createtable():
     try:
