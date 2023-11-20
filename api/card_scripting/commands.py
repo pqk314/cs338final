@@ -47,11 +47,11 @@ def changeZone(player, cards, zone):
         card_loc = player.find_card(card_id)
         if card_loc[1] != -1:
             removed = card_loc[0].pop(card_loc[1])
-            if card_loc[0] == player.hand:
+            if card_loc[0] is player.hand:
                 player.update_list('remove', removed)
-        if dest == player.hand:
+        if dest is player.hand:
             player.update_list('add', card)
-        if dest == player.in_play:
+        if dest is player.in_play:
             game.update_list_all_players('play', card['name'])
         dest.append(card)
         for p in game.players:
