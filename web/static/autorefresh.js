@@ -146,6 +146,9 @@ function doSelect() {
         className: 'select card-container'
     }));
 
+    console.log(document.querySelector('#info-text').getBoundingClientRect().bottom);
+    selectContainer.style.top = `${document.querySelector('#info-text').getBoundingClientRect().bottom}px`
+
     for(let i = 0; i < selection['options'].length; i++) {
         let newCard = selectContainer.appendChild(Object.assign(document.createElement('img'), {
             src: card_pics[selection['options'][i]['name']],
