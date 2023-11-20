@@ -137,6 +137,7 @@ class player:
         self.buys = 1
         self.coins = 0
         self.phase = 'action'
+        self.played_merchants = 0
     
     def calculate_score(self):
         score = 0

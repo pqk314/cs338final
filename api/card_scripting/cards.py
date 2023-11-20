@@ -77,7 +77,7 @@ cardTexts = {
     'chapel': '#trash(#chooseSubset(#getHand(), 4, #true()))',
     'moat': '#draw(2)',
     'harbinger': '#draw(1); #changeActions(1); #toDeck(#chooseSubset(#getDiscard(), 1, #true()))',
-    'merchant': '#draw(1); #changeActions(1); somethingelse#', #not implemented
+    'merchant': '#draw(1); #changeActions(1); #merchant()', #not implemented
     'vassal': '#changeCoins(2); x=#getFirst(#fromTop(1)); #discard($x); actions=#getSubset($x, #makeArray(type, =, action)); toPlay=#chooseSubset($actions, 1, #true()); #cond(#eval(#count($toPlay), >, 0), #play($toPlay)); #cond(#eval(#count($toPlay), >, 0), #execute(#getFirst($toPlay)))',
     'village': '#draw(1); #changeActions(2)',
     'workshop': 'card=#chooseSubset(#getSubset(#getStore(), #makeArray(cost, <, 5)), 1, #false()); #gain($card); #decreaseSupply($card)',

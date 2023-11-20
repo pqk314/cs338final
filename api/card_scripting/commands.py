@@ -379,7 +379,7 @@ def eval(args, player):
     
 
 
-funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, decreaseSupply, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
+funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, decreaseSupply, merchant, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
 commands = {}
