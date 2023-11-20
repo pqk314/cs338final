@@ -49,13 +49,13 @@
         {% endfor %}
     </div>
 </div>
-<button class="game" style="float:left;">Back to
+<button class="game">Back to
     Game
 </button>
 <button class="end">{{ tutorial_step['end_what'] }}</button>
-<div style="float: right; margin: 0;">
-    <h1>Your Money: {{ tutorial_step['turn_info']['Money'] }}</h1>
-    <h1>Your Buys: {{ tutorial_step['turn_info']['Buys'] }}</h1>
+<div>
+    <h1 style="text-align: right">Your Money: {{ tutorial_step['turn_info']['Money'] }}</h1>
+    <h1 style="text-align: right">Your Buys: {{ tutorial_step['turn_info']['Buys'] }}</h1>
 </div>
 <script>
     let click = "{{ tutorial_step['click'] }}"
