@@ -70,8 +70,10 @@ def getDiscard(args, player):
 
 def getSetAside(args, player):
     # no args
-    # returns list of all cards in discard pile
-    return player.set_aside
+    # returns list of all cards that were set aside, then clears the list
+    res = player.set_aside
+    player.set_aside = []
+    return res
 
 def fromTop(args, player):
     # args: number
@@ -187,7 +189,8 @@ def count(args, player):
 def attack(args, player):
     # args: multicommand string
     # executes the multicommand for each player besides the current player
-    cmd = args[0]
+    moatText = "#setText(Reveal a moat to be unaffected by attack?); moat=#chooseSubset(#getFirst(#getSubset(#getHand(), #makeArray(name, =, moat))), 1, #true()); #cond(#eval(#count($moat), >, 0), #reveal($moat, Player reveals a moat)); #cond(#eval(#count($moat), >, 0), #endEarly()); "
+    cmd = moatText + args[0]
     shouldYield = False
     for p in player.game.players:
         if p is player:
@@ -242,6 +245,8 @@ def getName(args, player):
 
 def getCost(args, player):
     # args: card
+    if args[0] == []:
+        return -1
     return args[0]['cost']
 
 def getType(args, player):
@@ -313,10 +318,24 @@ def setText(args, player):
 
         player.set_text(args[0].format(*values))
 
+def reveal(args, player):
+    # args: cards, text
+    if type(args[0]) != list:
+        args[0] = [args[0]]
+    names = [card['name'] for card in args[0]]
+    for p in player.game.players:
+        if p == player:
+            continue
+        p.set_text(args[1])
+        for name in names:
+            p.update_list('reveal', name)
+
 def chooseSubset(args, player):
     # args: set, n, canChooseLess
     # Asks the player to choose a subset of the set (list of cards), of size n, with the possible option to choose less than n
     # returns a list of the chosen cards
+    if not type(args[0]) == list:
+        args[0] = [args[0]]
     o = {'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]}
     if o['n'] >= len(o['options']) and not o['canChooseLess']:
         return o['options']
@@ -385,7 +404,7 @@ def eval(args, player):
     
 
 
-funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, decreaseSupply, merchant, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
+funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, decreaseSupply, merchant, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, setText, reveal, chooseSubset, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset']
 commands = {}
