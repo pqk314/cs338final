@@ -52,7 +52,7 @@ def changeZone(player, cards, zone):
         if dest == player.hand:
             player.update_list('add', card)
         if dest == player.in_play:
-            player.update_list('play', card)
+            player.update_list('play', card['name'])
         dest.append(card)
         for p in game.players:
             p.updates['size_update'] = p.deck_info()
@@ -100,9 +100,18 @@ def fromStore(args, player):
     return card
 
 def decreaseSupply(args, player):
-    # args: card obj
+    # args: card obj or list of cards
     # decrements the number of the card in the supply
-    player.game.supplySizes[args[0].name] -= 1
+    if type(args[0]) == list:
+        if len(args[0]) == 0:
+            return
+        args[0] = args[0][0]
+    player.game.supplySizes[args[0]['name']] -= 1
+
+def merchant(args, player):
+    # args: none
+    # increments the number of played merchants to gain money later
+    player.played_merchants += 1
 
 def gain(args, player):
     # args: cards, destination
@@ -370,7 +379,7 @@ def eval(args, player):
     
 
 
-funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
+funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, decreaseSupply, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
 commands = {}
