@@ -2,6 +2,7 @@ import requests
 
 
 def take_turn(player):
+    """AI takes a turn"""
     requests.get(f"http://localhost:5000/endphase/{player.game.id}/{player.id}/")
     to_play = []
     for card in player.hand:
@@ -25,7 +26,9 @@ def take_turn(player):
         requests.get(f"http://localhost:5000/cardbought/{player.game.id}/{player.id}/silver/")
     requests.get(f"http://localhost:5000/endphase/{player.game.id}/{player.id}/")
 
+
 def make_selection(options, max_num, can_choose_less):
+    """AI makes a selection"""
     if can_choose_less:
         return []
     priority = ['curse', 'estate', 'duchy', 'province', 'copper', 'silver', 'gold']
