@@ -79,11 +79,13 @@ def game_page(game_id, player_id):
     """Checks that game exists and is still going. If a selection is occuring, it tells the front end to prepare for it.
     It gets the info needed for the front end"""
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
-    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
     if not exists:
         return redirect(url_for("home_page"))
+    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
     if is_over:
         return redirect(url_for('game_over', game_id=game_id, player_id=player_id))
+
+    # checks if selection is happening
     select_info = select_cards(game_id, player_id)
     select_info = None if len(select_info.keys()) == 0 else select_info
 
@@ -91,8 +93,8 @@ def game_page(game_id, player_id):
     gamestate = requests.request("get", f"http://api:5000/getfrontstate/{game_id}/{player_id}").json()
 
     # Gets player's deck/hand/discard size to display along with the number associated with a player's id
-    deck_info = requests.request("get", f"http://api:5000/getdeckinfo/{game_id}/{player_id}").json()
-    player_num = deck_info.pop()
+    deck_info = gamestate['deck_info']
+    player_num = gamestate['player_num']
 
     # This takes gamestate info and puts it in a more convenient package
     turn_info = {'Money': gamestate['coins'], 'Actions': gamestate['actions'], 'Buys': gamestate['buys']}
@@ -116,9 +118,11 @@ def turn_number(game_id):
 def supply(game_id, player_id):
     """Loads the supply page with the appropriate cards for whatever game_id is passed"""
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
-    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
-    if not exists or is_over:
+    if not exists:
         return redirect(url_for("home_page"))
+    is_over = requests.request("get", f"http://api:5000/gameisover/{game_id}/").json()['game_over']
+    if is_over:
+        return redirect(url_for('game_page', game_id=game_id, player_id=player_id))
     pics = get_card_pics()
 
     # gamestate is used for what cards are in supply and how many of them there are.
@@ -169,7 +173,6 @@ def end_phase_supply(game_id, player_id):
 def game_over(game_id, player_id):
     """This checks to make sure the game is actually over. If it is, it displays the pertinent information for that
     game. This means it calculates deck compositions and victory points"""
-    # TODO get rid of player_id?
     exists = requests.get(f"http://api:5000/gameexists/{game_id}").json()['exists']
     if not exists:
         return redirect(url_for("home_page"))
@@ -245,26 +248,9 @@ def create_card_occurrence_dict(games):
                         card_occurrence_dict[card] += 1
     return card_occurrence_dict
 
-@app.route("/savegame/<int:game_id>")
-def save_game(game_id):
-    """This is somewhat of a 'developer view' of what is stored in the SQL Database"""
-    # TODO delete this?
-    info = requests.get(f"http://api:5000/dbget/{game_id}/").json()
-    result = info['deck']
-    return render_template("db-connection.html", result = result)
-
-
-@app.route("/<int:game_id>/save/")
-def save(game_id):
-    # TODO does nothing?
-    # requests.get(f"http://api:5000/createtable/")
-    # requests.get(f"http://api:5000/save/{game_id}")
-    info = requests.get(f"http://api:5000/getstats/").json()
-    cardlist = info['deck'][1][0]
-    return render_template("db-connection.html", cardlist = cardlist)
-
 @app.route('/gamebrowser/')
 def game_browser():
+    """Opens a browser to view finished games and their deck compositions"""
     games = sorted(requests.get(f"http://api:5000/getgames/").json().values(),
                    key=lambda game: game['id'], reverse=True)
     for game in games:
@@ -273,7 +259,6 @@ def game_browser():
             format_score += str(score) + '-'
         game['vp'] = format_score[:-1]
     return render_template('finished-games.html', games=games)
-
 
 @app.route("/<int:game_id>/debug/")
 def debug(game_id):
