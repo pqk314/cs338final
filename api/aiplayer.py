@@ -1,8 +1,7 @@
 import requests
-from player import player
 
 
-def take_turn(player: player):
+def take_turn(player):
     requests.get(f"http://localhost:5000/endphase/{player.game.id}/{player.id}/")
     to_play = []
     for card in player.hand:

@@ -1,4 +1,5 @@
 from card_scripting import cards
+import aiplayer
 
 def getGameState(player):
     game = player.game
@@ -50,6 +51,8 @@ def changeZone(player, cards, zone):
                 player.update_list('remove', removed)
         if dest == player.hand:
             player.update_list('add', card)
+        if dest == player.in_play:
+            player.update_list('play', card)
         dest.append(card)
         for p in game.players:
             p.updates['size_update'] = p.deck_info()
@@ -74,11 +77,6 @@ def fromTop(args, player):
     # args: number
     # returns the top n cards
     return player.from_top(int(args[0]))
-    n=int(args[0])
-    deck = getGameState(player)['deck']
-    if len(deck) < n:
-        return deck [::-1]
-    return deck[-n:][::-1]
 
 def getStore(args, player):
     # no args
@@ -94,12 +92,17 @@ def fromStore(args, player):
     game = player.game
     card_name = args[0]
     if game.supplySizes[card_name] == 0:
-        return {'empty': True}
+        return []
     game.supplySizes[card_name] -= 1
     card = game.make_card(card_name)
     game.floatingCards.append(card)
     
     return card
+
+def decreaseSupply(args, player):
+    # args: card obj
+    # decrements the number of the card in the supply
+    player.game.supplySizes[args[0].name] -= 1
 
 def gain(args, player):
     # args: cards, destination
@@ -188,7 +191,6 @@ def attack(args, player):
         player.set_barrier("Waiting for other players.")
         player.cmd.commands = player.cmd.commands[1:]
         return 'yield'
-    #raise ValueError([p.cmd for p in player.game.players])
     return True
 
 def execute(args, player):
@@ -200,11 +202,9 @@ def execute(args, player):
         card = args[0]
     current_command = player.cmd
     current_command.commands = current_command.commands[1:]
-    #current_command.commands.pop(0)
     player.cmd_stack.append(current_command)
     cmdStr = cards.getCardText(card['name'])
     player.set_command(cmdStr)
-    #raise ValueError([com.command for com in player.cmd.commands])
     res = player.execute_command()
     if ('yield' in res and res['yield'] == True) or res == 'yield':
         return 'yield'
@@ -226,7 +226,6 @@ def getChoice(args, player):
     # asks the player for a y/n choice, showing them the message which is an fstring
     # example inpug: args = ["Discard {arg1} from the top of your deck?", "Copper"]
     return True
-    raise NotImplementedError
 
 def getName(args, player):
     # args: card
@@ -250,7 +249,6 @@ def getSubset(args, player):
     # args: set of cards, condition1, condition2...
     # conditions are formatted "[<propertyName> <operator> <target>]"
     # operators are <, >, <=, >=, and =
-    #raise ValueError(args, player.cmd.vals)
     if type(args[0]) != list:
         args[0] = [args[0]]
     newSet = []
@@ -299,14 +297,14 @@ def chooseSubset(args, player):
     # Asks the player to choose a subset of the set (list of cards), of size n, with the possible option to choose less than n
     # returns a list of the chosen cards
     o = {'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]}
-    if o['n'] != 0 and len(o['options']) > 0:
-        player.options = o
-        return 'yield'
-    else:
+    if o['n'] >= len(o['options']) and not o['canChooseLess']:
+        return o['options']
+    if o['n'] == 0 or len(o['options']) == 0:
         return []
-    return "yield"
-    return args[0][:-1]
-    raise NotImplementedError
+    if player.game.is_computer_game and player.game.currentPlayer != player:
+        return aiplayer.make_selection(o['options'], o['n'], o['canChooseLess'])
+    player.options = o
+    return 'yield'
 
 def reorder(args, player):
     # args: set
@@ -333,10 +331,13 @@ def makeArray(args, player):
     return args
 
 def addInts(args, player):
+    # args: list of ints
+    # sums the ints
     return sum([int(n) for n in args])
 
 def eval(args, player):
     # args: val, operator, target
+    # evaluates an expression. Can be boolean or numerical
     val1 = args[0]
     operator = args[1]
     val2 = args[2]
@@ -366,18 +367,10 @@ def eval(args, player):
         return val1 or val2
     else:
         raise ValueError(f"Invalid operator {operator}")
-    raise ValueError
     
-    
-        
-def countEmptyPiles(args, player):
-    # no args
-    # counts the number of empty supply piles and returns that number
-    return 0
-    raise NotImplementedError
 
 
-funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, countEmptyPiles, makeArray, attack, execute, makeCard, endEarly]
+funcs = [getHand, getDiscard, getSetAside, fromTop, getStore, fromStore, gain, trash, play, toHand, discard, toDeck, setAside, changeCoins, changeBuys, changeActions, draw, count, getChoice, getName, getCost, getType, getFirst, getSubset, chooseSubset, reorder, removeFromSet, true, false, eval, makeArray, attack, execute, makeCard, endEarly]
 
 yieldFuncs = ['fromHand', 'getChoice', 'chooseSubset', 'reorder']
 commands = {}
