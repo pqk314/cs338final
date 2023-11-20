@@ -28,7 +28,7 @@ def take_turn(player: player):
 
 def make_selection(options, max_num, can_choose_less):
     if can_choose_less:
-        return
+        return []
     priority = ['curse', 'estate', 'duchy', 'province', 'copper', 'silver', 'gold']
     selected = []
     for name in priority:
@@ -39,4 +39,4 @@ def make_selection(options, max_num, can_choose_less):
                 break
     while len(selected) > max_num:
         selected.pop()
-    return
+    return selected
