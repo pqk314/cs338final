@@ -87,8 +87,8 @@ cardTexts = {
     'poacher': '#draw(1); #changeActions(1); #changeCoins(1); #discard(#chooseSubset(#getHand(), #eval(17, -, #count(#getStore())), #false()))',
     'remodel': 'x=#chooseSubset(#getHand(), 1, #false()); cost=#getCost(#getFirst($x)); #trash($x); options=#getSubset(#getStore(), #makeArray(cost, <=, #eval($cost, +, 2))); #gain(#chooseSubset($options, 1, #false()))',
     'smithy': '#draw(3)',
-    'throne_room': 'c=#chooseSubset(#getHand(), 1, #false()); #play($c); #execute($c); #execute($c)', #not implemented
-    'bandit': '#gain(#fromStore(gold)); #attack(`top=#fromTop(2); toTrash=#chooseSubset(#getSubset(#getSubset($top, #makeArray(type, =, treasure)), #makeArray(name, !=, copper)), 1, #false()); #discard($top); #trash($toTrash)`)', # not implemented
+    'throne_room': 'c=#chooseSubset(#getHand(), 1, #false()); #play($c); #execute($c); #execute($c)',
+    'bandit': '#gain(#fromStore(gold)); #attack(`top=#fromTop(2); toTrash=#chooseSubset(#getSubset(#getSubset($top, #makeArray(type, =, treasure)), #makeArray(name, !=, copper)), 1, #false()); #discard($top); #trash($toTrash)`)',
     'council_room': '#draw(4); #changeBuys(1); #attack(`#draw(1)`)',
     'festival': '#changeActions(2); #changeBuys(1); #changeCoins(2)',
     'laboratory': '#draw(2); #changeActions(1)',
