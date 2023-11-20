@@ -76,6 +76,9 @@ def card_played(game_id, card_id, player_id):
             else:
                 return "hi"
         player.in_play.append(card)
+        if card['name'] == 'silver':
+            player.coins += player.played_merchants
+            player.played_merchants = 0
         removed_card = player.hand.pop(idx)
         player.update_list('remove', removed_card)
         for p in game.players:

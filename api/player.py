@@ -36,6 +36,7 @@ class player:
         self.actions = 1
         self.buys = 1
         self.coins = 0
+        self.played_merchants = 0
         self.cmd = None
         self.options = None
         self.cmd_stack = []
