@@ -1,13 +1,18 @@
 from card_scripting import commands
+from card_scripting import cards
 # This module provides classes for parsing and executing Dominion card commands.
 # multicommand parses a command string into multiple command instances.
 # command represents a single command that can be executed, handling built-in
-# functions lcike set/get/cond as well as calling external functions. 
+# functions such as set/get/cond as well as calling external functions. 
 # command instances are created by multicommand and executed.
 
 
-
 class multicommand:
+    '''
+    A class representing and giving functionality to the text of a card
+    See the README in the card_scripting folder for more information on the syntax of the scripting language
+    
+    '''
     def __init__(self, multicommand, player):
         self.multicommand = multicommand
         self.player = player
@@ -17,9 +22,11 @@ class multicommand:
         self.setupCommands()
 
     def setPlayerInput(self, playerInput):
+        # used to set player input when execution is paused partway through
         self.playerInput = playerInput
 
     def execute(self):
+        # executes each subcommand one by one and removes it, stopping if player input is required
         res = None
         while self.commands:
             if self.shouldReplaceYield():
@@ -32,13 +39,15 @@ class multicommand:
         return res
     
     def setupCommands(self):
-        raw = self.replaceMacros(self.multicommand)
-        cleaned = self.replaceRawStrings(raw)
+        verboseCommand = self.replaceMacros(self.multicommand)
+        cleaned = self.replaceRawStrings(verboseCommand)
         subcommands = self.getSubcommands(cleaned)
         reformattedSubcommands = self.seperateYields(subcommands)
         self.commands = [command(cmd, self.player, self.vals) for cmd in reformattedSubcommands]
 
     def replaceRawStrings(self, raw):
+        # sometimes strings need characters that have reserved meanings. This function extracts them to variables where they will be left alone
+        # raw strings are enclosed in backticks and cannot be nested
         while '`' in raw:
             i = raw.index("`")
             end = raw.index("`", i+1)
@@ -49,14 +58,17 @@ class multicommand:
         return raw
 
     def shouldReplaceYield(self) -> bool:
+        # if the first command is a set and we have received player input, the variable will be replaced with the player input
         return self.playerInput != None and self.commands[0].func == "set"
     
     def replaceYield(self):
+        # replace variable in set command with player input
         self.vals[self.commands[0].args[0]] = self.playerInput
         self.commands = self.commands[1:]
         self.playerInput = None
 
     def executeSubcommand(self):
+        # executes the first command in the list and removes it from the list
         self.commands[0].setVals(self.vals)
         res = self.commands[0].execute()
         if res == "yield":
@@ -68,6 +80,7 @@ class multicommand:
 
 
     def replaceYieldCommand(self, cmd: str, yieldFunc: str) -> str:
+        # commands requiring player input have to be extracted (i.e. cannot be nested) and so are extracted and stored in variables as early as possible
         endpoints = self.findYieldCommand(cmd, yieldFunc)
         if endpoints == None:
             return None
@@ -77,6 +90,7 @@ class multicommand:
         return newCommands
         
     def findYieldCommand(self, cmd: str, yieldFunc: str) -> tuple[int, int]:
+        # finds a specific function call in a command string, if it exists
         i = cmd.find(yieldFunc)
         if i == -1:
             return
@@ -93,6 +107,7 @@ class multicommand:
         return i, j
 
     def getNewCommands(self, cmd: str, cmdStart: int, cmdEnd: int) -> list[str]:
+        # helper function for removing player input commands
         yieldCmd = cmd[cmdStart:cmdEnd]
         varName = f"_internalYieldVar{self.nextVar}"
         self.nextVar += 1
@@ -101,6 +116,7 @@ class multicommand:
         return [setCmd, getCmd]
 
     def seperateYields(self, cmdStrs: list[str]) -> list[str]:
+        # iterates through each subcommand and player input functions and replaces them
         yieldFuncs = commands.yieldFuncs
         cmdIdx = 0
         while cmdIdx < len(cmdStrs):
@@ -116,6 +132,7 @@ class multicommand:
 
     @staticmethod
     def replaceMacros(cmd: str) -> str:
+        # replaces macros with their verbose versions
         i = cmd.find("&")
         while i != -1:
             j = i + 1
@@ -129,6 +146,7 @@ class multicommand:
 
     @staticmethod
     def getSubcommands(cmd: str) -> list[str]:
+        #splits a multicommand strubg into subcommand strings
         subcommands = cmd.split(";")
         if len(subcommands[-1]) <= 1:
             subcommands = subcommands[:-1]
@@ -138,7 +156,9 @@ class command:
     """
     command: Class representing a command that can be executed.
     
-    Instances of command represent a single command that can be executed. This includes getting command components like function name and arguments, formatting arguments, executing built-in functions like set/get/cond, and calling external functions. command instances are created by multicommand and executed.
+    Instances of command represent a single command that can be executed.
+    They can be nested--a commands arguments can be other commands, which will be executed first
+    command instances are created by multicommand and executed and should not be created externally
     """
     def __init__(self, cmd, player, vals={}):
         self.vals = vals
@@ -152,13 +172,13 @@ class command:
     internalFuncs = ["set", "get", "cond"]
 
     def createArgCommands(self) -> None:
-        '''if self.func == 'attack':
-            return'''
+        # for each argument which is a function, replaces it with a command instance
         for i, arg in enumerate(self.args):
             if arg[0] == "#":
                 self.args[i] = command(arg, self.player, self.vals)
 
     def executeInternalFunc(self):
+        # handles internal functions: set, get, and cond (if)
         if self.func == "set":
             self.args[1].vals = self.vals
             res = self.args[1].execute()
@@ -180,6 +200,8 @@ class command:
             return False
 
     def executeExternalFunc(self):
+        # handles external functions, defined in commands.py
+        # all functions take the same two arguments, args and player, though the content of well formatted args varies by function
         for i, arg in enumerate(self.args):
             if isinstance(arg, command):
                 arg.setVals(self.vals)
@@ -204,6 +226,7 @@ class command:
 
     @staticmethod
     def replaceSetter(cmd) -> str:
+        # replaces variable assignment syntax varName=#funcName() with internally used #set(varName, #funcName())
         equal_idx = cmd.find('=')
         i = cmd.find('(')
         if equal_idx > -1 and (i == -1 or equal_idx < i):
@@ -212,6 +235,7 @@ class command:
     
     @staticmethod
     def replaceGetters(cmd) -> str:
+        # replaces variable getter syntax $varName with internally used #get(varName)
         i = cmd.find('$')
         while i > -1:
             j = i
@@ -232,6 +256,7 @@ class command:
 
     @staticmethod
     def getFunc(command):
+        # gets the name of the function in a function string
         i = command.find('(')
         func = command[1:i]
         return func
@@ -239,6 +264,7 @@ class command:
 
     @staticmethod
     def getArgs(command):
+        # gets a list of each arg in a function string
         args = []
         argString = command[command.find('(')+1:-1]
         layer = 0
@@ -256,15 +282,3 @@ class command:
         args.append(argString[:i].strip())
         nonEmptyArgs = [arg for arg in args if arg != '']
         return nonEmptyArgs
-
-
-
-if __name__ == "__main__":
-    import cards
-    #txt = '#trash(#chooseSubset(#getHand(), 4, T))'
-    #txt = 'x=#fromHand(4, T); #trash($x)'
-    txt = cards.getCardText('harbinger')
-    cmd = multicommand(txt)
-    print(cmd.execute())
-    cmd.setPlayerInput([1, 2, 3, 4])
-    print(cmd.execute())

@@ -27,7 +27,7 @@ class Game:
         self.nextCardID = 0
         self.gamestateID = 0
         # deck_cards = ['copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'copper', 'estate', 'estate', 'estate']
-        deck_cards = ['militia', 'witch', 'bandit', 'bureaucrat', 'throne_room', 'copper', 'copper', 'estate', 'estate', 'estate']
+        deck_cards = ['militia', 'bandit', 'bureaucrat', 'moat', 'throne_room', 'cellar', 'harbinger', 'library', 'sentry', 'vassal']
         custom_decks = [['cellar', 'village', 'village', 'village', 'village', 'copper', 'copper', 'copper', 'copper', 'copper'],
                         ['poacher', 'moneylender', 'harbinger', 'remodel', 'library', 'throne_room', 'copper', 'sentry', 'vassal', 'estate']]
         self.players = []

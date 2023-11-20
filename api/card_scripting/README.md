@@ -14,12 +14,14 @@
 ### Variables
 - Variables are used to store a value and then use it in multiple function inputs
 - Variables are assigned using commands of the format "\<varname>=#Function([args])"
-- Variables in function arguments are preceded by $. This causes them to be read as a variable and not a value
+- Variables in function arguments are preceded by $. This causes them to be read as a variable and not a string
 - Variables in arguments are replaced by their value before the command is run
 
 ### Values
 - A value not preceded by '$' will be read as a value. Often that will mean its cast to an int, but strings or bools are appropriate in some cases
 - Bools have values 'T' or 'F' in function inputs. These are NOT the values return by functions, which are real, non-string True/False values
+- Raw strings should be surrounded by backticks. Anything inside a raw string will be unaffected by the parser and it will remain an intact value
+  - This is only necessary when defining a multicommand inside an #execute() or #attack() call
 
 ### Notes
 - Multiple functions can be run in one card. They should be seperated by a semicolon and space
@@ -30,10 +32,11 @@
   - This asks the player to choose any number of cards in their hand, and assigns these cards to the variable x
   - It then discards the cards in x, and draws the number of cards in x
 - Very complicated example:
-- vassal runs '#changeCoins(2); x=#getFirst(#fromTop(1)); #discard($x); #cond(#eval(#getType($x), =, action), #cond(#getChoice("Play {}?", #getName($x)), #play($x)))'
+- vassal runs #changeCoins(2); x=#getFirst(#fromTop(1)); #discard($x); actions=#getSubset($x, #makeArray(type, =, action)); toPlay=#chooseSubset($actions, 1, #true()); #cond(#eval(#count($toPlay), >, 0), #play($toPlay)); #cond(#eval(#count($toPlay), >, 0), #execute(#getFirst($toPlay)));'
 - In order, this:
   - Increases coins by 2
   - sets the variable x to refer to the the first card from list of the top 1 cards of the deck, e.g. sets x to the top card of the deck
   - moves x to the discard pile
-  - Checks if x is an action card.
-  - If it is, asks the player "Play {name of x}?". If the player says yes, plays x.
+  - sets the variable actions to be each card in x that is an action (i.e. actions is one action card or empty)
+  - lets the player choose a card from actions and assigns their choice to toPlay
+  - if toPlay is not empty, move it to the play zone and execute its text
