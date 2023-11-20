@@ -191,6 +191,11 @@ def selected(game_id):
         return "yield"
 
     return "Hello World!"
+
+@app.route("/<int:game_id>/<int:player_id>/okclicked/")
+def reset_text(game_id, player_id):
+    games[game_id].players[games[game_id].get_player_number(player_id) - 1].set_text('Left click a card to play it.')
+    return 'text reset'
     
 @app.route("/getoptions/<int:game_id>/<int:player_id>/")
 def get_options(game_id, player_id):
@@ -265,7 +270,7 @@ def createtable():
         print("Table Created successfully")
 
     except:
-        print("Database not connected successfully")
+        raise ConnectionError('PostgresSQL rejected connection. Trying again')
     return "hi"
 
 
@@ -398,13 +403,6 @@ def get_games():
         ret[len(ret)] = {'id': game[0], 'vp': game[1]}
     conn.close()
     return ret
-
-@app.route("/debug/<int:game_id>/")
-def debug(game_id):
-    player = games[game_id].players[0]
-    cmd = player.cmd
-    return {'cmds': [com.command for com in cmd.commands], 'cmdStack': [[com.command for com in cmd.commands] for cmd in player.cmd_stack]}
-
 
 if __name__ == "__main__":
     createtable()

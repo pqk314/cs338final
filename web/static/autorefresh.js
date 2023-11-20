@@ -218,7 +218,11 @@ function doReveal(toReveal) {
         onclick: () => {
             document.querySelector('body').removeChild(document.querySelector('.blocker'));
             document.querySelector('body').removeChild(document.querySelector('#reveal'));
-            document.querySelector('#info-text').style.color = 'black'
+            document.querySelector('#info-text').style.color = 'black';
+            let xhr = new XMLHttpRequest();
+            xhr.open('get', 'okclicked', false);
+            xhr.send()
+            checkForUpdates(true);
         },
         innerHTML: 'OK'
     }));
