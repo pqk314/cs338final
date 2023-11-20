@@ -206,6 +206,12 @@ def selected(game_id, player_id):
     requests.post(f"http://api:5000/selected/{game_id}", json=req)
     return redirect(f'/{game_id}/{player_id}/')
 
+@app.route("/<int:game_id>/<int:player_id>/okclicked/")
+def reset_text(game_id, player_id):
+    requests.get(f"http://api:5000/{game_id}/{player_id}/okclicked")
+    return 'hi js'
+
+
 @app.route("/<int:game_id>/<int:player_id>/updates/")
 def updates(game_id, player_id):
     """Gets the updates that a player needs for the front end to be properly up-to-date."""
@@ -262,10 +268,6 @@ def game_browser():
             format_score += str(score) + '-'
         game['vp'] = format_score[:-1]
     return render_template('finished-games.html', games=games)
-
-@app.route("/<int:game_id>/debug/")
-def debug(game_id):
-    return requests.get(f"http://api:5000/debug/{game_id}").json()
 
 if __name__ == "__main__":
     app.static_folder = "./static"

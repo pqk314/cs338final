@@ -52,7 +52,7 @@ def changeZone(player, cards, zone):
         if dest == player.hand:
             player.update_list('add', card)
         if dest == player.in_play:
-            player.update_list('play', card['name'])
+            game.update_list_all_players('play', card['name'])
         dest.append(card)
         for p in game.players:
             p.updates['size_update'] = p.deck_info()
