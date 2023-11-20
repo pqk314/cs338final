@@ -51,6 +51,8 @@ def changeZone(player, cards, zone):
                 player.update_list('remove', removed)
         if dest == player.hand:
             player.update_list('add', card)
+        if dest == player.in_play:
+            player.update_list('play', card)
         dest.append(card)
         for p in game.players:
             p.updates['size_update'] = p.deck_info()
@@ -297,10 +299,10 @@ def chooseSubset(args, player):
     o = {'options': args[0], 'n': int(args[1]), 'canChooseLess': args[2]}
     if o['n'] >= len(o['options']) and not o['canChooseLess']:
         return o['options']
-    if o['n'] == 0 or len(o['options'] == 0):
+    if o['n'] == 0 or len(o['options']) == 0:
         return []
     if player.game.is_computer_game and player.game.currentPlayer != player:
-        return aiplayer.make_selection((o['options'], o['n'], o['canChooseLess']))
+        return aiplayer.make_selection(o['options'], o['n'], o['canChooseLess'])
     player.options = o
     return 'yield'
 
