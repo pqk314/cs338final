@@ -231,8 +231,11 @@ def data():
 def get_most_common_card(games):
     """gets the most common card in the final hands of all players given a list of games. Helper function to data()"""
     card_occurrence_dict = create_card_occurrence_dict(games)
-    most_common_card = max(card_occurrence_dict, key=card_occurrence_dict.get)
-    return most_common_card
+    if card_occurrence_dict:
+        most_common_card = max(card_occurrence_dict, key=card_occurrence_dict.get)
+        return most_common_card
+    else:
+        return "No games have been played"
 
 def create_card_occurrence_dict(games):
     """creates a dictionary that counts the occurrence of each card in the final hands of all players given a list of
