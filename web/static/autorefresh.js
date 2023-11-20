@@ -56,9 +56,7 @@ function change(updates) {
     if (updates.hasOwnProperty('size_update')) updateSizes(updates['size_update'])
 
     // this only removes in play cards and then checks whether the barrier should be removed, put up, or neither
-    if(updates.hasOwnProperty('new_turn')) {
-        document.querySelectorAll('#in-play img').forEach(element => document.querySelector('#in-play').removeChild(element));
-    }
+    if(updates.hasOwnProperty('new_turn')) document.querySelectorAll('#in-play img').forEach(element => document.querySelector('#in-play').removeChild(element));
 
     // puts up or removes barrier with instructions given by backend.
     if(updates.hasOwnProperty('barrier')) setBarrier(updates['barrier'])
