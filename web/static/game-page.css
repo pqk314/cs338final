@@ -38,7 +38,6 @@
 
 .select {
     position: absolute;
-    top: 250px;
     left: 50%;
     transform: translate(-50%, 0);
     width: 100%;
